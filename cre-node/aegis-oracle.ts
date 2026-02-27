@@ -474,6 +474,7 @@ const onAuditTrigger = (runtime: Runtime<Config>, log: EVMLog): string => {
 
     // Parse firewall rules
     let maxTax = 5, blockProxies = true, strictLogic = true, blockHoneypots = true, allowUnverified = false;
+    let blockSellRestriction = true, blockObfuscatedTax = true, blockPrivilegeEscalation = true, blockExternalCallRisk = true, blockLogicBomb = true;
     try {
         const parsed = JSON.parse(firewallConfig);
         if (typeof parsed.maxTax === 'number') maxTax = parsed.maxTax;
@@ -481,6 +482,12 @@ const onAuditTrigger = (runtime: Runtime<Config>, log: EVMLog): string => {
         if (typeof parsed.strictLogic === 'boolean') strictLogic = parsed.strictLogic;
         if (typeof parsed.blockHoneypots === 'boolean') blockHoneypots = parsed.blockHoneypots;
         if (typeof parsed.allowUnverified === 'boolean') allowUnverified = parsed.allowUnverified;
+        // Per-bit enable flags (default true if not present)
+        if (typeof parsed.blockSellRestriction === 'boolean') blockSellRestriction = parsed.blockSellRestriction;
+        if (typeof parsed.blockObfuscatedTax === 'boolean') blockObfuscatedTax = parsed.blockObfuscatedTax;
+        if (typeof parsed.blockPrivilegeEscalation === 'boolean') blockPrivilegeEscalation = parsed.blockPrivilegeEscalation;
+        if (typeof parsed.blockExternalCallRisk === 'boolean') blockExternalCallRisk = parsed.blockExternalCallRisk;
+        if (typeof parsed.blockLogicBomb === 'boolean') blockLogicBomb = parsed.blockLogicBomb;
     } catch { /* use defaults */ }
 
     // Fetch secrets (retrieved on handler runtime — fine for coordination)
@@ -539,14 +546,14 @@ const onAuditTrigger = (runtime: Runtime<Config>, log: EVMLog): string => {
     // AI bits (4-7):     source-code AI analysis (catches what GoPlus cannot see)
     // Defense in Depth: each layer uses different detection methods, both must miss for risk to pass through
     let riskMatrix = 0;
-    if (staticResult.unverifiedCode && !allowUnverified) riskMatrix |= 1;    // bit 0 (GoPlus)
-    if (staticResult.sellRestriction) riskMatrix |= 2;                        // bit 1 (GoPlus)
-    if (staticResult.honeypot && blockHoneypots) riskMatrix |= 4;             // bit 2 (GoPlus)
-    if (staticResult.proxyContract && blockProxies) riskMatrix |= 8;          // bit 3 (GoPlus)
-    if (obfuscatedTax) riskMatrix |= 16;                                       // bit 4 (AI)
-    if (privilegeEscalation) riskMatrix |= 32;                                 // bit 5 (AI — incl. transfer allowlist honeypots)
-    if (externalCallRisk) riskMatrix |= 64;                                    // bit 6 (AI)
-    if (logicBomb) riskMatrix |= 128;                                          // bit 7 (AI)
+    if (staticResult.unverifiedCode && !allowUnverified) riskMatrix |= 1;               // bit 0 (GoPlus)
+    if (staticResult.sellRestriction && blockSellRestriction) riskMatrix |= 2;           // bit 1 (GoPlus)
+    if (staticResult.honeypot && blockHoneypots) riskMatrix |= 4;                        // bit 2 (GoPlus)
+    if (staticResult.proxyContract && blockProxies) riskMatrix |= 8;                     // bit 3 (GoPlus)
+    if (obfuscatedTax && blockObfuscatedTax) riskMatrix |= 16;                           // bit 4 (AI)
+    if (privilegeEscalation && blockPrivilegeEscalation) riskMatrix |= 32;               // bit 5 (AI)
+    if (externalCallRisk && blockExternalCallRisk) riskMatrix |= 64;                     // bit 6 (AI)
+    if (logicBomb && blockLogicBomb) riskMatrix |= 128;                                  // bit 7 (AI)
 
     runtime.log(`⚖️ Final Risk Code: ${riskMatrix}`);
 
