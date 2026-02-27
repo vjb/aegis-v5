@@ -54,9 +54,8 @@ export async function GET() {
 
         const publicClient = createPublicClient({ chain: aegisTenderly, transport: http(rpc) });
 
-        // Fetch all events — last 10,000 blocks (safe for Tenderly)
-        const currentBlock = await publicClient.getBlockNumber();
-        const fromBlock = currentBlock > BigInt(10000) ? currentBlock - BigInt(10000) : BigInt(0);
+        // Fetch all events from genesis of this VNet
+        const fromBlock = BigInt(0);
 
         const [auditLogs, clearedLogs, deniedLogs, swapLogs] = await Promise.all([
             publicClient.getLogs({ address: moduleAddr, event: ABI[0], fromBlock }).catch(() => []),

@@ -1,25 +1,27 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Bot, Plus, Trash2, CheckCircle, XCircle, TrendingUp, AlertTriangle, RefreshCw, Loader2 } from 'lucide-react';
+import { Bot, Plus, Trash2, TrendingUp, AlertTriangle, RefreshCw, Loader2, ChevronDown } from 'lucide-react';
 
 type Agent = {
     address: string;
     allowance: string;
     allowanceEth: string;
     active: boolean;
-    // UI-only enrichment
     name?: string;
-    spent?: number;
-    clearances?: number;
-    blocks?: number;
 };
 
+// Real wallet addresses from the demo scripts
 const KNOWN_NAMES: Record<string, string> = {
-    '0x00000000000000000000000000000000000a1fa0': 'NOVA',
-    '0x00000000000000000000000000000000000b2fb1': 'CIPHER',
-    '0x00000000000000000000000000000000000c3fc2': 'PHANTOM',
+    // demo_2_multi_agent agents
+    '0xba5359fac9736e687c39d9613de3e8fa6c7af1ce': 'NOVA',
+    '0x6e9972213bf459853fa33e28ab7219e9157c8d02': 'CIPHER',
+    '0x7b1afe2745533d852d6fd5a677f14c074210d896': 'REX',
+    // demo_3_erc7579_architecture agent
+    '0xf5a5e415061470a8b9137959180901aea72450a4': 'PHANTOM',
 };
+
+const TRADE_TOKENS = ['BRETT', 'TOSHI', 'DEGEN', 'WETH', 'HoneypotCoin', 'TaxToken'];
 
 export default function AgentsTab({ isKilled, onAudit }: { isKilled: boolean; onAudit: (token: string) => void }) {
     const [agents, setAgents] = useState<Agent[]>([]);
@@ -29,10 +31,12 @@ export default function AgentsTab({ isKilled, onAudit }: { isKilled: boolean; on
 
     const [showForm, setShowForm] = useState(false);
     const [newAddr, setNewAddr] = useState('');
-    const [newName, setNewName] = useState('');
     const [newBudget, setNewBudget] = useState(0.05);
     const [submitting, setSubmitting] = useState(false);
     const [submitMsg, setSubmitMsg] = useState<string | null>(null);
+
+    // Per-agent token selection for Simulate Trade
+    const [selectedToken, setSelectedToken] = useState<Record<string, string>>({});
 
     const load = useCallback(async () => {
         setLoading(true); setError(null);
@@ -63,7 +67,7 @@ export default function AgentsTab({ isKilled, onAudit }: { isKilled: boolean; on
             const data = await res.json();
             if (data.error) throw new Error(data.error);
             setSubmitMsg(`✅ subscribeAgent() confirmed — tx: ${data.hash?.slice(0, 12)}…`);
-            setNewAddr(''); setNewName(''); setNewBudget(0.05); setShowForm(false);
+            setNewAddr(''); setNewBudget(0.05); setShowForm(false);
             await load();
         } catch (e: any) {
             setSubmitMsg(`❌ ${e.message}`);
@@ -131,15 +135,9 @@ export default function AgentsTab({ isKilled, onAudit }: { isKilled: boolean; on
             {showForm && (
                 <div className="card slide-in space-y-5">
                     <p className="mono text-xs font-semibold" style={{ color: 'var(--cyan)' }}>New Agent — subscribeAgent(addr, budget)</p>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label className="mono text-xs" style={{ color: 'var(--text-muted)' }}>Display Name (optional)</label>
-                            <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. REX" className="inp" />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="mono text-xs" style={{ color: 'var(--text-muted)' }}>Wallet Address *</label>
-                            <input value={newAddr} onChange={e => setNewAddr(e.target.value)} placeholder="0x…" className="inp" />
-                        </div>
+                    <div className="space-y-2">
+                        <label className="mono text-xs" style={{ color: 'var(--text-muted)' }}>Wallet Address *</label>
+                        <input value={newAddr} onChange={e => setNewAddr(e.target.value)} placeholder="0x…" className="inp" />
                     </div>
                     <div className="space-y-2">
                         <div className="flex justify-between mono text-xs">
@@ -173,7 +171,7 @@ export default function AgentsTab({ isKilled, onAudit }: { isKilled: boolean; on
             {!loading && agents.length === 0 && !error && (
                 <div className="text-center py-16 mono text-sm" style={{ color: 'var(--text-muted)' }}>
                     No subscribed agents found on this VNet.<br />
-                    <span style={{ color: 'var(--text-subtle)', fontSize: 12 }}>Subscribe your first agent above →</span>
+                    <span style={{ color: 'var(--text-subtle)', fontSize: 12 }}>Run a demo script first, or subscribe an agent above →</span>
                 </div>
             )}
 
@@ -182,6 +180,7 @@ export default function AgentsTab({ isKilled, onAudit }: { isKilled: boolean; on
                 {agents.map(agent => {
                     const budgetEth = parseFloat(agent.allowanceEth);
                     const name = agentName(agent.address);
+                    const tok = selectedToken[agent.address] || 'BRETT';
 
                     return (
                         <div key={agent.address} className="card slide-in"
@@ -212,8 +211,8 @@ export default function AgentsTab({ isKilled, onAudit }: { isKilled: boolean; on
                                 )}
                             </div>
 
-                            {/* Remaining budget */}
-                            <div className="space-y-2">
+                            {/* Budget */}
+                            <div className="mb-4">
                                 <div className="flex justify-between mono text-xs" style={{ color: 'var(--text-muted)' }}>
                                     <span>Remaining allowance</span>
                                     <span style={{ color: budgetEth < 0.001 ? 'var(--red)' : 'var(--cyan)' }}>
@@ -222,19 +221,45 @@ export default function AgentsTab({ isKilled, onAudit }: { isKilled: boolean; on
                                     </span>
                                 </div>
                                 {budgetEth < 0.001 && agent.active && (
-                                    <p className="mono text-xs flex items-center gap-1.5" style={{ color: 'var(--amber)' }}>
+                                    <p className="mono text-xs flex items-center gap-1.5 mt-1" style={{ color: 'var(--amber)' }}>
                                         <AlertTriangle className="w-3.5 h-3.5" /> Budget exhausted — re-subscribe to top up
                                     </p>
                                 )}
                             </div>
 
-                            {/* Quick audit trigger */}
-                            {agent.active && (
-                                <button onClick={() => onAudit('BRETT')} className="btn btn-ghost"
-                                    style={{ marginTop: 16, width: '100%', justifyContent: 'center', fontSize: 12 }}>
-                                    <TrendingUp className="w-3.5 h-3.5" /> Simulate Trade → Oracle Feed
+                            {/* Simulate Trade — inline token picker. Always visible; disabled for revoked agents */}
+                            <div className="flex gap-2" style={{ borderTop: '1px solid var(--border)', paddingTop: 14 }}>
+                                <div className="relative flex-shrink-0">
+                                    <select
+                                        value={tok}
+                                        onChange={e => setSelectedToken(p => ({ ...p, [agent.address]: e.target.value }))}
+                                        disabled={!agent.active || isKilled}
+                                        className="inp mono text-xs"
+                                        style={{
+                                            paddingRight: 28, appearance: 'none', height: 36,
+                                            cursor: agent.active ? 'pointer' : 'not-allowed',
+                                            opacity: agent.active ? 1 : 0.4, minWidth: 110,
+                                        }}
+                                    >
+                                        {TRADE_TOKENS.map(t => <option key={t} value={t}>{t}</option>)}
+                                    </select>
+                                    <ChevronDown className="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none"
+                                        style={{ color: 'var(--text-subtle)' }} />
+                                </div>
+                                <button
+                                    onClick={() => agent.active && !isKilled && onAudit(tok)}
+                                    disabled={!agent.active || isKilled}
+                                    className="btn btn-ghost"
+                                    style={{
+                                        flex: 1, justifyContent: 'center', fontSize: 12,
+                                        opacity: (!agent.active || isKilled) ? 0.4 : 1,
+                                        cursor: (!agent.active || isKilled) ? 'not-allowed' : 'pointer',
+                                    }}
+                                >
+                                    <TrendingUp className="w-3.5 h-3.5" />
+                                    {agent.active ? `Simulate Trade → Oracle Feed` : 'Agent Revoked'}
                                 </button>
-                            )}
+                            </div>
                         </div>
                     );
                 })}

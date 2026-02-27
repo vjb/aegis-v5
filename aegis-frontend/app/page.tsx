@@ -7,6 +7,7 @@ import FirewallTab from './components/FirewallTab';
 import AuditLogTab from './components/AuditLogTab';
 import MarketplaceTab from './components/MarketplaceTab';
 import OracleFeed from './components/OracleFeed';
+import AegisChat from './components/AegisChat';
 
 type Tab = 'agents' | 'firewall' | 'log' | 'marketplace';
 
@@ -95,10 +96,12 @@ export default function Home() {
         {/* Right — wallet pill + kill switch */}
         <div className="flex items-center gap-3">
 
-          {/* Wallet info pill */}
+          {/* Wallet info pill — shows owner (human) wallet, not agent wallets */}
           <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl mono text-xs"
             style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-bright)' }}>
             <Wallet className="w-3.5 h-3.5" style={{ color: 'var(--cyan)' }} />
+            <span style={{ color: 'var(--text-subtle)' }}>Owner</span>
+            <span style={{ color: 'var(--border-bright)' }}>·</span>
             {walletLoading ? (
               <span style={{ color: 'var(--text-muted)' }}>Loading…</span>
             ) : wallet?.error ? (
@@ -149,12 +152,12 @@ export default function Home() {
         </div>
       )}
 
-      {/* ── Body ── */}
+      {/* ── Body — 3-column layout ── */}
       <div className="flex flex-1 min-h-0">
 
-        {/* Left panel */}
-        <div className="flex flex-col min-h-0" style={{ width: '58%', borderRight: '1px solid var(--border)' }}>
-          <div className="flex items-center gap-1.5 px-6 py-3 flex-shrink-0"
+        {/* Left panel — Tabs (40%) */}
+        <div className="flex flex-col min-h-0" style={{ width: '40%', borderRight: '1px solid var(--border)' }}>
+          <div className="flex items-center gap-1.5 px-5 py-3 flex-shrink-0"
             style={{ borderBottom: '1px solid var(--border)', background: 'rgba(13,20,36,0.5)' }}>
             {tabs.map(t => {
               const Icon = t.icon;
@@ -168,7 +171,7 @@ export default function Home() {
             })}
           </div>
 
-          <div className="flex-1 overflow-y-auto" style={{ padding: '24px' }}>
+          <div className="flex-1 overflow-y-auto" style={{ padding: '20px' }}>
             {activeTab === 'agents' && <AgentsTab isKilled={isKilled} onAudit={(tok: string) => setTriggerAudit(tok)} />}
             {activeTab === 'firewall' && <FirewallTab />}
             {activeTab === 'log' && <AuditLogTab refreshTrigger={auditVersion} />}
@@ -176,9 +179,14 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Right panel — Oracle Feed */}
-        <div className="flex-1 flex flex-col min-h-0">
+        {/* Center panel — Oracle Feed (28%) */}
+        <div className="flex flex-col min-h-0" style={{ width: '28%', borderRight: '1px solid var(--border)' }}>
           <OracleFeed isKilled={isKilled} externalTrigger={triggerAudit} onTriggerConsumed={() => setTriggerAudit(null)} onComplete={() => setAuditVersion((v: number) => v + 1)} />
+        </div>
+
+        {/* Right panel — Aegis Chat (32%) */}
+        <div className="flex flex-col min-h-0" style={{ width: '32%' }}>
+          <AegisChat />
         </div>
       </div>
     </main>

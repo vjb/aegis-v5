@@ -74,10 +74,9 @@ export default function FirewallTab() {
                                     <p className="mono text-xs" style={{ color: 'var(--text-muted)' }}>{desc}</p>
                                 </div>
 
-                                {/* Bit indicator */}
-                                <span className="mono font-bold text-sm flex-shrink-0 w-5 text-center"
+                                <span className="mono font-bold text-xs flex-shrink-0 w-8 text-center"
                                     style={{ color: on ? 'var(--cyan)' : 'var(--text-subtle)' }}>
-                                    {on ? '1' : '0'}
+                                    {on ? 'ON' : 'OFF'}
                                 </span>
                             </button>
                         );

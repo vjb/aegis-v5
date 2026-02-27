@@ -38,6 +38,12 @@ export default function AuditLogTab({ refreshTrigger }: { refreshTrigger?: numbe
     // Reload on mount AND whenever an oracle audit completes (refreshTrigger increments)
     useEffect(() => { load(); }, [load, refreshTrigger]);
 
+    // Auto-refresh every 15 seconds
+    useEffect(() => {
+        const id = setInterval(load, 15000);
+        return () => clearInterval(id);
+    }, [load]);
+
     const BIT_NAMES = ['Unverified', 'SellRestriction', 'Honeypot', 'Proxy', 'ObfuscatedTax', 'PrivEscalation', 'ExtCallRisk', 'LogicBomb'];
     const decodeBits = (c: number) => BIT_NAMES.filter((_, i) => (c & (1 << i)) !== 0);
 
@@ -96,9 +102,14 @@ export default function AuditLogTab({ refreshTrigger }: { refreshTrigger?: numbe
 
             {/* Empty */}
             {!loading && events.length === 0 && !error && (
-                <div className="text-center py-16 mono text-sm" style={{ color: 'var(--text-muted)' }}>
-                    No audit events found on this VNet yet.<br />
-                    <span style={{ color: 'var(--text-subtle)', fontSize: 12 }}>Run an oracle audit from the right panel to generate events.</span>
+                <div className="text-center py-16 mono" style={{ color: 'var(--text-muted)' }}>
+                    <p className="text-sm mb-2">No audit events on this VNet yet.</p>
+                    <p style={{ color: 'var(--text-subtle)', fontSize: 11, lineHeight: 1.7 }}>
+                        This log shows on-chain events from{' '}
+                        <span style={{ color: 'var(--cyan)' }}>requestAudit()</span> and{' '}
+                        <span style={{ color: 'var(--cyan)' }}>onReportDirect()</span> calls.<br />
+                        Run <span style={{ color: 'var(--amber)' }}>demo_2_multi_agent.ps1</span> to generate NOVA / CIPHER / REX events.
+                    </p>
                 </div>
             )}
 
