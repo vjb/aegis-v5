@@ -122,8 +122,8 @@ export default function AgentsTab({ isKilled, onAudit }: { isKilled: boolean; on
                 <div className="fixed inset-0 z-50 flex items-center justify-center"
                     style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
                     onClick={e => e.target === e.currentTarget && setTradeModal(null)}>
-                    <div className="card" style={{ width: 420, padding: 28, background: 'var(--bg-elevated)', boxShadow: '0 24px 64px rgba(0,0,0,0.6)' }}>
-                        <div className="flex items-center justify-between mb-6">
+                    <div className="card" style={{ width: 460, padding: 32, background: 'var(--bg-elevated)', boxShadow: '0 24px 64px rgba(0,0,0,0.6)' }}>
+                        <div className="flex items-center justify-between" style={{ marginBottom: '24px' }}>
                             <div>
                                 <p className="mono font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
                                     Simulate Trade
@@ -137,9 +137,9 @@ export default function AgentsTab({ isKilled, onAudit }: { isKilled: boolean; on
                             </button>
                         </div>
 
-                        {/* Token picker — dropdown */}
-                        <div className="mb-6">
-                            <p className="mono text-xs mb-2.5" style={{ color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                        {/* Token picker */}
+                        <div style={{ marginBottom: '24px' }}>
+                            <p className="mono text-xs" style={{ color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>
                                 Select Token
                             </p>
                             <select
@@ -155,7 +155,7 @@ export default function AgentsTab({ isKilled, onAudit }: { isKilled: boolean; on
                                     {RISKY_TOKENS.map(t => <option key={t} value={t}>{t}</option>)}
                                 </optgroup>
                             </select>
-                            <p className="mono text-xs mt-2" style={{ color: 'var(--text-subtle)' }}>
+                            <p className="mono text-xs" style={{ color: 'var(--text-subtle)', marginTop: '10px' }}>
                                 {CLEAN_TOKENS.includes(tradeModal.token)
                                     ? '✅ This token should pass the CRE firewall'
                                     : '🚫 This token should be blocked by the CRE firewall'}
@@ -163,11 +163,11 @@ export default function AgentsTab({ isKilled, onAudit }: { isKilled: boolean; on
                         </div>
 
                         {/* Amount slider */}
-                        <div className="mb-6">
-                            <p className="mono text-xs mb-3" style={{ color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                        <div style={{ marginBottom: '28px' }}>
+                            <p className="mono text-xs" style={{ color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px' }}>
                                 Amount
                             </p>
-                            <div className="flex justify-between mono text-xs mb-2">
+                            <div className="flex justify-between mono text-xs" style={{ marginBottom: '8px' }}>
                                 <span style={{ color: 'var(--text-muted)' }}>Buy amount</span>
                                 <span style={{ color: 'var(--cyan)', fontWeight: 600 }}>{tradeModal.amount.toFixed(4)} ETH</span>
                             </div>
@@ -178,7 +178,7 @@ export default function AgentsTab({ isKilled, onAudit }: { isKilled: boolean; on
                                 value={tradeModal.amount}
                                 onChange={e => setTradeModal(m => m ? { ...m, amount: parseFloat(e.target.value) } : m)}
                                 style={{ width: '100%' }} />
-                            <div className="flex justify-between mono text-xs mt-1.5" style={{ color: 'var(--text-subtle)' }}>
+                            <div className="flex justify-between mono text-xs" style={{ color: 'var(--text-subtle)', marginTop: '8px' }}>
                                 <span>0.001 ETH</span>
                                 <span>{parseFloat(tradeModal.agent.allowanceEth).toFixed(4)} ETH max</span>
                             </div>
