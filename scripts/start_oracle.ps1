@@ -87,12 +87,11 @@ foreach ($yamlPath in @("cre-node/workflow.yaml", "cre-node/project.yaml")) {
 
 # ── Check Docker is running ───────────────────────────────────────────────────
 Write-Host "`n3. Checking Docker daemon..." -ForegroundColor Yellow
-try {
-    docker info 2>&1 | Out-Null
-    Write-Host "  > Docker is running ✅" -ForegroundColor Green
-} catch {
-    Write-Error "Docker is not running! Please start Docker Desktop and try again."
+$dockerCheck = docker ps 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Docker is not running! Please start Docker Desktop and try again.`n$dockerCheck"
 }
+Write-Host "  > Docker is running ✅" -ForegroundColor Green
 
 # ── Build and start Docker Compose ────────────────────────────────────────────
 Write-Host "`n4. Starting Chainlink CRE Oracle node (Docker Compose)..." -ForegroundColor Yellow

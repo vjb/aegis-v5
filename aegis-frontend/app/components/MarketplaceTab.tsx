@@ -85,7 +85,7 @@ export default function MarketplaceTab({ isKilled, onAudit }: { isKilled: boolea
                 {TEMPLATES.map(t => {
                     const rc = RISK_COLORS[t.riskLevel];
                     return (
-                        <div key={t.id} className="card">
+                        <div key={t.id} className="card" style={{ marginTop: '10px', marginBottom: '10px' }}>
 
                             <div className="flex items-start gap-4">
                                 {/* Icon */}

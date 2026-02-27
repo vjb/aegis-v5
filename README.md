@@ -21,34 +21,75 @@ Giving an autonomous AI trading agent your private key is like handing a robot a
 
 ## 🏦 The Solution: The Corporate Bank Account
 
-Think of your wallet as a **Corporate Bank Account**. The AI agent is issued a restricted **Corporate Credit Card** (an ERC-7715 Session Key). The Aegis Protocol is the **Compliance Department** that sits between every trade intent and execution.
+Think of your wallet as a **Corporate Bank Account**. The AI agent operates within strict, programmatic limits set by the human owner. The Aegis Protocol is the **Compliance Department** that intercepts every trade intent before any capital moves.
+
+> [!IMPORTANT]
+> **Transparency Note:** The diagrams below distinguish what is **running today** in V4 from what is on the **production roadmap**. Judges, auditors, and technical reviewers: please read both.
+
+---
+
+### What V4 Runs Today (Live on Tenderly Base Fork)
 
 ```
-AI Agent (Session Key / UserOp)
+AI Agent (EOA with private key — budget enforced on-chain)
+         │
+         │  cast send / viem direct RPC tx
+         ▼
+   AegisModule.sol (ERC-7579 Executor — deployed, verified)
+         │
+    requestAudit(token) ──►  AuditRequested event emitted on-chain
          │
          ▼
-   Smart Account  ──── ERC-4337 EntryPoint
+   Chainlink CRE DON  (live Docker node)
+   ┌─────────────────────────────────────┐
+   │  GoPlus Security API  (live)        │
+   │  BaseScan ConfidentialHTTP (live)   │
+   │  GPT-4o  +  Llama-3   (live)       │
+   │  8-bit riskScore aggregated         │
+   └─────────────────────────────────────┘
+         │
+    onReport(tradeId, riskScore)  ◄─  CRE node wallet signs & sends directly
          │
          ▼
-   AegisModule (ERC-7579 Executor)
-         │
-    requestAudit(token) ──── emits AuditRequested
-         │
-         ▼
-   Chainlink CRE DON
-   [GoPlus + GPT-4o + Llama-3]
-         │
-    onReport(tradeId, riskScore=0)
-         │
-         ▼
-   triggerSwap() ──── executeFromExecutor()
-         │
-         ▼
-   Smart Account executes Uniswap swap
-   (Zero capital ever touches the module)
+   riskScore == 0 → triggerSwap() → Uniswap V3 SwapRouter02
+   riskScore >  0 → ClearanceDenied — trade wiped, capital preserved
 ```
 
-**Security invariant:** The module holds **zero funds**. All capital stays in the Smart Account. The agent cannot move money without Chainlink CRE clearance.
+**What is NOT wired in V4** (agents use a funded EOA + private key, not a Smart Account):
+- ERC-4337 EntryPoint / UserOperations / Bundler (Pimlico)
+- ERC-7715 Session Key (no EIP-712 off-chain policy signature)
+- Chainlink Keystone Forwarder (oracle delivers `onReport()` directly)
+
+---
+
+### Production Roadmap (V5 — Full AA Stack)
+
+```
+AI Agent  (ERC-7715 Session Key — cryptographic budget policy)
+         │
+         │  signs ERC-4337 UserOperation → Pimlico Bundler
+         ▼
+   ERC-4337 EntryPoint
+         │
+         ▼
+   Safe Smart Account  (ERC-7579 — installModule: AegisModule)
+         │
+    requestAudit(token)  ──►  AuditRequested event
+         │
+         ▼
+   Chainlink CRE DON  (same oracle, same 8-bit risk matrix)
+         │
+    Chainlink Keystone Forwarder  ──►  onReport(tradeId, riskScore)
+         │
+         ▼
+   riskScore == 0 → executeFromExecutor()
+         │
+         ▼
+   Safe Smart Account executes Uniswap swap
+   (Zero capital ever in the module — true zero-custody)
+```
+
+**Security invariant (V4 and V5):** The oracle is the same, the 8-bit risk matrix is the same, the module logic is the same. V5 adds the AA custody layer on top — the oracle and module require no changes.
 
 ---
 
