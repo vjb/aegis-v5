@@ -201,8 +201,8 @@ const performStaticAnalysis = (
         // /token endpoint with APP_KEY + APP_SECRET + time as form params.
         const tokenRes = confidentialClient.sendRequest(nodeRuntime, {
             vaultDonSecrets: [
-                { key: "AEGIS_GOPLUS_APP_KEY", namespace: "aegis" },
-                { key: "AEGIS_GOPLUS_APP_SECRET", namespace: "aegis" },
+                { key: "AEGIS_GOPLUS_KEY", namespace: "aegis" },
+                { key: "AEGIS_GOPLUS_SECRET", namespace: "aegis" },
             ],
             request: {
                 url: "https://api.gopluslabs.io/api/v1/token",
@@ -220,7 +220,7 @@ const performStaticAnalysis = (
             try {
                 const tokenBody = JSON.parse(new TextDecoder().decode(tokenRes.body));
                 goPlusToken = tokenBody.result?.access_token || "";
-                nodeRuntime.log(`[GoPlus] JWT acquired — authenticated tier unlocked`);
+                nodeRuntime.log(`[GoPlus] JWT acquired — AEGIS_GOPLUS_KEY stays inside the Decentralized Oracle Network`);
             } catch { nodeRuntime.log(`[GoPlus] JWT parse failed — falling back to unauthenticated`); }
         } else {
             nodeRuntime.log(`[GoPlus] Auth HTTP ${tokenRes.statusCode} — falling back to unauthenticated`);
@@ -233,7 +233,7 @@ const performStaticAnalysis = (
         let goPlusRes: any;
         if (goPlusToken) {
             goPlusRes = confidentialClient.sendRequest(nodeRuntime, {
-                vaultDonSecrets: [{ key: "AEGIS_GOPLUS_APP_KEY", namespace: "aegis" }],
+                vaultDonSecrets: [{ key: "AEGIS_GOPLUS_KEY", namespace: "aegis" }],
                 request: {
                     url: goPlusUrl,
                     method: "GET",
@@ -489,8 +489,8 @@ const onAuditTrigger = (runtime: Runtime<Config>, log: EVMLog): string => {
     const basescanKey = runtime.getSecret({ id: "AEGIS_BASESCAN_SECRET" }).result().value;
     const openAiKey = runtime.getSecret({ id: "AEGIS_OPENAI_SECRET" }).result().value;
     const groqKey = runtime.getSecret({ id: "AEGIS_GROQ_SECRET" }).result().value;
-    const goPlusAppKey = runtime.getSecret({ id: "AEGIS_GOPLUS_APP_KEY" }).result().value;
-    const goPlusAppSecret = runtime.getSecret({ id: "AEGIS_GOPLUS_APP_SECRET" }).result().value;
+    const goPlusAppKey = runtime.getSecret({ id: "AEGIS_GOPLUS_KEY" }).result().value;
+    const goPlusAppSecret = runtime.getSecret({ id: "AEGIS_GOPLUS_SECRET" }).result().value;
 
     // ── Phase 1: GoPlus (runInNodeMode — non-BFT API, BFT median aggregation) ──
     // GoPlus JWT auth via ConfidentialHTTPClient — APP_KEY/SECRET stay inside DON
