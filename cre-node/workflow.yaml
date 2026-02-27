@@ -8,4 +8,4 @@ tenderly-fork:
     secrets-path: "./secrets.yaml"
   rpcs:
     - chain-name: "ethereum-mainnet-base-1"
-      url: "https://virtual.base.eu.rpc.tenderly.co/aa470a4f-6bcc-4935-b08b-84d32732eaae"
+      url: "https://virtual.base.eu.rpc.tenderly.co/b56974ef-27d1-4492-8975-4a1a99fd4c62"

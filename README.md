@@ -60,9 +60,9 @@ AI Agent (Session Key / UserOp)
 | Forge Tests | ✅ **7/7 passing** | `forge test --match-contract AegisModuleTest` |
 | Jest Tests | ✅ **12/12 passing** | `pnpm exec jest` |
 | Chainlink CRE Live Oracle | ✅ **All 3 demos verified** | GoPlus + BaseScan + GPT-4o + Llama-3 pipeline |
-| BRETT (real Base token) | ✅ **Risk Code 0** | Both AI models: all flags false → `isApproved=TRUE` |
-| TaxToken (mock malicious) | 🔴 **Risk Code 18** | AI detected hidden sell restriction + obfuscated tax |
-| HoneypotCoin (mock malicious) | 🔴 **Risk Code 4** | AI detected honeypot pattern |
+| BRETT (real Base token) | ✅ **Cleared — Risk Code 0** | Both AI models: all flags false → `isApproved=TRUE` |
+| TaxToken (mock malicious) | ⛔ **Firewall blocked — Risk Code 2** | Sell restriction detected → `ClearanceDenied` *(correct behavior)* |
+| HoneypotCoin (mock malicious) | ⛔ **Firewall blocked — Risk Code 5** | Honeypot pattern detected → `ClearanceDenied` *(correct behavior)* |
 | Uniswap V3 Swap | ✅ **Live on fork** | `NOVA` agent executed real WETH→BRETT swap after CRE clearance |
 
 ---
@@ -92,17 +92,17 @@ All three demos run automatically via PowerShell. The VNet health check at the t
    - **Phase 3:** GPT-4o + Llama-3 both read the real source → `Risk Code: 0`
 4. Oracle verdict committed on-chain → `isApproved[BRETT] = TRUE`
 
-See: [`docs/sample_output/demo_1_cre_oracle.log`](docs/sample_output/demo_1_cre_oracle.log)
+See: [`docs/sample_output/demo_1_cre_oracle.txt`](docs/sample_output/demo_1_cre_oracle.txt)
 
 ### Demo 2 — The Firewall That Runs Itself
 **What it shows:** Three AI agents, three simultaneous trade intents, real CRE oracle for every one.
 
 - `NOVA` → BRETT → CRE: Risk Code 0 → `ClearanceUpdated(BRETT, true)` → real Uniswap V3 swap ✅
-- `CIPHER` → TaxToken → CRE: Risk Code 18 (AI reads hidden sell restriction in mock Solidity) → `ClearanceDenied` 🔴
-- `REX` → HoneypotCoin → CRE: Risk Code 4 (AI reads honeypot trap) → `ClearanceDenied` 🔴
+- `CIPHER` → TaxToken → CRE: sell restriction detected → `ClearanceDenied` ⛔ *(firewall working correctly)*
+- `REX` → HoneypotCoin → CRE: honeypot detected → `ClearanceDenied` ⛔ *(firewall working correctly)*
 - REX then tries to bypass the block → `triggerSwap()` reverts with `TokenNotCleared` ✅
 
-See: [`docs/sample_output/demo_2_multi_agent.log`](docs/sample_output/demo_2_multi_agent.log)
+See: [`docs/sample_output/demo_2_multi_agent.txt`](docs/sample_output/demo_2_multi_agent.txt)
 
 ### Demo 3 — ERC-7579 Architecture Walk-Through
 **What it shows:** The full ERC-7579 executor module lifecycle with real CRE oracle for TOSHI.

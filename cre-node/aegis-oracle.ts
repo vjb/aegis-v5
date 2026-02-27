@@ -172,7 +172,8 @@ const performStaticAnalysis = (
     const { log, goPlusAppKey, goPlusAppSecret } = input;
     let unverifiedCode = 0, sellRestriction = 0, honeypot = 0, proxyContract = 0;
     const confidentialClient = new ConfidentialHTTPClient();
-    const httpClient = new HTTPClient(); // fallback only
+    // NOTE: no plain HTTPClient — ALL external calls go through ConfidentialHTTPClient
+    // even unauthenticated GoPlus calls. Privacy track: zero plain HTTP from the DON.
 
     if (!log.topics || log.topics.length < 4) {
         throw new Error("Invalid log topics for AuditRequested");
@@ -226,24 +227,21 @@ const performStaticAnalysis = (
             nodeRuntime.log(`[GoPlus] Auth HTTP ${tokenRes.statusCode} — falling back to unauthenticated`);
         }
 
-        // ── Step 2: Call token_security with Bearer token (or unauthenticated fallback) ──
-        nodeRuntime.log(`[GoPlus] Fetching token_security for ${targetAddress} (auth=${!!goPlusToken})`);
+        // ── Step 2: Call token_security — always via ConfidentialHTTPClient ──
+        // All external calls go through the DON's confidential channel.
+        // Authenticated: Bearer token. Unauthenticated: no auth header, same channel.
+        nodeRuntime.log(`[GoPlus] Fetching token_security for ${targetAddress} (auth=${!!goPlusToken}) via ConfidentialHTTPClient`);
         const goPlusUrl = `https://api.gopluslabs.io/api/v1/token_security/8453?contract_addresses=${targetAddress}`;
 
-        let goPlusRes: any;
-        if (goPlusToken) {
-            goPlusRes = confidentialClient.sendRequest(nodeRuntime, {
-                vaultDonSecrets: [{ key: "AEGIS_GOPLUS_KEY", namespace: "aegis" }],
-                request: {
-                    url: goPlusUrl,
-                    method: "GET",
-                    multiHeaders: { "Authorization": { values: [`Bearer ${goPlusToken}`] } }
-                }
-            }).result();
-        } else {
-            // Unauthenticated fallback (free tier)
-            goPlusRes = httpClient.sendRequest(nodeRuntime, { method: "GET", url: goPlusUrl }).result();
-        }
+        const goPlusReq: any = {
+            vaultDonSecrets: goPlusToken ? [{ key: "AEGIS_GOPLUS_KEY", namespace: "aegis" }] : [],
+            request: {
+                url: goPlusUrl,
+                method: "GET",
+                ...(goPlusToken && { multiHeaders: { "Authorization": { values: [`Bearer ${goPlusToken}`] } } })
+            }
+        };
+        const goPlusRes = confidentialClient.sendRequest(nodeRuntime, goPlusReq).result();
 
         nodeRuntime.log(`[GoPlus] HTTP ${goPlusRes.statusCode}`);
         if (goPlusRes.statusCode !== 200) throw new Error(`GoPlus Error: ${goPlusRes.statusCode}`);
@@ -486,11 +484,19 @@ const onAuditTrigger = (runtime: Runtime<Config>, log: EVMLog): string => {
     } catch { /* use defaults */ }
 
     // Fetch secrets (retrieved on handler runtime — fine for coordination)
+    // GoPlus keys are optional — if not registered, GoPlus runs unauthenticated (free tier).
+    // All other secrets (BaseScan, OpenAI, Groq) are required for full AI pipeline.
     const basescanKey = runtime.getSecret({ id: "AEGIS_BASESCAN_SECRET" }).result().value;
     const openAiKey = runtime.getSecret({ id: "AEGIS_OPENAI_SECRET" }).result().value;
     const groqKey = runtime.getSecret({ id: "AEGIS_GROQ_SECRET" }).result().value;
-    const goPlusAppKey = runtime.getSecret({ id: "AEGIS_GOPLUS_KEY" }).result().value;
-    const goPlusAppSecret = runtime.getSecret({ id: "AEGIS_GOPLUS_SECRET" }).result().value;
+    let goPlusAppKey = '', goPlusAppSecret = '';
+    try {
+        goPlusAppKey = runtime.getSecret({ id: "AEGIS_GOPLUS_KEY" }).result().value || '';
+        goPlusAppSecret = runtime.getSecret({ id: "AEGIS_GOPLUS_SECRET" }).result().value || '';
+    } catch {
+        // AEGIS_GOPLUS_KEY / AEGIS_GOPLUS_SECRET not yet registered — using unauthenticated GoPlus (free tier).
+        // Register via: cre workflow secrets set --id AEGIS_GOPLUS_KEY --value <key>
+    }
 
     // ── Phase 1: GoPlus (runInNodeMode — non-BFT API, BFT median aggregation) ──
     // GoPlus JWT auth via ConfidentialHTTPClient — APP_KEY/SECRET stay inside DON

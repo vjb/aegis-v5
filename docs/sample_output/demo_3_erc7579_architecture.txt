@@ -1,0 +1,99 @@
+  🔎 Checking Tenderly VNet health...
+  ✅ VNet healthy (block: 42711963)
+
+======================================================================
+  AEGIS PROTOCOL V4  *  DEMO 3: THE ZERO-CUSTODY MODULE
+======================================================================
+
+  Targets:  Tenderly VNets (5K) | DeFi & Tokenization (20K)
+
+  This is the architecture demo for technical judges.
+  One agent — PHANTOM — runs the complete ERC-7579 lifecycle.
+
+  AegisModule is a 186-line ERC-7579 Executor Module.
+  It holds zero funds of its own — capital flows through it.
+  Any ERC-4337 Smart Account can install it in one transaction.
+
+  MODULE:  0x46d40e0aBdA0814bb0CB323B2Bb85a129d00B0AC
+  AGENT:   PHANTOM (0xF5A5E415061470A8b9137959180901aEa72450a4)
+  TENDERLY: https://virtual.base.eu.rpc.tenderly.co/7222775d-7276-4069-abf2-f457bc1f6572
+  VERIFIED: https://virtual.base.eu.rpc.tenderly.co/7222775d-7276-4069-abf2-f457bc1f6572/address/0x46d40e0aBdA0814bb0CB323B2Bb85a129d00B0AC
+
+  [1a] Calling onInstall(0x) as the Smart Account...
+  >   cast send AegisModule 'onInstall(bytes)' 0x
+  OK  onInstall() confirmed on-chain
+  [1b] Verifying module type...
+  >   cast call AegisModule 'isModuleType(uint256)' 2
+  >>  isModuleType(2) = 0x0000000000000000000000000000000000000000000000000000000000000001  (expected: 0x0000...0001 = true)
+  [1c] Reading module metadata...
+  >>  name()    = 0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000b41656769734d6f64756c65000000000000000000000000000000000000000000
+  >>  version() = 0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000005342e302e30000000000000000000000000000000000000000000000000000000
+  [2a] Funding agent gas wallet via Tenderly faucet...
+  OK  PHANTOM funded with 0.01 ETH gas
+  [2b] Depositing 0.05 ETH into module treasury...
+  OK  TreasuryDeposit(owner, 50000000000000000) emitted
+  >>  Module treasury: 0x00000000000000000000000000000000000000000000000002a303fe4b530000 (raw wei)
+  [2c] Subscribing PHANTOM with 0.02 ETH budget...
+  OK  AgentSubscribed(PHANTOM, 20000000000000000) emitted
+  >>  PHANTOM on-chain budget: 0x00000000000000000000000000000000000000000000000000470de4df820000 (raw wei)
+  *** MODULE BALANCE vs AGENT WALLET — completely separate. Zero custody.
+  [3a] PHANTOM fires requestAudit(SafeToken)...
+  >   cast send AegisModule 'requestAudit(address)' 0x000000000000000000000000000000000000000a --private-key PHANTOM
+  OK  AuditRequested(tradeId=4, PHANTOM, TOSHI, firewallConfig) emitted
+  >>  Tx: 0xb53f25a7d6d3db5036897b360a0c583fed3d9b865b168f2661c229ad30cfafe1
+  >>  Tenderly: https://virtual.base.eu.rpc.tenderly.co//tx/0xb53f25a7d6d3db5036897b360a0c583fed3d9b865b168f2661c229ad30cfafe1
+  *** Open Tenderly now — you should see AuditRequested decoded in the Events tab
+  >>  getTradeRequest(4): 0x000000000000000000000000ac1bd2486aaf3b5c0fc3fd868558b082a531b2b40000000000000000000000000000000000000000000000000000000000000001
+  [4a] Running Chainlink CRE oracle for TOSHI...
+  --------------------------------------------------------------------
+  🔗 CHAINLINK CRE — WASM SANDBOX OUTPUT
+  --------------------------------------------------------------------
+
+
+  --------------------------------------------------------------------
+  CRE oracle returned riskCode=0 for TOSHI
+
+  [4b] Committing CRE oracle verdict on-chain: onReportDirect(4, 0)...
+  OK  ClearanceUpdated(TOSHI, true) emitted
+  >>  isApproved[SafeToken] = 0x0000000000000000000000000000000000000000000000000000000000000001  (expected: 0x01 = true)
+  [4b] PHANTOM executes triggerSwap(SafeToken, 0.01 ETH)...
+  >   cast send AegisModule 'triggerSwap(address,uint256,uint256)' SafeToken 10000000000000000 1 --pk PHANTOM
+  OK  Swap transaction on-chain!
+  >>  SwapTx: 0xf15c9be0ae612847ad681c6d90795495ce27a62b7de32b9a926b19087e0a661a
+  >>  Tenderly: https://virtual.base.eu.rpc.tenderly.co/7222775d-7276-4069-abf2-f457bc1f6572/tx/0xf15c9be0ae612847ad681c6d90795495ce27a62b7de32b9a926b19087e0a661a
+  *** Open Tenderly => Call Trace => AegisModule.triggerSwap() => UniswapV3Router.exactInputSingle()
+  >>  PHANTOM remaining budget: 0x000000000000000000000000000000000000000000000000002386f26fc10000 (0.02 ETH - 0.01 ETH = 0.01 ETH)
+  [5a] Checking clearance state after swap...
+  >>  isApproved[SafeToken] = 0x0000000000000000000000000000000000000000000000000000000000000000  (should be 0x00 = false, clearance consumed)
+  [5b] PHANTOM attempts second swap — no re-audit...
+  REVERT: TokenNotCleared
+  OK  Anti-replay confirmed. Second swap blocked. CEI pattern works.
+  [6a] Calling onUninstall(0x)...
+  >   cast send AegisModule 'onUninstall(bytes)' 0x
+  OK  onUninstall() executed. Module cleanly detached.
+
+  *** OPEN TENDERLY EXPLORER NOW — navigate to:
+  https://virtual.base.eu.rpc.tenderly.co/7222775d-7276-4069-abf2-f457bc1f6572/address/0x46d40e0aBdA0814bb0CB323B2Bb85a129d00B0AC
+
+  You should see (decoded by our verification):
+    onInstall / depositETH / subscribeAgent / requestAudit
+    onReportDirect / triggerSwap / onUninstall
+  All decoded — because the contract is verified on this VNet.
+
+======================================================================
+  DEMO 3 COMPLETE — ERC-7579 MODULE LIFECYCLE VERIFIED
+======================================================================
+
+  ERC-7579 LIFECYCLE:
+    onInstall()      => Module activated on Smart Account
+    depositETH()     => Treasury funded
+    subscribeAgent() => PHANTOM hired with 0.02 ETH budget
+    requestAudit()   => Trade intent on-chain (tradeId=0)
+    onReportDirect() => Oracle clearance delivered
+    triggerSwap()    => Uniswap V3 exactInputSingle()
+    triggerSwap() x2 => REVERT: TokenNotCleared (anti-replay)
+    onUninstall()    => Module cleanly detached
+
+  AegisModule is 186 lines of Solidity.
+  Zero custody. Zero privileged roles. Zero storage leakage.
+

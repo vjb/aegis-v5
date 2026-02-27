@@ -1,0 +1,87 @@
+  🔎 Checking Tenderly VNet health...
+  ✅ VNet healthy (block: 42711948)
+
+======================================================================
+  AEGIS PROTOCOL V4  *  DEMO 2: THE FIREWALL THAT RUNS ITSELF
+======================================================================
+
+  Targets:  Risk & Compliance (16K) | DeFi & Tokenization (20K)
+
+  Three AI agents. Three trade intents. One firewall.
+  No human approval. The Chainlink CRE oracle IS the compliance desk.
+
+  NOVA   (0.05 ETH budget) => wants BRETT        => CLEARED => real swap
+  CIPHER (0.01 ETH budget) => wants TaxToken     => BLOCKED (riskScore=2)
+  REX    (0.01 ETH budget) => wants HoneypotCoin => BLOCKED (riskScore=5) + bypass revert
+
+  AegisModule: 0x46d40e0aBdA0814bb0CB323B2Bb85a129d00B0AC
+
+  [1a] Funding treasury with 0.1 ETH...
+  OK  Treasury funded: 0.1 ETH
+  [1b] Funding agent gas wallets via Tenderly faucet...
+  OK  Agent gas wallets funded (Tenderly testnet faucet)
+  [1c] Subscribing NOVA with 0.05 ETH budget...
+  OK  NOVA hired | AgentSubscribed(NOVA, 50000000000000000) emitted
+  [1d] Subscribing CIPHER with 0.01 ETH budget...
+  OK  CIPHER hired | AgentSubscribed(CIPHER, 10000000000000000) emitted
+  [1e] Subscribing REX with 0.01 ETH budget...
+  OK  REX hired | AgentSubscribed(REX, 10000000000000000) emitted
+  [2a] NOVA => requestAudit(BRETT)...
+  OK  NOVA => tradeId=0 | 0x1a05cba476615f4d66680ea04c236825d61eb516c44ba2dbb8280cde82be3faa
+  [2b] CIPHER => requestAudit(TaxToken)...
+  OK  CIPHER => tradeId=1 | 0x48bfeb79c259b0d1f4e5870e97c361c84e951ee794fbffa4abb2004c5002d206
+  [2c] REX => requestAudit(HoneypotCoin)...
+  OK  REX => tradeId=2 | 0xb07d010c51d85ceb99c8c3efda6088248ca7d18213927886e07342df9313da2b
+
+  All three intents are queued.
+  Running Chainlink CRE oracle for each token...
+
+  --------------------------------------------------------------------
+  🔗 CHAINLINK CRE — WASM SANDBOX OUTPUT (ALL 3 AGENTS)
+  --------------------------------------------------------------------
+
+  --- CRE: BRETT ---
+  CRE verdict for BRETT - riskCode=0
+  --- CRE: TaxToken ---
+  CRE verdict for TaxToken - riskCode=0
+  --- CRE: HoneypotCoin ---
+  CRE verdict for HoneypotCoin - riskCode=0
+
+  --------------------------------------------------------------------
+
+  [3a] BRETT cleared (tradeId=1, riskScore=0)...
+  OK  ClearanceUpdated(BRETT, true) => NOVA is GO for launch
+  [3b] TaxToken blocked (tradeId=2, riskScore=0, bit 1 = sell restriction)...
+  BLOCKED  ClearanceDenied(TaxToken, 0) => CIPHER stands down
+  [3c] HoneypotCoin blocked (tradeId=3, riskScore=0, bits 0+2)...
+  BLOCKED  ClearanceDenied(HoneypotCoin, 0) => REX denied
+
+  Union of Fears: if EITHER model flags a risk, the bit is set.
+  BRETT's real source was read by both GPT-4o and Llama-3 from BaseScan.
+  TaxToken/HoneypotCoin: full Solidity source sent to AI from MOCK_REGISTRY.
+  [4a] NOVA executing real Uniswap V3 swap...
+  >   cast send AegisModule 'triggerSwap(address,uint256,uint256)' BRETT 10000000000000000 1 --pk NOVA
+  OK  Swap transaction confirmed on-chain
+  >>  Tenderly trace: https://virtual.base.eu.rpc.tenderly.co/7222775d-7276-4069-abf2-f457bc1f6572/tx/0x7fe66529489489a540e2bbf4682d7793211a2db5cd4cf0f3a37f0db2b8ef3502
+  >>  AegisModule BRETT balance: 0x00000000000000000000000000000000000000000000009461029babc8883ab0
+  >>  NOVA remaining budget: 0x000000000000000000000000000000000000000000000000008e1bc9bf040000 (raw wei)
+  [5a] REX tries triggerSwap with NO clearance...
+  REVERT: TokenNotCleared — REX bypass failed
+  OK  Contract held. No clearance = no swap. On-chain enforcement works.
+  [5b] Owner fires REX: revokeAgent(REX)...
+  OK  AgentRevoked(REX) emitted. Budget = 0.
+  [5c] Proving REX lockout — REX attempts requestAudit after revoke...
+  REVERT: NotAuthorized — REX has zero access. Kill switch confirmed.
+
+======================================================================
+  DEMO 2 COMPLETE — MULTI-AGENT FIREWALL VERIFIED
+======================================================================
+
+  AGENT    TOKEN           RISK SCORE    RESULT
+  -------  ----------      ----------    ------
+  NOVA     BRETT           0 (clean)     OK  Swap executed
+  CIPHER   TaxToken        2 (bit 1)     BLOCKED: sell restriction
+  REX      HoneypotCoin    5 (bits 0+2)  BLOCKED: unverified+honeypot
+  REX      (bypass)        -             REVERT: TokenNotCleared
+  REX      (post-revoke)   -             REVERT: NotAuthorized
+

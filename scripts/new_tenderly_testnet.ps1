@@ -110,22 +110,19 @@ foreach ($yamlPath in @("cre-node/workflow.yaml", "cre-node/project.yaml")) {
     }
 }
 
-# ── 4. Fund Test Wallets ──────────────────────────────────────────────
-Write-Host "`n4. Bootstrapping test wallets via Tenderly Cheatcodes..." -ForegroundColor Yellow
+# ── 4. Fund Deployer Wallet ───────────────────────────────────────────────
+Write-Host "`n4. Funding deployer wallet via Tenderly cheatcode..." -ForegroundColor Yellow
 
-$FundDeployer = '{"jsonrpc":"2.0","method":"tenderly_setBalance","params":[["' + $DevWallet + '"],"0x56BC75E2D63100000"],"id":1}'
-$FundAgent    = '{"jsonrpc":"2.0","method":"tenderly_setBalance","params":[["0x00000000000000000000000000000000000A1FA0"],"0x8AC7230489E80000"],"id":1}'
-$FundAnvil    = '{"jsonrpc":"2.0","method":"tenderly_setBalance","params":[["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"],"0x8AC7230489E80000"],"id":1}'
+# 0xDE0B6B3A7640000 = 1 ETH in wei (hex)
+# Deployer needs: ~0.01 ETH gas (deploy) + 0.15 ETH treasury (demos) = 0.2 ETH max
+# Fund with 2 ETH to be comfortable across all three demo scripts
+$FundDeployer = '{"jsonrpc":"2.0","method":"tenderly_setBalance","params":[["' + $DevWallet + '"],"0x1BC16D674EC80000"],"id":1}'
 
 try {
     Invoke-RestMethod -Uri $NewRpcUrl -Method POST -Headers @{ "Content-Type" = "application/json" } -Body $FundDeployer | Out-Null
-    Write-Host "  > Deployer (Owner) funded with 100 ETH" -ForegroundColor Green
-    Invoke-RestMethod -Uri $NewRpcUrl -Method POST -Headers @{ "Content-Type" = "application/json" } -Body $FundAgent | Out-Null
-    Write-Host "  > Agent funded with 10 ETH" -ForegroundColor Green
-    Invoke-RestMethod -Uri $NewRpcUrl -Method POST -Headers @{ "Content-Type" = "application/json" } -Body $FundAnvil | Out-Null
-    Write-Host "  > Default Anvil account funded with 10 ETH" -ForegroundColor Green
+    Write-Host "  > Deployer funded with 2 ETH (enough for all demo operations)" -ForegroundColor Green
 } catch {
-    Write-Warning "Failed to fund wallets: $_"
+    Write-Warning "Failed to fund deployer wallet: $_"
 }
 
 # ── 5. Deploy AegisModule (V4) ─────────────────────────────────────────

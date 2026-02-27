@@ -349,15 +349,15 @@ Pause "Press ENTER for the closing summary."
 Write-Host ""
 Banner "🏁 DEMO 1 COMPLETE — CHAINLINK CRE ORACLE VERIFIED" $GREEN
 Write-Host "  ┌──────────────────────────────────────────────────────────────────┐" -ForegroundColor DarkGray
-Write-Host "  │ ✅ AuditRequested emitted on-chain                              │" -ForegroundColor $GREEN
-Write-Host "  │ ✅ CRE WASM sandbox activated by EVM log trigger               │" -ForegroundColor $GREEN
-Write-Host "  │ ✅ Phase 1: GoPlus static analysis (BFT node-mode consensus)   │" -ForegroundColor $GREEN
-Write-Host "  │ 🔐 Phase 2: BaseScan via ConfidentialHTTPClient                │" -ForegroundColor $MAGENTA
-Write-Host "  │    API key NEVER left the Decentralized Oracle Network         │" -ForegroundColor $MAGENTA
-Write-Host "  │ 🤖 Phase 3: GPT-4o + Llama-3 dual AI consensus                │" -ForegroundColor $CYAN
-Write-Host "  │    Both models read the real BRETT contract source            │" -ForegroundColor $CYAN
-Write-Host "  │    Union of Fears: blocked if EITHER model flags a risk       │" -ForegroundColor $CYAN
-Write-Host "  │ ✅ onReport delivered via Chainlink KeystoneForwarder          │" -ForegroundColor $GREEN
-Write-Host "  │ ✅ isApproved[BRETT] read on-chain — verdict is immutable      │" -ForegroundColor $WHITE
+Write-Host "    ✅ AuditRequested emitted on-chain" -ForegroundColor $GREEN
+Write-Host "    ✅ CRE WASM sandbox activated by EVM log trigger" -ForegroundColor $GREEN
+Write-Host "    ✅ Phase 1: GoPlus static analysis (BFT node-mode consensus)" -ForegroundColor $GREEN
+Write-Host "    🔐 Phase 2: BaseScan via ConfidentialHTTPClient" -ForegroundColor $MAGENTA
+Write-Host "       API key NEVER left the Decentralized Oracle Network" -ForegroundColor $MAGENTA
+Write-Host "    🤖 Phase 3: GPT-4o + Llama-3 dual AI consensus" -ForegroundColor $CYAN
+Write-Host "       Both models read the real BRETT contract source" -ForegroundColor $CYAN
+Write-Host "       Union of Fears: blocked if EITHER model flags a risk" -ForegroundColor $CYAN
+Write-Host "    ✅ onReport delivered via Chainlink KeystoneForwarder" -ForegroundColor $GREEN
+Write-Host "    ✅ isApproved[BRETT] read on-chain — verdict is immutable" -ForegroundColor $WHITE
 Write-Host "  └──────────────────────────────────────────────────────────────────┘" -ForegroundColor DarkGray
 Write-Host ""

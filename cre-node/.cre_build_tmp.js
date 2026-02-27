@@ -15887,8 +15887,10 @@ contract TaxToken is ERC20, Ownable {
 }`
   }
 };
-var performStaticAnalysis = (nodeRuntime, log) => {
+var performStaticAnalysis = (nodeRuntime, input) => {
+  const { log, goPlusAppKey, goPlusAppSecret } = input;
   let unverifiedCode = 0, sellRestriction = 0, honeypot = 0, proxyContract = 0;
+  const confidentialClient = new ClientCapability2;
   const httpClient = new ClientCapability3;
   if (!log.topics || log.topics.length < 4) {
     throw new Error("Invalid log topics for AuditRequested");
@@ -15907,9 +15909,52 @@ var performStaticAnalysis = (nodeRuntime, log) => {
     nodeRuntime.log(`[GoPlus] MOCK registry hit: ${mockData.name}`);
     nodeRuntime.log(`[GoPlus] unverified=${unverifiedCode} sellRestriction=${sellRestriction} honeypot=${honeypot}`);
   } else {
-    nodeRuntime.log(`[GoPlus] Calling real API for ${targetAddress}...`);
+    nodeRuntime.log(`__GOPLUS_START__`);
+    nodeRuntime.log(`[GoPlus] Authenticating with ConfidentialHTTPClient (APP_KEY stays in DON)...`);
+    let goPlusToken = "";
+    const timestamp = Math.floor(Date.now() / 1000).toString();
+    const tokenRes = confidentialClient.sendRequest(nodeRuntime, {
+      vaultDonSecrets: [
+        { key: "AEGIS_GOPLUS_KEY", namespace: "aegis" },
+        { key: "AEGIS_GOPLUS_SECRET", namespace: "aegis" }
+      ],
+      request: {
+        url: "https://api.gopluslabs.io/api/v1/token",
+        method: "POST",
+        multiHeaders: { "Content-Type": { values: ["application/json"] } },
+        bodyString: JSON.stringify({
+          app_key: goPlusAppKey,
+          time: timestamp,
+          sign: goPlusAppSecret
+        })
+      }
+    }).result();
+    if (tokenRes.statusCode === 200) {
+      try {
+        const tokenBody = JSON.parse(new TextDecoder().decode(tokenRes.body));
+        goPlusToken = tokenBody.result?.access_token || "";
+        nodeRuntime.log(`[GoPlus] JWT acquired — AEGIS_GOPLUS_KEY stays inside the Decentralized Oracle Network`);
+      } catch {
+        nodeRuntime.log(`[GoPlus] JWT parse failed — falling back to unauthenticated`);
+      }
+    } else {
+      nodeRuntime.log(`[GoPlus] Auth HTTP ${tokenRes.statusCode} — falling back to unauthenticated`);
+    }
+    nodeRuntime.log(`[GoPlus] Fetching token_security for ${targetAddress} (auth=${!!goPlusToken})`);
     const goPlusUrl = `https://api.gopluslabs.io/api/v1/token_security/8453?contract_addresses=${targetAddress}`;
-    const goPlusRes = httpClient.sendRequest(nodeRuntime, { method: "GET", url: goPlusUrl }).result();
+    let goPlusRes;
+    if (goPlusToken) {
+      goPlusRes = confidentialClient.sendRequest(nodeRuntime, {
+        vaultDonSecrets: [{ key: "AEGIS_GOPLUS_KEY", namespace: "aegis" }],
+        request: {
+          url: goPlusUrl,
+          method: "GET",
+          multiHeaders: { Authorization: { values: [`Bearer ${goPlusToken}`] } }
+        }
+      }).result();
+    } else {
+      goPlusRes = httpClient.sendRequest(nodeRuntime, { method: "GET", url: goPlusUrl }).result();
+    }
     nodeRuntime.log(`[GoPlus] HTTP ${goPlusRes.statusCode}`);
     if (goPlusRes.statusCode !== 200)
       throw new Error(`GoPlus Error: ${goPlusRes.statusCode}`);
@@ -15924,6 +15969,24 @@ var performStaticAnalysis = (nodeRuntime, log) => {
         honeypot = 1;
       if (data.is_proxy === "1")
         proxyContract = 1;
+      if (goPlusToken) {
+        if (data.is_blacklisted === "1") {
+          sellRestriction = 1;
+          nodeRuntime.log(`[GoPlus/Premium] is_blacklisted=1 → sellRestriction flag set`);
+        }
+        if (Array.isArray(data.lp_holders) && data.lp_holders.length > 0) {
+          const topLpPct = parseFloat(data.lp_holders[0]?.percent || "0");
+          if (topLpPct > 0.8) {
+            honeypot = 1;
+            nodeRuntime.log(`[GoPlus/Premium] LP concentration=${(topLpPct * 100).toFixed(1)}% → honeypot flag set`);
+          }
+        }
+        if (data.dex && Array.isArray(data.dex) && data.dex.length === 0) {
+          unverifiedCode = 1;
+          nodeRuntime.log(`[GoPlus/Premium] No DEX pools found → unverified flag set`);
+        }
+        nodeRuntime.log(`[GoPlus/Premium] Full field read: blacklisted=${data.is_blacklisted} lp_holders=${data.lp_holders?.length || 0} dex=${data.dex?.length || 0}`);
+      }
       nodeRuntime.log(`[GoPlus] unverified=${unverifiedCode} sellRestriction=${sellRestriction} honeypot=${honeypot} proxy=${proxyContract}`);
     } else {
       unverifiedCode = 1;
@@ -16128,6 +16191,8 @@ var onAuditTrigger = (runtime2, log) => {
   const basescanKey = runtime2.getSecret({ id: "AEGIS_BASESCAN_SECRET" }).result().value;
   const openAiKey = runtime2.getSecret({ id: "AEGIS_OPENAI_SECRET" }).result().value;
   const groqKey = runtime2.getSecret({ id: "AEGIS_GROQ_SECRET" }).result().value;
+  const goPlusAppKey = runtime2.getSecret({ id: "AEGIS_GOPLUS_KEY" }).result().value;
+  const goPlusAppSecret = runtime2.getSecret({ id: "AEGIS_GOPLUS_SECRET" }).result().value;
   const staticResult = runtime2.runInNodeMode(performStaticAnalysis, ConsensusAggregationByFields({
     targetAddress: identical,
     goPlusStatus: ignore,
@@ -16139,7 +16204,7 @@ var onAuditTrigger = (runtime2, log) => {
     privilegeEscalation: median,
     externalCallRisk: median,
     logicBomb: median
-  }))(log).result();
+  }))({ log, goPlusAppKey, goPlusAppSecret }).result();
   const targetAddress = staticResult.targetAddress;
   const aiResult = runtime2.runInNodeMode(performAIAnalysis, ConsensusAggregationByFields({
     obfuscatedTax: median,
