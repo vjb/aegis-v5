@@ -153,6 +153,7 @@ type AIAnalysisResult = {
     privilegeEscalation: number;
     externalCallRisk: number;
     logicBomb: number;
+    honeypotPattern: number;
 };
 
 // ─── Phase 1: GoPlus Static Analysis (Node Mode) ─────────────────────────────
@@ -301,7 +302,7 @@ const performAIAnalysis = (
 ): AIAnalysisResult => {
     const { targetAddress, maxTax, blockProxies, strictLogic, blockHoneypots,
         basescanKey, openAiKey, groqKey } = input;
-    let obfuscatedTax = 0, privilegeEscalation = 0, externalCallRisk = 0, logicBomb = 0;
+    let obfuscatedTax = 0, privilegeEscalation = 0, externalCallRisk = 0, logicBomb = 0, honeypotPattern = 0;
 
     const confidentialClient = new ConfidentialHTTPClient();
     const mockData = MOCK_REGISTRY[targetAddress];
@@ -358,6 +359,7 @@ Return ONLY a valid JSON object with these exact boolean keys plus a reasoning s
   privilegeEscalation: TRUE only if the owner can drain ALL user balances, mint unlimited tokens with no cap, or permanently freeze ALL transfers via a hidden backdoor. Standard OpenZeppelin Ownable (transferOwnership/renounceOwnership) is NORMAL BEST PRACTICE and is NOT privilege escalation.
   externalCallRisk: TRUE only if transfer logic makes unguarded calls to arbitrary user-controlled addresses that could re-enter and drain funds.
   logicBomb: TRUE only if there is a time-locked or block-based trigger that will disable transfers or steal funds in the future.
+  honeypotPattern: TRUE if the contract restricts token transfers to an owner-controlled allowlist or whitelist, making it impossible for non-approved users to sell their tokens (transfer whitelist / sell restriction honeypot pattern).
   reasoning: one sentence summary.
 
 Firewall: maxTax=${maxTax}%, blockProxies=${blockProxies}, blockHoneypots=${blockHoneypots}.
@@ -398,7 +400,8 @@ ${sourceCode}`;
             if (r.privilegeEscalation) privilegeEscalation = 1;
             if (r.externalCallRisk) externalCallRisk = 1;
             if (r.logicBomb) logicBomb = 1;
-            nodeRuntime.log(`[GPT-4o] Risk bits → tax=${r.obfuscatedTax} priv=${r.privilegeEscalation} extCall=${r.externalCallRisk} bomb=${r.logicBomb}`);
+            if (r.honeypotPattern) honeypotPattern = 1;
+            nodeRuntime.log(`[GPT-4o] Risk bits → tax=${r.obfuscatedTax} priv=${r.privilegeEscalation} extCall=${r.externalCallRisk} bomb=${r.logicBomb} honeypot=${r.honeypotPattern}`);
             nodeRuntime.log(`[GPT-4o] Reasoning: ${String(r.reasoning).slice(0, 700)}`);
         } else {
             nodeRuntime.log(`[GPT-4o] ERROR HTTP ${openAiRes.statusCode}`);
@@ -435,18 +438,19 @@ ${sourceCode}`;
             if (r.privilegeEscalation) privilegeEscalation = 1;
             if (r.externalCallRisk) externalCallRisk = 1;
             if (r.logicBomb) logicBomb = 1;
-            nodeRuntime.log(`[Llama-3] Risk bits → tax=${r.obfuscatedTax} priv=${r.privilegeEscalation} extCall=${r.externalCallRisk} bomb=${r.logicBomb}`);
+            if (r.honeypotPattern) honeypotPattern = 1;
+            nodeRuntime.log(`[Llama-3] Risk bits → tax=${r.obfuscatedTax} priv=${r.privilegeEscalation} extCall=${r.externalCallRisk} bomb=${r.logicBomb} honeypot=${r.honeypotPattern}`);
             nodeRuntime.log(`[Llama-3] Reasoning: ${String(r.reasoning).slice(0, 700)}`);
         } else {
             nodeRuntime.log(`[Llama-3] ERROR HTTP ${groqRes.statusCode}`);
         }
 
-        nodeRuntime.log(`[AI] Union of Fears → obfuscatedTax=${obfuscatedTax} privilegeEscalation=${privilegeEscalation} externalCallRisk=${externalCallRisk} logicBomb=${logicBomb}`);
+        nodeRuntime.log(`[AI] Union of Fears → obfuscatedTax=${obfuscatedTax} privilegeEscalation=${privilegeEscalation} externalCallRisk=${externalCallRisk} logicBomb=${logicBomb} honeypotPattern=${honeypotPattern}`);
     } else {
         nodeRuntime.log(`[AI] SKIPPED — no source code for ${targetAddress} (unverified contract, bit 0 set)`);
     }
 
-    return { obfuscatedTax, privilegeEscalation, externalCallRisk, logicBomb };
+    return { obfuscatedTax, privilegeEscalation, externalCallRisk, logicBomb, honeypotPattern };
 };
 
 // ─── Main DON Trigger ─────────────────────────────────────────────────────────
@@ -526,24 +530,29 @@ const onAuditTrigger = (runtime: Runtime<Config>, log: EVMLog): string => {
             privilegeEscalation: median,
             externalCallRisk: median,
             logicBomb: median,
+            honeypotPattern: median,
         })
     )({
         targetAddress, maxTax, blockProxies, strictLogic, blockHoneypots,
         basescanKey, openAiKey, groqKey
     }).result();
 
-    const { obfuscatedTax, privilegeEscalation, externalCallRisk, logicBomb } = aiResult;
+    const { obfuscatedTax, privilegeEscalation, externalCallRisk, logicBomb, honeypotPattern } = aiResult;
 
-    // ── Assemble 8-bit risk matrix ────────────────────────────────────────────
+    // ── Assemble risk score (bit field) ──────────────────────────────────────
+    // GoPlus bits (0-3): static on-chain analysis
+    // AI bits (4-8):     source-code AI analysis — catches what GoPlus cannot see
+    // Swiss Cheese: both layers must fail for a risk to pass through
     let riskMatrix = 0;
-    if (staticResult.unverifiedCode && !allowUnverified) riskMatrix |= 1;
-    if (staticResult.sellRestriction) riskMatrix |= 2;
-    if (staticResult.honeypot && blockHoneypots) riskMatrix |= 4;
-    if (staticResult.proxyContract && blockProxies) riskMatrix |= 8;
-    if (obfuscatedTax) riskMatrix |= 16;
-    if (privilegeEscalation) riskMatrix |= 32;
-    if (externalCallRisk) riskMatrix |= 64;
-    if (logicBomb) riskMatrix |= 128;
+    if (staticResult.unverifiedCode && !allowUnverified) riskMatrix |= 1;    // bit 0
+    if (staticResult.sellRestriction) riskMatrix |= 2;                        // bit 1
+    if (staticResult.honeypot && blockHoneypots) riskMatrix |= 4;             // bit 2
+    if (staticResult.proxyContract && blockProxies) riskMatrix |= 8;          // bit 3
+    if (obfuscatedTax) riskMatrix |= 16;                                       // bit 4 (AI)
+    if (privilegeEscalation) riskMatrix |= 32;                                 // bit 5 (AI)
+    if (externalCallRisk) riskMatrix |= 64;                                    // bit 6 (AI)
+    if (logicBomb) riskMatrix |= 128;                                          // bit 7 (AI)
+    if (honeypotPattern) riskMatrix |= 256;                                    // bit 8 (AI — transfer allowlist honeypot)
 
     runtime.log(`⚖️ Final Risk Code: ${riskMatrix}`);
 
