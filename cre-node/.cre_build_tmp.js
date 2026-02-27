@@ -16005,6 +16005,7 @@ var onAuditTrigger = (runtime2, log) => {
     }
   } catch {}
   let maxTax = 5, blockProxies = true, strictLogic = true, blockHoneypots = true, allowUnverified = false;
+  let blockSellRestriction = true, blockObfuscatedTax = true, blockPrivilegeEscalation = true, blockExternalCallRisk = true, blockLogicBomb = true;
   try {
     const parsed = JSON.parse(firewallConfig);
     if (typeof parsed.maxTax === "number")
@@ -16017,6 +16018,16 @@ var onAuditTrigger = (runtime2, log) => {
       blockHoneypots = parsed.blockHoneypots;
     if (typeof parsed.allowUnverified === "boolean")
       allowUnverified = parsed.allowUnverified;
+    if (typeof parsed.blockSellRestriction === "boolean")
+      blockSellRestriction = parsed.blockSellRestriction;
+    if (typeof parsed.blockObfuscatedTax === "boolean")
+      blockObfuscatedTax = parsed.blockObfuscatedTax;
+    if (typeof parsed.blockPrivilegeEscalation === "boolean")
+      blockPrivilegeEscalation = parsed.blockPrivilegeEscalation;
+    if (typeof parsed.blockExternalCallRisk === "boolean")
+      blockExternalCallRisk = parsed.blockExternalCallRisk;
+    if (typeof parsed.blockLogicBomb === "boolean")
+      blockLogicBomb = parsed.blockLogicBomb;
   } catch {}
   const basescanKey = runtime2.getSecret({ id: "AEGIS_BASESCAN_SECRET" }).result().value;
   const openAiKey = runtime2.getSecret({ id: "AEGIS_OPENAI_SECRET" }).result().value;
@@ -16058,19 +16069,19 @@ var onAuditTrigger = (runtime2, log) => {
   let riskMatrix = 0;
   if (staticResult.unverifiedCode && !allowUnverified)
     riskMatrix |= 1;
-  if (staticResult.sellRestriction)
+  if (staticResult.sellRestriction && blockSellRestriction)
     riskMatrix |= 2;
   if (staticResult.honeypot && blockHoneypots)
     riskMatrix |= 4;
   if (staticResult.proxyContract && blockProxies)
     riskMatrix |= 8;
-  if (obfuscatedTax)
+  if (obfuscatedTax && blockObfuscatedTax)
     riskMatrix |= 16;
-  if (privilegeEscalation)
+  if (privilegeEscalation && blockPrivilegeEscalation)
     riskMatrix |= 32;
-  if (externalCallRisk)
+  if (externalCallRisk && blockExternalCallRisk)
     riskMatrix |= 64;
-  if (logicBomb)
+  if (logicBomb && blockLogicBomb)
     riskMatrix |= 128;
   runtime2.log(`⚖️ Final Risk Code: ${riskMatrix}`);
   const tradeIdHex = bytesToHex(log.topics[1]);

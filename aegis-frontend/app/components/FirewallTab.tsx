@@ -83,6 +83,8 @@ export default function FirewallTab() {
             if (data.error) throw new Error(data.error);
             setSaveResult({ hash: data.hash, explorerUrl: data.explorerUrl });
             setChainConfig({ ...cfg });
+            // Auto-dismiss toast after 4s
+            setTimeout(() => setSaveResult(null), 4000);
         } catch (e: any) {
             setError(`Save failed: ${e.message}`);
         } finally {
