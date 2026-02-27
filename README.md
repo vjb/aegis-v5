@@ -272,6 +272,7 @@ See [docs/ERC7579_ROADMAP.md](docs/ERC7579_ROADMAP.md) for the full architecture
 
 ## 🔗 Links
 
+- [System Architecture Diagrams](docs/ARCHITECTURE.md) ← 12 Mermaid diagrams
 - [Architecture Roadmap](docs/ERC7579_ROADMAP.md)
 - [Engineering Ledger](docs/lessons_learned.md)
 - [Smart Contract](src/AegisModule.sol)
