@@ -202,9 +202,11 @@ function Invoke-CREOracle($txHash, $tokenName) {
             elseif ($clean -match 'Risk Code|Union') { $color = 'Yellow' }
             Write-Host "    $clean" -ForegroundColor $color
         }
+        # Attribution: ONLY match on the 'Risk bits' verdict line, not on AI reasoning text
+        # This prevents false positives when reasoning says e.g. "this is a honeypot" but flags are false
         if ($clean -match 'GoPlus.*(honeypot.*1|sell.*1|unverified.*1)') { $goPlusFlag = $true }
-        if ($clean -match 'GPT-4o.*(TRUE|obfuscat|honeypot|privilege|logicBomb)') { $aiGptFlag = $true }
-        if ($clean -match '(Groq|Llama).*(TRUE|obfuscat|honeypot|privilege|logicBomb)') { $aiGroqFlag = $true }
+        if ($clean -match 'GPT-4o.*Risk bits.*=true') { $aiGptFlag = $true }
+        if ($clean -match '(Groq|Llama).*Risk bits.*=true') { $aiGroqFlag = $true }
     }
     $riskLine = $out | Select-String 'Final Risk Code:\s*(\d+)' | Select-Object -First 1
     $code = if ($riskLine) { [int][regex]::Match($riskLine.Line, '(\d+)\s*$').Groups[1].Value } else { 0 }
@@ -291,11 +293,9 @@ Cmd "cast send AegisModule 'triggerSwap(address,uint256,uint256)' BRETT 10000000
 
 $swapOut = cast send $ModuleAddr "triggerSwap(address,uint256,uint256)" $BRETT 10000000000000000 1 --rpc-url $RPC --private-key $NovaPK 2>&1 | Out-String
 $swapTx = ""; foreach ($line in ($swapOut -split "`n")) { if ($line -match "transactionHash\s+(0x[a-fA-F0-9]{64})") { $swapTx = $Matches[1] } }
-$TenderlyBase = ($RPC -replace '/[^/]+$', '')
-
 if ($swapOut -match "transactionHash|blockNumber") {
     Ok "Swap transaction confirmed on-chain"
-    if ($swapTx) { Info "Tenderly trace: $TenderlyBase/tx/$swapTx" }
+    if ($swapTx) { Info "Tenderly trace: $RPC/tx/$swapTx" }
 } else {
     Write-Host "  SWAP ATTEMPTED on Tenderly Base fork" -ForegroundColor Yellow
     Info "If reverted, Uniswap V3 WETH/BRETT pool had insufficient liquidity on this snapshot."
@@ -353,15 +353,15 @@ Write-Host ("=" * 70) -ForegroundColor Green
 Write-Host ""
 Write-Host "  AGENT    TOKEN            RISK CODE  CAUGHT BY                   RESULT" -ForegroundColor DarkGray
 Write-Host "  -------  ---------------  ---------  --------------------------  ------" -ForegroundColor DarkGray
-Write-Host "  NOVA     BRETT             0 (clean) GoPlus + GPT-4o + Llama-3   OK  Swap executed" -ForegroundColor Green
-Write-Host "  CIPHER   TaxToken         16+2 = 18  GPT-4o + Llama-3            BLOCKED: obfuscated 99% tax" -ForegroundColor Red
-Write-Host "  REX      HoneypotCoin      4+1 = 5   GoPlus + GPT-4o + Llama-3   BLOCKED: honeypot trap" -ForegroundColor Red
-Write-Host "  REX      (bypass attempt) n/a        Contract enforcement         REVERT: TokenNotCleared" -ForegroundColor Red
-Write-Host "  REX      (post-revoke)    n/a        Kill switch                  REVERT: NotAuthorized" -ForegroundColor Red
+Write-Host "  NOVA     BRETT             0 (clean) GoPlus + GPT-4o + Llama-3  OK  Swap executed" -ForegroundColor Green
+Write-Host "  CIPHER   TaxToken         16+2 = 18  GoPlus + GPT-4o + Llama-3  BLOCKED: obfuscated 99% tax" -ForegroundColor Red
+Write-Host "  REX      HoneypotCoin       bit 2 = 4  GoPlus (honeypot flag)     BLOCKED: honeypot detected" -ForegroundColor Red
+Write-Host "  REX      (bypass attempt)  n/a         Contract enforcement        REVERT: TokenNotCleared" -ForegroundColor Red
+Write-Host "  REX      (post-revoke)     n/a         Kill switch                 REVERT: NotAuthorized" -ForegroundColor Red
 Write-Host ""
-Write-Host "  TaxToken + HoneypotCoin: malicious Solidity sent to REAL GPT-4o + Llama-3." -ForegroundColor Yellow
-Write-Host "  Both LLMs read the source independently and flagged malicious patterns." -ForegroundColor Yellow
-Write-Host "  Union of Fears: token blocked if EITHER model raises a flag." -ForegroundColor Cyan
+Write-Host "  TaxToken: BOTH GPT-4o and Llama-3 read malicious Solidity and flagged obfuscated tax." -ForegroundColor Yellow
+Write-Host "  HoneypotCoin: GoPlus static flag (honeypot=1). AI confirmed but did not independently flag." -ForegroundColor Yellow
+Write-Host "  Union of Fears: token blocked if EITHER source raises a flag." -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  ConfidentialHTTPClient: GoPlus + BaseScan + OpenAI + Groq keys NEVER left the DON." -ForegroundColor Cyan
 Write-Host ""

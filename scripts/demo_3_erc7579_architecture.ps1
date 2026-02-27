@@ -62,7 +62,8 @@ $TOSHI     = "0xAC1Bd2486aAf3B5C0fc3Fd868558b082a531B2B4"  # Toshi — real veri
 $AuditToken = $TOSHI
 $AuditTokenName = "TOSHI"
 
-$TenderlyExplorer = "https://virtual.base.eu.rpc.tenderly.co/7222775d-7276-4069-abf2-f457bc1f6572"
+$UUID = ($RPC -split '/')[-1]
+$TenderlyExplorer = "https://virtual.base.eu.rpc.tenderly.co/$UUID"
 
 # Read nextTradeId from chain so repeated runs always use the correct tradeId
 $rawId = (cast call $ModuleAddr "nextTradeId()" --rpc-url $RPC 2>&1 | Select-Object -First 1).Trim()
@@ -115,7 +116,7 @@ Write-Host ""
 Write-Host "  MODULE:  $ModuleAddr" -ForegroundColor White
 Write-Host "  AGENT:   PHANTOM ($PhantomAddr)" -ForegroundColor White
 Write-Host "  TENDERLY: $TenderlyExplorer" -ForegroundColor DarkGray
-Write-Host "  VERIFIED: https://virtual.base.eu.rpc.tenderly.co/7222775d-7276-4069-abf2-f457bc1f6572/address/$ModuleAddr" -ForegroundColor DarkGray
+Write-Host "  VERIFIED: $TenderlyExplorer/address/$ModuleAddr" -ForegroundColor DarkGray
 Write-Host ""
 Pause "Ready? Press ENTER to start the ERC-7579 module lifecycle."
 
@@ -249,15 +250,19 @@ $d3CREOut = @()
 if ($auditTx) {
     $d3CREOut = docker exec aegis-oracle-node bash -c "cd /app && cre workflow simulate /app --evm-tx-hash $auditTx --evm-event-index 0 --non-interactive --trigger-index 0 -R /app -T tenderly-fork 2>&1"
     foreach ($line in $d3CREOut) {
-        if ($line -match '\[USER LOG\]') {
-            if ($line -match 'Risk Code|Risk bits|GPT-4o|Llama-3|GoPlus|BaseScan.*Contract|Union') {
-                Write-Host "  $($line.Trim())" -ForegroundColor $(if ($line -match 'Risk Code') { 'Yellow' } else { 'Cyan' })
-            }
+        if ($line -notmatch '\[USER LOG\]') { continue }
+        $clean = ($line -replace '.*\[USER LOG\]\s*', '').Trim()
+        if ($clean -match 'GoPlus|BaseScan.*Contract|GPT-4o|Llama-3|Groq|obfuscat|honeypot|sell.?restrict|privilege|Risk Code|Union of Fears|ConfidentialHTTP|key never left|stays inside') {
+            $color = 'Cyan'
+            if ($clean -match 'TRUE|BLOCKED|riskCode=[^0]|=1\b') { $color = 'Red' }
+            elseif ($clean -match 'false|Risk Code: 0|clean') { $color = 'Green' }
+            elseif ($clean -match 'Risk Code|Union') { $color = 'Yellow' }
+            Write-Host "  $clean" -ForegroundColor $color
         }
     }
 }
-$d3RiskLine = $d3CREOut | Select-String 'Final Risk Code: (\d+)' | Select-Object -First 1
-$d3RiskCode = if ($d3RiskLine) { [int][regex]::Match($d3RiskLine.Line, '(\d+)$').Groups[1].Value } else { 0 }
+$d3RiskLine = $d3CREOut | Select-String 'Final Risk Code:\s*(\d+)' | Select-Object -First 1
+$d3RiskCode = if ($d3RiskLine) { [int][regex]::Match($d3RiskLine.Line, '(\d+)\s*$').Groups[1].Value } else { 0 }
 Write-Host ""
 Write-Host ("  " + ("-" * 68)) -ForegroundColor DarkGray
 Write-Host "  CRE oracle returned riskCode=$d3RiskCode for $AuditTokenName" -ForegroundColor $(if ($d3RiskCode -eq 0) { 'Green' } else { 'Red' })
