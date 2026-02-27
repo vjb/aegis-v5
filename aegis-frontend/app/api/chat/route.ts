@@ -132,7 +132,8 @@ async function buildSystemContext(): Promise<string> {
                 const last = allForAgent[allForAgent.length - 1];
                 try {
                     const decoded = decodeEventLog({ abi: MODULE_ABI as any, eventName: 'AgentSubscribed', topics: last.topics, data: last.data });
-                    originalBudget = (Number((decoded as any).budget) / 1e18).toFixed(4);
+                    const budgetWei = (decoded as any).args?.budget ?? (decoded as any).budget;
+                    if (budgetWei !== undefined) originalBudget = (Number(budgetWei) / 1e18).toFixed(4);
                 } catch { /* skip */ }
             }
 
