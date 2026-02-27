@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Shield, Send, Loader2, BrainCircuit, ChevronRight, X } from 'lucide-react';
+import { Send, Loader2, BrainCircuit, ChevronRight } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 type Message = {
     id: string;
@@ -186,10 +187,10 @@ export default function AegisChat({
                                 </div>
                             )}
                             <div
-                                className={`rounded-xl mono text-xs leading-relaxed ${msg.text === '' ? 'min-w-[60px] min-h-[36px]' : ''}`}
+                                className={`rounded-xl mono text-xs ${msg.text === '' ? 'min-w-[60px] min-h-[36px]' : ''}`}
                                 style={{
                                     maxWidth: '85%',
-                                    padding: '12px 16px',
+                                    padding: '14px 18px',
                                     background: msg.role === 'user'
                                         ? 'rgba(56,189,248,0.1)'
                                         : msg.isAuditUpdate
@@ -202,13 +203,23 @@ export default function AegisChat({
                                             : 'var(--border)'}`,
                                     color: 'var(--text-primary)',
                                     lineHeight: 1.75,
-                                    whiteSpace: 'pre-wrap',
                                 }}>
-                                {msg.text || (streaming && msg.role === 'aegis' ? (
+                                {msg.text === '' && streaming && msg.role === 'aegis' ? (
                                     <span style={{ color: 'var(--cyan)' }}>
                                         <Loader2 className="w-3 h-3 animate-spin inline mr-1.5" />thinking…
                                     </span>
-                                ) : '')}
+                                ) : (
+                                    <ReactMarkdown
+                                        components={{
+                                            p: ({ children }) => <p style={{ marginBottom: '0.5em', lineHeight: 1.75 }}>{children}</p>,
+                                            ul: ({ children }) => <ul style={{ paddingLeft: '1.2em', marginBottom: '0.5em', lineHeight: 1.75 }}>{children}</ul>,
+                                            ol: ({ children }) => <ol style={{ paddingLeft: '1.2em', marginBottom: '0.5em', lineHeight: 1.75 }}>{children}</ol>,
+                                            li: ({ children }) => <li style={{ marginBottom: '0.2em' }}>{children}</li>,
+                                            strong: ({ children }) => <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{children}</strong>,
+                                            code: ({ children }) => <code style={{ background: 'rgba(56,189,248,0.1)', padding: '1px 5px', borderRadius: 4, fontSize: '0.9em', color: 'var(--cyan)' }}>{children}</code>,
+                                        }}
+                                    >{msg.text}</ReactMarkdown>
+                                )}
                             </div>
                         </div>
                     ))}

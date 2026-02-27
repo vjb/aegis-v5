@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Shield, Bot, SlidersHorizontal, FileText, ShoppingBag, Lock, Unlock, Radio, Zap, Wallet, RefreshCw } from 'lucide-react';
 import AgentsTab from './components/AgentsTab';
 import FirewallTab from './components/FirewallTab';
@@ -21,6 +21,54 @@ type WalletInfo = {
   error?: string;
 };
 
+// Drag handle between two panels
+function DragHandle({ onDrag }: { onDrag: (dx: number) => void }) {
+  const dragging = useRef(false);
+  const lastX = useRef(0);
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    dragging.current = true;
+    lastX.current = e.clientX;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  };
+
+  useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => {
+      if (!dragging.current) return;
+      const dx = e.clientX - lastX.current;
+      lastX.current = e.clientX;
+      onDrag(dx);
+    };
+    const onMouseUp = () => {
+      dragging.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    return () => { window.removeEventListener('mousemove', onMouseMove); window.removeEventListener('mouseup', onMouseUp); };
+  }, [onDrag]);
+
+  return (
+    <div
+      onMouseDown={onMouseDown}
+      style={{
+        width: 5,
+        flexShrink: 0,
+        cursor: 'col-resize',
+        background: 'var(--border)',
+        transition: 'background 0.15s',
+        position: 'relative',
+        zIndex: 10,
+      }}
+      onMouseEnter={e => (e.currentTarget.style.background = 'var(--cyan)')}
+      onMouseLeave={e => (e.currentTarget.style.background = 'var(--border)')}
+      title="Drag to resize"
+    />
+  );
+}
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>('agents');
   const [isKilled, setIsKilled] = useState(false);
@@ -29,6 +77,27 @@ export default function Home() {
   const [wallet, setWallet] = useState<WalletInfo | null>(null);
   const [walletLoading, setWalletLoading] = useState(true);
   const [lastAuditResult, setLastAuditResult] = useState<{ token: string; status: string; score: number } | null>(null);
+
+  // Panel widths in px percentages (sum = 100)
+  const [leftPct, setLeftPct] = useState(40);
+  const [centerPct, setCenterPct] = useState(32);
+  // rightPct = 100 - leftPct - centerPct (computed)
+
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const dragLeft = useCallback((dx: number) => {
+    const totalW = containerRef.current?.offsetWidth ?? window.innerWidth;
+    const dPct = (dx / totalW) * 100;
+    setLeftPct(prev => Math.max(20, Math.min(60, prev + dPct)));
+  }, []);
+
+  const dragCenter = useCallback((dx: number) => {
+    const totalW = containerRef.current?.offsetWidth ?? window.innerWidth;
+    const dPct = (dx / totalW) * 100;
+    setCenterPct(prev => Math.max(15, Math.min(45, prev + dPct)));
+  }, []);
+
+  const rightPct = Math.max(15, 100 - leftPct - centerPct);
 
   const loadWallet = async () => {
     setWalletLoading(true);
@@ -111,14 +180,14 @@ export default function Home() {
               <>
                 {wallet?.explorerBase ? (
                   <a href={`${wallet.explorerBase}`} target="_blank" rel="noreferrer"
-                    style={{ color: 'var(--text-primary)' }}>
+                    style={{ color: 'var(--text-subtle)' }}>
                     {shortAddr}
                   </a>
                 ) : (
-                  <span style={{ color: 'var(--text-primary)' }}>{shortAddr}</span>
+                  <span style={{ color: 'var(--text-subtle)' }}>{shortAddr}</span>
                 )}
                 <span style={{ color: 'var(--border-bright)' }}>·</span>
-                <span style={{ color: 'var(--cyan)', fontWeight: 600 }}>{wallet?.ownerBalanceEth} ETH</span>
+                <span style={{ color: 'white', fontWeight: 700 }}>{wallet?.ownerBalanceEth} ETH</span>
                 <button onClick={loadWallet} title="Refresh balance" style={{ color: 'var(--text-muted)', lineHeight: 0 }}>
                   <RefreshCw className={`w-3 h-3 ${walletLoading ? 'animate-spin' : ''}`} />
                 </button>
@@ -126,16 +195,17 @@ export default function Home() {
             )}
           </div>
 
-          {/* Kill switch */}
+          {/* Kill switch — solid red when active, solid red border when inactive */}
           <button
             onClick={() => setIsKilled(k => !k)}
             className="btn"
             style={isKilled ? {
-              background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.35)',
-              color: 'var(--amber)', boxShadow: '0 0 20px rgba(251,191,36,0.15)',
+              background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.4)',
+              color: 'var(--amber)', boxShadow: '0 0 20px rgba(251,191,36,0.2)',
             } : {
-              background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.28)',
-              color: 'var(--red)',
+              background: 'var(--red-vivid)', border: '1px solid var(--red-vivid)',
+              color: 'white', fontWeight: 700,
+              boxShadow: '0 0 16px rgba(255,77,77,0.35)',
             }}
           >
             {isKilled ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
@@ -153,11 +223,11 @@ export default function Home() {
         </div>
       )}
 
-      {/* ── Body — 3-column layout ── */}
-      <div className="flex flex-1 min-h-0">
+      {/* ── Body — 3-column layout with drag-to-resize ── */}
+      <div ref={containerRef} className="flex flex-1 min-h-0">
 
-        {/* Left panel — Tabs (40%) */}
-        <div className="flex flex-col min-h-0" style={{ width: '40%', borderRight: '1px solid var(--border)' }}>
+        {/* Left panel — Tabs */}
+        <div className="flex flex-col min-h-0" style={{ width: `${leftPct}%` }}>
           <div className="flex items-center gap-1.5 px-5 py-3 flex-shrink-0"
             style={{ borderBottom: '1px solid var(--border)', background: 'rgba(13,20,36,0.5)' }}>
             {tabs.map(t => {
@@ -180,13 +250,19 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Center panel — Aegis Chat (32%) */}
-        <div className="flex flex-col min-h-0" style={{ width: '32%', borderRight: '1px solid var(--border)' }}>
+        {/* Drag handle 1 */}
+        <DragHandle onDrag={dragLeft} />
+
+        {/* Center panel — Aegis Chat */}
+        <div className="flex flex-col min-h-0" style={{ width: `${centerPct}%` }}>
           <AegisChat onAuditRequest={(tok: string) => setTriggerAudit(tok)} lastAuditResult={lastAuditResult} />
         </div>
 
-        {/* Right panel — Oracle Feed (28%) */}
-        <div className="flex flex-col min-h-0" style={{ width: '28%' }}>
+        {/* Drag handle 2 */}
+        <DragHandle onDrag={dragCenter} />
+
+        {/* Right panel — Oracle Feed */}
+        <div className="flex flex-col min-h-0" style={{ width: `${rightPct}%` }}>
           <OracleFeed isKilled={isKilled} externalTrigger={triggerAudit} onTriggerConsumed={() => setTriggerAudit(null)} onComplete={(result) => { setAuditVersion((v: number) => v + 1); setLastAuditResult(result); }} />
         </div>
       </div>
