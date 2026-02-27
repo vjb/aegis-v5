@@ -241,7 +241,7 @@ export default function AegisChat({
             <div className="flex-1 overflow-y-auto" style={{ padding: '20px 16px 8px' }}>
                 <div className="space-y-8">
                     {messages.map(msg => (
-                        <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                        <div key={msg.id} className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
                             {msg.role === 'aegis' && (
                                 <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
                                     style={{ background: msg.isAuditUpdate ? 'rgba(74,222,128,0.15)' : 'linear-gradient(135deg, #38bdf8 0%, #818cf8 100%)', border: msg.isAuditUpdate ? '1px solid rgba(74,222,128,0.3)' : 'none' }}>
