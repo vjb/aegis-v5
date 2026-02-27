@@ -135,41 +135,29 @@ export default function AgentsTab({ isKilled, onAudit }: { isKilled: boolean; on
                             </button>
                         </div>
 
-                        {/* Token picker */}
-                        <div className="mb-5">
-                            <p className="mono text-xs mb-3" style={{ color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                        {/* Token picker — dropdown */}
+                        <div className="mb-6">
+                            <p className="mono text-xs mb-2.5" style={{ color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                                 Select Token
                             </p>
-                            <div className="mb-2.5">
-                                <p className="mono text-xs mb-2" style={{ color: 'var(--green)' }}>✅ Should PASS</p>
-                                <div className="flex flex-wrap gap-2">
-                                    {CLEAN_TOKENS.map(t => (
-                                        <button key={t} onClick={() => setTradeModal(m => m ? { ...m, token: t } : m)}
-                                            className={`badge badge-green`}
-                                            style={{
-                                                cursor: 'pointer', padding: '5px 12px', fontSize: 12,
-                                                boxShadow: tradeModal.token === t ? '0 0 0 2px var(--green)' : 'none',
-                                            }}>
-                                            {t}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                            <div>
-                                <p className="mono text-xs mb-2" style={{ color: 'var(--red)' }}>🚫 Should BLOCK</p>
-                                <div className="flex flex-wrap gap-2">
-                                    {RISKY_TOKENS.map(t => (
-                                        <button key={t} onClick={() => setTradeModal(m => m ? { ...m, token: t } : m)}
-                                            className={`badge badge-red`}
-                                            style={{
-                                                cursor: 'pointer', padding: '5px 12px', fontSize: 12,
-                                                boxShadow: tradeModal.token === t ? '0 0 0 2px var(--red)' : 'none',
-                                            }}>
-                                            {t}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+                            <select
+                                value={tradeModal.token}
+                                onChange={e => setTradeModal(m => m ? { ...m, token: e.target.value } : m)}
+                                className="inp mono text-sm"
+                                style={{ width: '100%', height: 42 }}
+                            >
+                                <optgroup label="✅ Should PASS">
+                                    {CLEAN_TOKENS.map(t => <option key={t} value={t}>{t}</option>)}
+                                </optgroup>
+                                <optgroup label="🚫 Should BLOCK">
+                                    {RISKY_TOKENS.map(t => <option key={t} value={t}>{t}</option>)}
+                                </optgroup>
+                            </select>
+                            <p className="mono text-xs mt-2" style={{ color: 'var(--text-subtle)' }}>
+                                {CLEAN_TOKENS.includes(tradeModal.token)
+                                    ? '✅ This token should pass the CRE firewall'
+                                    : '🚫 This token should be blocked by the CRE firewall'}
+                            </p>
                         </div>
 
                         {/* Amount slider */}

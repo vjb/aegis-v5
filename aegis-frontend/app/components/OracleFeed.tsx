@@ -185,47 +185,22 @@ export default function OracleFeed({ isKilled, externalTrigger, onTriggerConsume
             {/* Panel header */}
             <div className="flex items-center justify-between px-5 py-4 flex-shrink-0"
                 style={{ borderBottom: '1px solid var(--border)', background: 'rgba(13,20,36,0.5)' }}>
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-3">
                     <span className="mono text-sm font-semibold" style={{ color: 'var(--cyan)' }}>ORACLE FEED</span>
                     {globalRunning && (
                         <span className="flex items-center gap-1.5 mono text-xs" style={{ color: 'var(--amber)' }}>
-                            <Loader2 className="w-3 h-3 animate-spin" /> running…
+                            <Loader2 className="w-3 h-3 animate-spin" /> auditing…
                         </span>
                     )}
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className="mono text-xs" style={{ color: 'var(--text-muted)' }}>
-                        <Activity className="w-3.5 h-3.5 inline mr-1" />GoPlus · AI
-                    </span>
+                    <span className="mono text-xs" style={{ color: 'var(--text-subtle)' }}>GoPlus · AI</span>
                     {runs.length > 0 && (
                         <button onClick={() => setRuns([])} className="btn btn-ghost" style={{ padding: '5px 10px', fontSize: 11 }} title="Clear feed">
                             <Trash2 className="w-3.5 h-3.5" /> Clear
                         </button>
                     )}
                 </div>
-            </div>
-
-            {/* Manual token input */}
-            <div className="px-5 py-3 flex-shrink-0" style={{ borderBottom: '1px solid var(--border)' }}>
-                <div className="flex gap-2">
-                    <input
-                        value={token}
-                        onChange={e => setToken(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && runAudit()}
-                        placeholder="Token name or address…"
-                        disabled={globalRunning || isKilled}
-                        className="inp mono text-xs"
-                        style={{ flex: 1, height: 36 }}
-                    />
-                    <button onClick={() => runAudit()} disabled={globalRunning || isKilled || !token} className="btn btn-cyan"
-                        style={{ padding: '0 14px', height: 36, flexShrink: 0 }}>
-                        {globalRunning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                    </button>
-                </div>
-                <p className="mono text-xs mt-2" style={{ color: 'var(--text-subtle)' }}>
-                    Or trigger from Agents tab, or type "audit TOKEN" in the chat
-                </p>
-                {isKilled && <p className="mono text-xs mt-1.5" style={{ color: 'var(--amber)' }}>⚠ Protocol locked — oracle disabled</p>}
             </div>
 
             {/* Live feed — scrollable, accumulates runs */}
