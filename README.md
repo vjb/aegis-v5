@@ -69,6 +69,8 @@ AI Agent (Session Key / UserOp)
 
 ## 🎬 Demo Scripts
 
+> **See [docs/DEMO_GUIDE.md](docs/DEMO_GUIDE.md) for the full guide** — prerequisites, step-by-step instructions per demo, expected CRE log output, and what judges should look for.
+
 All three demos run automatically via PowerShell. The VNet health check at the top of each script auto-provisions a fresh Tenderly VNet if blocks are exhausted.
 
 ```powershell
@@ -115,7 +117,7 @@ See: [`docs/sample_output/demo_2_multi_agent.txt`](docs/sample_output/demo_2_mul
 6. `killSwitch()` → agent deauthorized
 7. `onUninstall()` → module removed from account
 
-See: [`docs/sample_output/demo_3_erc7579_architecture.log`](docs/sample_output/demo_3_erc7579_architecture.log)
+See: [`docs/sample_output/demo_3_erc7579_architecture.txt`](docs/sample_output/demo_3_erc7579_architecture.txt)
 
 ---
 
@@ -272,12 +274,12 @@ See [docs/ERC7579_ROADMAP.md](docs/ERC7579_ROADMAP.md) for the full architecture
 
 ## 🔗 Links
 
+- [**Demo Guide**](docs/DEMO_GUIDE.md) ← how to run all 3 demos, what to look for
 - [System Architecture Diagrams](docs/ARCHITECTURE.md) ← 12 Mermaid diagrams
 - [Architecture Roadmap](docs/ERC7579_ROADMAP.md)
 - [Engineering Ledger](docs/lessons_learned.md)
 - [Smart Contract](src/AegisModule.sol)
-- [CRE Oracle](src/oracle/aegis-oracle.ts)
-- [BYOA Agent](src/agent/bot.ts)
+- [CRE Oracle](cre-node/aegis-oracle.ts)
 - [Chainlink CRE Docs](https://docs.chain.link/cre)
 - [Rhinestone ModuleKit](https://docs.rhinestone.wtf)
 - [ERC-7579 Standard](https://eips.ethereum.org/EIPS/eip-7579)

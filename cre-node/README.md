@@ -1,25 +1,25 @@
 # 🔗 Aegis V4 — Chainlink CRE Oracle Node
 
-This directory contains the **Chainlink Runtime Environment (CRE)** oracle workflow that powers Aegis V4's off-chain AI security audit pipeline.
+The Chainlink Runtime Environment (CRE) oracle that powers Aegis V4's off-chain AI security audit pipeline. All external API calls go through `ConfidentialHTTPClient` — API keys never leave the DON.
 
 ## What It Does
 
-When `AegisModule.requestAudit(token)` is called on-chain, the CRE node:
+When `AegisModule.requestAudit(token)` is called on-chain, the CRE workflow:
 
-1. **Detects** the `AuditRequested` event via EVM log trigger
-2. **Runs** GoPlus static analysis (honeypot, sell restriction, proxy detection)
-3. **Fetches** contract source from BaseScan via Confidential HTTP
-4. **Audits** with dual AI consensus (GPT-4o + Llama-3) for obfuscated risks
-5. **Delivers** `onReport(tradeId, riskScore)` to `AegisModule` via KeystoneForwarder
+1. **Detects** the `AuditRequested` event via EVM log trigger (WASM sandbox)
+2. **Phase 1 — GoPlus** — static on-chain analysis via `ConfidentialHTTPClient`. Attempts JWT auth with `AEGIS_GOPLUS_KEY`; falls back to unauthenticated free tier on same channel. Checks: honeypot, sell restriction, proxy, unverified source.
+3. **Phase 2 — BaseScan** — fetches full Solidity source via `ConfidentialHTTPClient`. `AEGIS_BASESCAN_SECRET` stays in the DON.
+4. **Phase 3 — AI Consensus** — sends source to GPT-4o and Llama-3 (each via `ConfidentialHTTPClient`). Both models independently audit for: obfuscated tax, privilege escalation, external call risk, logic bombs. **Union of Fears:** blocked if EITHER model raises a flag.
+5. **Delivers** `onReport(tradeId, riskScore)` to `AegisModule` via `KeystoneForwarder`.
 
 ## Files
 
 | File | Purpose |
 |---|---|
-| `aegis-oracle.ts` | Main CRE workflow — implements the 3-phase audit pipeline |
+| `aegis-oracle.ts` | Main CRE workflow — 3-phase audit pipeline |
 | `workflow.yaml` | CRE workflow config — links oracle to AegisModule address |
 | `project.yaml` | CRE project config — chains, RPC URLs |
-| `config.json` | Runtime config — `vaultAddress` = AegisModule, `chainSelectorName` |
+| `config.json` | Runtime config — `vaultAddress` = AegisModule |
 | `secrets.yaml` | Maps CRE secret IDs → `.env` variable names |
 | `Dockerfile` | Ubuntu 24.04 + Node 20 + Bun + Foundry + CRE CLI + Javy |
 
@@ -31,7 +31,21 @@ docker compose up --build -d
 docker exec aegis-oracle-node bash -c "cd /app && bun x cre-setup"
 ```
 
-### Simulate (trigger from a tx hash)
+### Register secrets (once per CRE installation)
+```bash
+cre workflow secrets set --id AEGIS_BASESCAN_SECRET  --value <key>
+cre workflow secrets set --id AEGIS_OPENAI_SECRET    --value <key>
+cre workflow secrets set --id AEGIS_GROQ_SECRET      --value <key>
+cre workflow secrets set --id AEGIS_GOPLUS_KEY       --value <key>   # optional — enables auth tier
+cre workflow secrets set --id AEGIS_GOPLUS_SECRET    --value <key>   # optional
+```
+
+### Using the launcher script
+```powershell
+.\scripts\start_oracle.ps1
+```
+
+### Simulate manually (from a tx hash)
 ```bash
 docker exec aegis-oracle-node bash -c "
   cd /app && cre workflow simulate /app \
@@ -42,60 +56,63 @@ docker exec aegis-oracle-node bash -c "
 "
 ```
 
-### Using the launcher script
-```powershell
-.\scripts\start_oracle.ps1
-```
-This reads `.env`, updates `config.json`, and tails Docker logs.
+## ConfidentialHTTPClient — Privacy Architecture
 
-## CRE YAML Schema — Learnt the Hard Way
+Every external API call uses `ConfidentialHTTPClient`, never plain `HTTPClient`:
 
-The `--target` flag maps to the **top-level key** of `workflow.yaml` and `project.yaml`:
-
-```yaml
-# ✅ Correct — "tenderly-fork" IS the target name
-tenderly-fork:
-  user-workflow:
-    workflow-name: "aegis-oracle-v4"
-  ...
-```
-
-NOT a `targets:` section, NOT a `settings/` sub-directory.
+| API | Secret ID | Channel |
+|---|---|---|
+| GoPlus JWT auth | `AEGIS_GOPLUS_KEY` + `AEGIS_GOPLUS_SECRET` | ConfidentialHTTPClient |
+| GoPlus token_security | — (key stayed in DON) | ConfidentialHTTPClient |
+| BaseScan source fetch | `AEGIS_BASESCAN_SECRET` | ConfidentialHTTPClient |
+| OpenAI GPT-4o | `AEGIS_OPENAI_SECRET` | ConfidentialHTTPClient |
+| Groq Llama-3 | `AEGIS_GROQ_SECRET` | ConfidentialHTTPClient |
 
 ## 8-Bit Risk Matrix
 
 ```
-Bit 0  — Unverified source code  (GoPlus)
-Bit 1  — Sell restriction        (GoPlus)
-Bit 2  — Honeypot                (GoPlus)
-Bit 3  — Proxy contract          (GoPlus)
-Bit 4  — Obfuscated tax          (AI consensus)
-Bit 5  — Privilege escalation    (AI consensus)
-Bit 6  — External call risk      (AI consensus)
-Bit 7  — Logic bomb              (AI consensus)
+Bit 0 — Unverified source code  (GoPlus)
+Bit 1 — Sell restriction        (GoPlus)
+Bit 2 — Honeypot                (GoPlus)
+Bit 3 — Proxy contract          (GoPlus)
+Bit 4 — Obfuscated tax          (AI consensus — GPT-4o + Llama-3)
+Bit 5 — Privilege escalation    (AI consensus)
+Bit 6 — External call risk      (AI consensus)
+Bit 7 — Logic bomb              (AI consensus)
 ```
 
 `riskScore == 0` → CLEARED → `isApproved[token] = true`
 `riskScore  > 0` → DENIED  → `ClearanceDenied` event emitted
 
-## Mock Token Registry
+## Mock Token Registry (for Tenderly Testing)
 
-For local/Tenderly testing, the oracle has a built-in mock registry:
+Tokens at these addresses return mock GoPlus data and include real malicious Solidity source that is sent to live GPT-4o and Llama-3:
 
-| Address | Token | Expected Result |
-|---|---|---|
-| `0x...000a` | UnverifiedDoge | riskScore=1 (unverified code) |
-| `0x...000b` | HoneypotCoin | riskScore=5 (unverified + honeypot) |
-| `0x...000c` | TaxToken | riskScore=3 (sell restriction) |
-| `0x...000e` | ObfuscatedTax | riskScore=16 (AI flagged) |
-| `0x...000f` | FlashLoanTarget | riskScore=64 (external call risk) |
-| `0x...0010` | TimeBombToken | riskScore=128 (logic bomb) |
+| Address | Token | GoPlus Mock | AI Flags | Expected Risk Code |
+|---|---|---|---|---|
+| `0x...000b` | HoneypotCoin | `is_honeypot=1` | GPT-4o: privilege escalation | 36 (honeypot + priv) |
+| `0x...000c` | TaxToken | `cannot_sell_all=1` | GPT-4o + Llama-3: obfuscated 99% tax | 18 (sellRestriction + obfuscatedTax) |
 
-## Environment Variables Required
+> The AI models read the actual Solidity source and produce independent reasoning. These are not hardcoded verdicts.
+
+## CRE YAML Format
+
+The `--target` flag maps to the **top-level key** in `workflow.yaml` and `project.yaml`:
+
+```yaml
+# ✅ Correct
+tenderly-fork:
+  user-workflow:
+    workflow-name: "aegis-oracle-v4"
+```
+
+## Required Environment Variables
 
 ```bash
-OPENAI_API_KEY=...       # GPT-4o audit
-GROQ_API_KEY=...         # Llama-3 audit
+OPENAI_API_KEY=...       # GPT-4o
+GROQ_API_KEY=...         # Llama-3
 BASESCAN_API_KEY=...     # Source code fetch
 CRE_ETH_PRIVATE_KEY=...  # Oracle signing key
+GOPLUS_APP_KEY=...       # Optional — GoPlus authenticated tier
+GOPLUS_APP_SECRET=...    # Optional — GoPlus authenticated tier
 ```
