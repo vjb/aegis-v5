@@ -38,14 +38,21 @@ const AUDIT_REQUESTED_ABI = {
 } as const;
 
 function loadEnv() {
+    // process.env is populated by Next.js from .env.local (preferred)
+    const fromProcess: Record<string, string> = {};
+    const keys = ['OPENAI_API_KEY', 'TENDERLY_RPC_URL', 'AEGIS_MODULE_ADDRESS', 'PRIVATE_KEY', 'DEV_WALLET_ADDRESS', 'TENDERLY_EXPLORER_BASE'];
+    keys.forEach(k => { if (process.env[k]) fromProcess[k] = process.env[k]!; });
+
+    // Fall back to manual .env file read (handles keys not yet in .env.local)
     const envPath = path.resolve(process.cwd(), '../.env');
-    const env: Record<string, string> = {};
-    if (!fs.existsSync(envPath)) return env;
-    fs.readFileSync(envPath, 'utf8').split('\n').forEach(line => {
-        const [k, ...rest] = line.split('=');
-        if (k && rest.length) env[k.trim()] = rest.join('=').trim();
-    });
-    return env;
+    const fromFile: Record<string, string> = {};
+    if (fs.existsSync(envPath)) {
+        fs.readFileSync(envPath, 'utf8').split('\n').forEach(line => {
+            const [k, ...rest] = line.split('=');
+            if (k && rest.length) fromFile[k.trim()] = rest.join('=').trim();
+        });
+    }
+    return { ...fromFile, ...fromProcess }; // process.env wins
 }
 
 async function buildSystemContext(): Promise<string> {
