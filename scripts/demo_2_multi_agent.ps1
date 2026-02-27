@@ -359,7 +359,7 @@ Write-Host "  REX      HoneypotCoin       4+32 = 36  GoPlus + GPT-4o + Llama-3  
 Write-Host "  REX      (bypass attempt)   n/a         Contract enforcement        REVERT: TokenNotCleared" -ForegroundColor Red
 Write-Host "  REX      (post-revoke)      n/a         Kill switch                 REVERT: NotAuthorized" -ForegroundColor Red
 Write-Host ""
-Write-Host "  Swiss Cheese Model: GoPlus (static on-chain) AND AI (Solidity source) are independent layers." -ForegroundColor Yellow
+Write-Host "  Defense in Depth: GoPlus (static on-chain) AND AI (Solidity source) are independent layers." -ForegroundColor Yellow
 Write-Host "  HoneypotCoin: GoPlus catches it via on-chain simulation (bit 2)." -ForegroundColor Yellow
 Write-Host "  HoneypotCoin: GPT-4o + Llama-3 catch it by reading the transfer allowlist in source (bit 5)." -ForegroundColor Yellow
 Write-Host "  Both layers must miss for a risk to pass through. Neither did." -ForegroundColor Cyan

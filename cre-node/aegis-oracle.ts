@@ -537,7 +537,7 @@ const onAuditTrigger = (runtime: Runtime<Config>, log: EVMLog): string => {
     // ── Assemble 8-bit risk matrix ────────────────────────────────────────────
     // GoPlus bits (0-3): static on-chain analysis
     // AI bits (4-7):     source-code AI analysis (catches what GoPlus cannot see)
-    // Swiss Cheese: each layer uses different detection methods, both must miss for risk to pass through
+    // Defense in Depth: each layer uses different detection methods, both must miss for risk to pass through
     let riskMatrix = 0;
     if (staticResult.unverifiedCode && !allowUnverified) riskMatrix |= 1;    // bit 0 (GoPlus)
     if (staticResult.sellRestriction) riskMatrix |= 2;                        // bit 1 (GoPlus)

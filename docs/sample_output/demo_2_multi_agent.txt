@@ -148,7 +148,7 @@
   REX      (bypass attempt)   n/a         Contract enforcement        REVERT: TokenNotCleared
   REX      (post-revoke)      n/a         Kill switch                 REVERT: NotAuthorized
 
-  Swiss Cheese Model: GoPlus (static on-chain) AND AI (Solidity source) are independent layers.
+  Defense in Depth: GoPlus (static on-chain) AND AI (Solidity source) are independent layers.
   HoneypotCoin: GoPlus catches it via on-chain simulation (bit 2).
   HoneypotCoin: GPT-4o + Llama-3 catch it by reading the transfer allowlist in source (bit 5).
   Both layers must miss for a risk to pass through. Neither did.

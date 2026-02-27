@@ -28,6 +28,7 @@ export default function Home() {
   const [auditVersion, setAuditVersion] = useState(0);
   const [wallet, setWallet] = useState<WalletInfo | null>(null);
   const [walletLoading, setWalletLoading] = useState(true);
+  const [lastAuditResult, setLastAuditResult] = useState<{ token: string; status: string; score: number } | null>(null);
 
   const loadWallet = async () => {
     setWalletLoading(true);
@@ -179,14 +180,14 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Center panel — Oracle Feed (28%) */}
-        <div className="flex flex-col min-h-0" style={{ width: '28%', borderRight: '1px solid var(--border)' }}>
-          <OracleFeed isKilled={isKilled} externalTrigger={triggerAudit} onTriggerConsumed={() => setTriggerAudit(null)} onComplete={() => setAuditVersion((v: number) => v + 1)} />
+        {/* Center panel — Aegis Chat (32%) */}
+        <div className="flex flex-col min-h-0" style={{ width: '32%', borderRight: '1px solid var(--border)' }}>
+          <AegisChat onAuditRequest={(tok: string) => setTriggerAudit(tok)} lastAuditResult={lastAuditResult} />
         </div>
 
-        {/* Right panel — Aegis Chat (32%) */}
-        <div className="flex flex-col min-h-0" style={{ width: '32%' }}>
-          <AegisChat />
+        {/* Right panel — Oracle Feed (28%) */}
+        <div className="flex flex-col min-h-0" style={{ width: '28%' }}>
+          <OracleFeed isKilled={isKilled} externalTrigger={triggerAudit} onTriggerConsumed={() => setTriggerAudit(null)} onComplete={(result) => { setAuditVersion((v: number) => v + 1); setLastAuditResult(result); }} />
         </div>
       </div>
     </main>
