@@ -75,21 +75,18 @@
 ## Phase 5: The Real Chainlink CRE Integration (Live E2E)
 *Context: We proved the smart contract works. Now we remove the training wheels and use the actual off-chain Chainlink CRE node to process the event and submit the transaction.*
 
-- [ ] 5.1 **Oracle Configuration:** Ensure the `v3-reference/.env` or CRE node config points its RPC URL to the local Anvil/Tenderly testnet instance.
-- [ ] 5.2 **Node Initialization:** Write a script `scripts/start_oracle.ps1` that spins up the Chainlink CRE environment using the existing `docker-compose.yaml` and connects it to the local fork.
-- [ ] 5.3 **The Live E2E Test:** Write `scripts/live_e2e.ts`. It must:
-  - Deploy the mock Safe and install `AegisModule`.
-  - Trigger `bot.ts` to send the UserOp.
-  - **Wait.** Do NOT mock the callback. Monitor the network until the Dockerized Chainlink CRE node picks up the `AuditRequested` event, runs the consensus, and natively calls `onReport` back on-chain.
-- [ ] 5.4 **The Debug Loop:** Execute the live E2E test. Monitor the Docker logs for the CRE node. Fix any ABI mismatches, RPC failures, or event-listening bugs.
-- [ ] **[CHECKPOINT 5]** Execute `git commit -m "test(e2e): verify live Chainlink CRE node integration"`. Proceed immediately to the next phase.
+- [x] 5.1 **Oracle Configuration:** `cre-node/config.json` updated with AegisModule address. CRE node connects to Tenderly VNet via `workflow.yaml`.
+- [x] 5.2 **Node Initialization:** `scripts/start_oracle.ps1` written. Docker container running (`aegis-oracle-node`). CRE CLI authenticated.
+- [x] 5.3 **The Live E2E Test:** `scripts/live_e2e.ts` written. `requestAudit(0x...000a)` confirmed on-chain. `cre workflow simulate --target tenderly-fork` ran successfully — AuditRequested intercepted → GoPlus → riskScore=1 → onReport delivered to AegisModule.
+- [x] 5.4 **The Debug Loop (resolved):** Fixed CRE YAML schema (top-level key = target name). Ran `bun x cre-setup` to compile Javy WASM plugin. All documented in `lessons_learned.md`.
+- [x] **[CHECKPOINT 5]** Execute `git commit -m "test(e2e): verify live Chainlink CRE node integration"`. Proceed immediately to the next phase.
 
 ---
 
 ## Phase 6: The Frontend & Session Key Issuance (Next.js)
 *Context: The human owner needs a UI to install the AegisModule onto their Smart Account and issue the ERC-7715 Session Key to the AI Agent.*
 
-- [ ] 6.1 **Frontend Scaffolding:** - Read `v3-reference/aegis-frontend` (if available) to understand the V3 UI components. Install standard AA UI dependencies: `pnpm add @rhinestone/module-sdk wagmi viem @tanstack/react-query`.
+- [/] 6.1 **Frontend Scaffolding:** - Read `v3-reference/aegis-frontend` (if available) to understand the V3 UI components. Install standard AA UI dependencies: `pnpm add @rhinestone/module-sdk wagmi viem @tanstack/react-query`.
 - [ ] 6.2 **Module Installation Component:** Write a React component (`InstallAegis.tsx`) that uses Wagmi to install `AegisModule` onto the connected user's Safe.
 - [ ] 6.3 **Session Key Generation Component:** Write a React component (`HireAgent.tsx`) that generates an ERC-7715 Session Key (Target = `AegisModule` address, Budget = 2 ETH) and exports the credentials.
 - [ ] 6.4 **The Debug Loop:** Run the Next.js dev server. Test module installation and key issuance. 

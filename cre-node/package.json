@@ -1,0 +1,14 @@
+{
+    "name": "aegis-oracle-workflow",
+    "version": "1.0.0",
+    "private": true,
+    "dependencies": {
+        "@chainlink/cre-sdk": "^1.0.0",
+        "viem": "2.34.0",
+        "zod": "3.25.76"
+    },
+    "devDependencies": {
+        "typescript": "^5.0.0",
+        "@types/node": "^20.0.0"
+    }
+}

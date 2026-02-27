@@ -1,0 +1,5 @@
+# /cre-node/project.yaml — V4 format (matches --target tenderly-fork)
+tenderly-fork:
+  rpcs:
+    - chain-name: "ethereum-mainnet-base-1"
+      url: "https://virtual.base.eu.rpc.tenderly.co/7222775d-7276-4069-abf2-f457bc1f6572"

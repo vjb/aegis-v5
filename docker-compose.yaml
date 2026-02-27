@@ -1,0 +1,22 @@
+services:
+  cre-node:
+    build:
+      context: ./cre-node
+      dockerfile: Dockerfile
+    container_name: aegis-oracle-node
+    volumes:
+      # LIVE VOLUME MAPPING:
+      # This maps your local /cre-node folder to the /app folder in the container.
+      # Any code changes you make in VS Code are instantly visible to the CRE CLI.
+      - ./cre-node:/app
+      # Map your root .env so secrets are available for simulation
+      - ./.env:/app/.env
+      # Map the global CLI credentials so 'cre login' survives rebuilds
+      - ~/.cre:/root/.cre
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+    # Standard terminal support
+    tty: true
+    stdin_open: true
