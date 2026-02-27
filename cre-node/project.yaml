@@ -2,4 +2,4 @@
 tenderly-fork:
   rpcs:
     - chain-name: "ethereum-mainnet-base-1"
-      url: "https://virtual.base.eu.rpc.tenderly.co/5576756c-d077-4aae-891d-5cb7a7484d96"
+      url: "https://virtual.base.eu.rpc.tenderly.co/fd3b0803-3eea-4603-82c9-245c4bc00209"

@@ -1,5 +1,62 @@
   🔎 Checking Tenderly VNet health...
-  ✅ VNet healthy (block: 42714036)
+You cannot call a method on a null-valued expression.
+At C:\Users\vjbel\hacks\aegis-v4\scripts\demo_2_multi_agent.ps1:31 char:1
++ $blockNum = (cast block-number --rpc-url $RPC 2>$null | Select-Object ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : InvokeMethodOnNull
+ 
+
+  ⚠️  Tenderly VNet is out of blocks or unreachable.
+  🔄 Auto-provisioning a new VNet via new_tenderly_testnet.ps1...
+
+=======================================================
+  🛡️  AEGIS V4 — NEW TENDERLY TESTNET PROVISIONER
+  (ERC-7579 Module Edition)
+=======================================================
+
+1. Creating new Tenderly Virtual Testnet (aegis-v4-0227-1407)...
+  > VNet ID: c9110334-6407-4968-8f87-8a574b120c41
+  > Admin RPC: https://virtual.base.eu.rpc.tenderly.co/fd3b0803-3eea-4603-82c9-245c4bc00209
+
+2. Updating .env with new RPC URL...
+  > .env updated
+
+3. Updating CRE-Node YAML configs...
+  > Updated cre-node/workflow.yaml
+  > Updated cre-node/project.yaml
+
+4. Funding deployer wallet via Tenderly cheatcode...
+  > Deployer funded with 2 ETH (enough for all demo operations)
+
+5. Deploying AegisModule (ERC-7579 Executor)...
+  > AegisModule deployed at: 0x46d40e0aBdA0814bb0CB323B2Bb85a129d00B0AC
+
+6. Updating AEGIS_MODULE_ADDRESS in .env...
+  > AEGIS_MODULE_ADDRESS updated in .env
+
+7. Updating cre-node/config.json with AegisModule address...
+  > config.json updated (vaultAddress → AegisModule)
+
+8. Verifying AegisModule on Tenderly explorer...
+  > AegisModule verified on Tenderly
+
+=======================================================
+  🎉 AEGIS V4 TESTNET READY
+=======================================================
+  RPC:    https://virtual.base.eu.rpc.tenderly.co/fd3b0803-3eea-4603-82c9-245c4bc00209
+  Module: 0x46d40e0aBdA0814bb0CB323B2Bb85a129d00B0AC
+  UUID:   fd3b0803-3eea-4603-82c9-245c4bc00209
+=======================================================
+
+  NEXT STEPS:
+  1. Run E2E sim:   npx ts-node scripts/e2e_mock_simulation.ts
+  2. Run live E2E:  npx ts-node scripts/live_e2e.ts
+  3. Start Oracle:  .\scripts\start_oracle.ps1
+  4. Start UI:      cd aegis-frontend && npm run dev
+
+  ✅ New VNet ready. RPC: https://virtual.base.eu.rpc.tenderly.co/fd3b0803-3eea-4603-82c9-245c4bc00209
+
 
 ======================================================================
   AEGIS PROTOCOL V4  *  DEMO 2: THE FIREWALL THAT RUNS ITSELF
@@ -27,11 +84,11 @@
   [1e] Subscribing REX with 0.01 ETH budget...
   OK  REX hired | AgentSubscribed(REX, 10000000000000000) emitted
   [2a] NOVA => requestAudit(BRETT)...
-  OK  NOVA => tradeId=0 | 0x27513cbb4d7fc7877a6526d88a89dcb319ff07dc60798f26be96d3d945ba84c4
+  OK  NOVA => tradeId=0 | 0xdf2f55b5159c297bbc5eb2e5e629a62fd9dbd0606536a8e1029558685a438d97
   [2b] CIPHER => requestAudit(TaxToken)...
-  OK  CIPHER => tradeId=1 | 0x97da9b194a501271d9f7255c926b3b8d265686f7ca4b372720dc02d3bd1aab28
+  OK  CIPHER => tradeId=1 | 0xa873160896057c8177d46846377b7bb057f92c9d1ab17cc65fa4c3cca8762291
   [2c] REX => requestAudit(HoneypotCoin)...
-  OK  REX => tradeId=2 | 0x618ec80c3c41d7fc6bb64877619288423230cf0d0025fd14d1fa5f5ba3d14646
+  OK  REX => tradeId=2 | 0xfbf837c774524975d58ac5cb1b36dd778f8070d519e4f2bff8002a3922c8b914
 
   All three intents are queued.
   Running Chainlink CRE oracle for each token...
@@ -53,16 +110,6 @@
     [BaseScan] Contract: BrettToken | 52963 chars of Solidity
     [AI] → GPT-4o via ConfidentialHTTPClient | AEGIS_OPENAI_SECRET stays in DON
     [GPT-4o] HTTP 200
-    [GPT-4o] Response: {"obfuscatedTax": false, "privilegeEscalation": false, "externalCallRisk": false, "logicBomb": false, "reasoning": "The provided contract code is incomplete and does not contain any malicious patterns such as hidden fees, privilege escalation, unguarded external calls, or logic bombs."}
-    [GPT-4o] Risk bits → tax=false priv=false extCall=false bomb=false
-    [GPT-4o] Reasoning: The provided contract code is incomplete and does not contain any malicious patterns such as hidden fees, privilege escalation, unguarded external calls, or logic bombs.
-    [AI] → Llama-3 via Groq ConfidentialHTTPClient | AEGIS_GROQ_SECRET stays in DON
-    [Llama-3] HTTP 200
-    [Llama-3] Response: {
-    [Llama-3] Risk bits → tax=false priv=false extCall=false bomb=false
-    [Llama-3] Reasoning: No malicious patterns found in the provided ERC-20 token contract.
-    [AI] Union of Fears → obfuscatedTax=0 privilegeEscalation=0 externalCallRisk=0 logicBomb=0
-    ⚖️ Final Risk Code: 0
   CRE verdict: BRETT => riskCode=0
 
   --- CRE: TaxToken ---
@@ -70,15 +117,15 @@
     [GoPlus] unverified=0 sellRestriction=1 honeypot=0
     [AI] → GPT-4o via ConfidentialHTTPClient | AEGIS_OPENAI_SECRET stays in DON
     [GPT-4o] HTTP 200
-    [GPT-4o] Response: {
-    [GPT-4o] Risk bits → tax=true priv=false extCall=false bomb=false
-    [GPT-4o] Reasoning: The contract implements a hidden 99% fee disguised as 'protocol fee', which exceeds the firewall's maxTax limit and is not clearly named 'tax' or 'fee'.
+    [GPT-4o] Response:
+    [GPT-4o] Risk bits → tax=true priv=false extCall=false bomb=false honeypot=false
+    [GPT-4o] Reasoning: The contract implements an obfuscated 99% sell fee disguised as a 'protocol fee', which exceeds the firewall's maxTax limit and is not clearly named as a tax or fee.
     [AI] → Llama-3 via Groq ConfidentialHTTPClient | AEGIS_GROQ_SECRET stays in DON
     [Llama-3] HTTP 200
     [Llama-3] Response: {
-    [Llama-3] Risk bits → tax=true priv=false extCall=false bomb=false
+    [Llama-3] Risk bits → tax=true priv=false extCall=false bomb=false honeypot=false
     [Llama-3] Reasoning: The contract deducts a 99% 'protocol fee' from transfers, which is not clearly named 'tax' or 'fee'.
-    [AI] Union of Fears → obfuscatedTax=1 privilegeEscalation=0 externalCallRisk=0 logicBomb=0
+    [AI] Union of Fears → obfuscatedTax=1 privilegeEscalation=0 externalCallRisk=0 logicBomb=0 honeypotPattern=0
     ⚖️ Final Risk Code: 18
     ⛔ GoPlus — static analysis raised flag
     ⛔ GPT-4o — read Solidity source, found malicious pattern
@@ -93,31 +140,31 @@
     [AI] Contract under audit: HoneypotCoin
     [AI] → GPT-4o via ConfidentialHTTPClient | AEGIS_OPENAI_SECRET stays in DON
     [GPT-4o] HTTP 200
-    [GPT-4o] Response:
-    [GPT-4o] Risk bits → tax=false priv=false extCall=false bomb=false
-    [GPT-4o] Reasoning: The contract restricts transfers to an owner allowlist, creating a honeypot, but does not exhibit hidden fees, privilege escalation, external call risks, or logic bombs.
+    [GPT-4o] Response: {
+    [GPT-4o] Risk bits → tax=false priv=false extCall=false bomb=false honeypot=true
+    [GPT-4o] Reasoning: The contract restricts token transfers to an owner-controlled allowlist, making it impossible for non-approved users to sell their tokens, which is a honeypot pattern.
     [AI] → Llama-3 via Groq ConfidentialHTTPClient | AEGIS_GROQ_SECRET stays in DON
     [Llama-3] HTTP 200
     [Llama-3] Response: {
-    [Llama-3] Risk bits → tax=false priv=false extCall=false bomb=false
-    [Llama-3] Reasoning: This contract is a honeypot token with restricted transfers to owner-approved addresses, but does not exhibit any malicious patterns.
-    [AI] Union of Fears → obfuscatedTax=0 privilegeEscalation=0 externalCallRisk=0 logicBomb=0
-    ⚖️ Final Risk Code: 4
+    [Llama-3] Risk bits → tax=false priv=false extCall=false bomb=false honeypot=true
+    [Llama-3] Reasoning: The contract restricts token transfers to an owner-controlled allowlist, making it impossible for non-approved users to sell their tokens.
+    [AI] Union of Fears → obfuscatedTax=0 privilegeEscalation=0 externalCallRisk=0 logicBomb=0 honeypotPattern=1
+    ⚖️ Final Risk Code: 260
     ⛔ GoPlus — static analysis raised flag
     ⛔ GPT-4o — read Solidity source, found malicious pattern
     ⛔ Llama-3 — independently confirmed (second AI brain)
     ★ AI models caught this — reading real contract source, not just GoPlus signals
-  CRE verdict: HoneypotCoin => riskCode=4
+  CRE verdict: HoneypotCoin => riskCode=260
 
 
   --------------------------------------------------------------------
 
-  [3a] BRETT cleared (tradeId=1, riskScore=0)...
+  [3a] BRETT cleared (tradeId=0, riskScore=0)...
   OK  ClearanceUpdated(BRETT, true) => NOVA is GO for launch
-  [3b] TaxToken blocked (tradeId=2, riskScore=18, bit 1 = sell restriction)...
+  [3b] TaxToken blocked (tradeId=1, riskScore=18, bit 1 = sell restriction)...
   BLOCKED  ClearanceDenied(TaxToken, 18) => CIPHER stands down
-  [3c] HoneypotCoin blocked (tradeId=3, riskScore=4, bits 0+2)...
-  BLOCKED  ClearanceDenied(HoneypotCoin, 4) => REX denied
+  [3c] HoneypotCoin blocked (tradeId=2, riskScore=260, bits 0+2)...
+  BLOCKED  ClearanceDenied(HoneypotCoin, 260) => REX denied
 
   Union of Fears: if EITHER model flags a risk, the bit is set.
   BRETT's real source was read by both GPT-4o and Llama-3 from BaseScan.
@@ -125,8 +172,8 @@
   [4a] NOVA executing real Uniswap V3 swap...
   >   cast send AegisModule 'triggerSwap(address,uint256,uint256)' BRETT 10000000000000000 1 --pk NOVA
   OK  Swap transaction confirmed on-chain
-  >>  Tenderly trace: https://virtual.base.eu.rpc.tenderly.co/tx/0x6e8ccc7a91fe34a7d4c57a2120ac703a14b6bc8d82b04d09f0c86c56ead397b2
-  >>  AegisModule BRETT balance: 0x000000000000000000000000000000000000000000000093d80a19862c9fd704
+  >>  Tenderly trace: https://virtual.base.eu.rpc.tenderly.co/fd3b0803-3eea-4603-82c9-245c4bc00209/tx/0x73d7cf19edb5ba9f8548fbbf34cca645ad2f9b2bf4c3d756320301ad657503e7
+  >>  AegisModule BRETT balance: 0x000000000000000000000000000000000000000000000095238da9debc74e9f8
   >>  NOVA remaining budget: 0x000000000000000000000000000000000000000000000000008e1bc9bf040000 (raw wei)
   [5a] REX tries triggerSwap with NO clearance...
   REVERT: TokenNotCleared — REX bypass failed
@@ -142,15 +189,15 @@
 
   AGENT    TOKEN            RISK CODE  CAUGHT BY                   RESULT
   -------  ---------------  ---------  --------------------------  ------
-  NOVA     BRETT             0 (clean) GoPlus + GPT-4o + Llama-3   OK  Swap executed
-  CIPHER   TaxToken         16+2 = 18  GPT-4o + Llama-3            BLOCKED: obfuscated 99% tax
-  REX      HoneypotCoin      4+1 = 5   GoPlus + GPT-4o + Llama-3   BLOCKED: honeypot trap
-  REX      (bypass attempt) n/a        Contract enforcement         REVERT: TokenNotCleared
-  REX      (post-revoke)    n/a        Kill switch                  REVERT: NotAuthorized
+  NOVA     BRETT             0 (clean) GoPlus + GPT-4o + Llama-3  OK  Swap executed
+  CIPHER   TaxToken         16+2 = 18  GoPlus + GPT-4o + Llama-3  BLOCKED: obfuscated 99% tax
+  REX      HoneypotCoin       bit 2 = 4  GoPlus (honeypot flag)     BLOCKED: honeypot detected
+  REX      (bypass attempt)  n/a         Contract enforcement        REVERT: TokenNotCleared
+  REX      (post-revoke)     n/a         Kill switch                 REVERT: NotAuthorized
 
-  TaxToken + HoneypotCoin: malicious Solidity sent to REAL GPT-4o + Llama-3.
-  Both LLMs read the source independently and flagged malicious patterns.
-  Union of Fears: token blocked if EITHER model raises a flag.
+  TaxToken: BOTH GPT-4o and Llama-3 read malicious Solidity and flagged obfuscated tax.
+  HoneypotCoin: GoPlus static flag (honeypot=1). AI confirmed but did not independently flag.
+  Union of Fears: token blocked if EITHER source raises a flag.
 
   ConfidentialHTTPClient: GoPlus + BaseScan + OpenAI + Groq keys NEVER left the DON.
 

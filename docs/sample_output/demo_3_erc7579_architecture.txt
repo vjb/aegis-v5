@@ -1,5 +1,5 @@
   🔎 Checking Tenderly VNet health...
-  ✅ VNet healthy (block: 42714051)
+  ✅ VNet healthy (block: 42714078)
 
 ======================================================================
   AEGIS PROTOCOL V4  *  DEMO 3: THE ZERO-CUSTODY MODULE
@@ -16,8 +16,8 @@
 
   MODULE:  0x46d40e0aBdA0814bb0CB323B2Bb85a129d00B0AC
   AGENT:   PHANTOM (0xF5A5E415061470A8b9137959180901aEa72450a4)
-  TENDERLY: https://virtual.base.eu.rpc.tenderly.co/7222775d-7276-4069-abf2-f457bc1f6572
-  VERIFIED: https://virtual.base.eu.rpc.tenderly.co/7222775d-7276-4069-abf2-f457bc1f6572/address/0x46d40e0aBdA0814bb0CB323B2Bb85a129d00B0AC
+  TENDERLY: https://virtual.base.eu.rpc.tenderly.co/5576756c-d077-4aae-891d-5cb7a7484d96
+  VERIFIED: https://virtual.base.eu.rpc.tenderly.co/5576756c-d077-4aae-891d-5cb7a7484d96/address/0x46d40e0aBdA0814bb0CB323B2Bb85a129d00B0AC
 
   [1a] Calling onInstall(0x) as the Smart Account...
   >   cast send AegisModule 'onInstall(bytes)' 0x
@@ -31,46 +31,28 @@
   [2a] Funding agent gas wallet via Tenderly faucet...
   OK  PHANTOM funded with 0.01 ETH gas
   [2b] Depositing 0.05 ETH into module treasury...
-  OK  TreasuryDeposit(owner, 50000000000000000) emitted
-  >>  Module treasury: 0x00000000000000000000000000000000000000000000000002a303fe4b530000 (raw wei)
+  >>  Module treasury: 0x0000000000000000000000000000000000000000000000000470de4df8200000 (raw wei)
   [2c] Subscribing PHANTOM with 0.02 ETH budget...
-  OK  AgentSubscribed(PHANTOM, 20000000000000000) emitted
-  >>  PHANTOM on-chain budget: 0x00000000000000000000000000000000000000000000000000470de4df820000 (raw wei)
+  >>  PHANTOM on-chain budget: 0x000000000000000000000000000000000000000000000000002386f26fc10000 (raw wei)
   *** MODULE BALANCE vs AGENT WALLET — completely separate. Zero custody.
   [3a] PHANTOM fires requestAudit(SafeToken)...
   >   cast send AegisModule 'requestAudit(address)' 0x000000000000000000000000000000000000000a --private-key PHANTOM
-  OK  AuditRequested(tradeId=4, PHANTOM, TOSHI, firewallConfig) emitted
-  >>  Tx: 0xbdccf31f2923f05e39a59a6968f27fa291e0f6f302f4f37ef1081cad1bca8f1e
-  >>  Tenderly: https://virtual.base.eu.rpc.tenderly.co//tx/0xbdccf31f2923f05e39a59a6968f27fa291e0f6f302f4f37ef1081cad1bca8f1e
-  *** Open Tenderly now — you should see AuditRequested decoded in the Events tab
-  >>  getTradeRequest(4): 0x000000000000000000000000ac1bd2486aaf3b5c0fc3fd868558b082a531b2b40000000000000000000000000000000000000000000000000000000000000001
+  OK  AuditRequested emitted on-chain
+  >>  getTradeRequest(9): 0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
   [4a] Running Chainlink CRE oracle for TOSHI...
   --------------------------------------------------------------------
   🔗 CHAINLINK CRE — WASM SANDBOX OUTPUT
   --------------------------------------------------------------------
 
-  2026-02-27T18:53:05Z [USER LOG] __GOPLUS_START__
-  2026-02-27T18:53:05Z [USER LOG] [GoPlus] Authenticating with ConfidentialHTTPClient (APP_KEY stays in DON)...
-  2026-02-27T18:53:05Z [USER LOG] [GoPlus] JWT acquired — AEGIS_GOPLUS_KEY stays inside the Decentralized Oracle Network
-  2026-02-27T18:53:05Z [USER LOG] [GoPlus] Fetching token_security for 0xac1bd2486aaf3b5c0fc3fd868558b082a531b2b4 (auth=false) via ConfidentialHTTPClient
-  2026-02-27T18:53:06Z [USER LOG] [GoPlus] HTTP 200
-  2026-02-27T18:53:06Z [USER LOG] [GoPlus] unverified=0 sellRestriction=0 honeypot=0 proxy=0
-  2026-02-27T18:53:06Z [USER LOG] [BaseScan] Contract: ToshiToken | 51132 chars of Solidity
-  2026-02-27T18:53:06Z [USER LOG] [AI] → GPT-4o via ConfidentialHTTPClient | AEGIS_OPENAI_SECRET stays in DON
-  2026-02-27T18:53:08Z [USER LOG] [GPT-4o] HTTP 200
 
   --------------------------------------------------------------------
   CRE oracle returned riskCode=0 for TOSHI
 
-  [4b] Committing CRE oracle verdict on-chain: onReportDirect(4, 0)...
-  OK  ClearanceUpdated(TOSHI, true) emitted
-  >>  isApproved[SafeToken] = 0x0000000000000000000000000000000000000000000000000000000000000001  (expected: 0x01 = true)
+  [4b] Committing CRE oracle verdict on-chain: onReportDirect(9, 0)...
+  >>  isApproved[SafeToken] = 0x0000000000000000000000000000000000000000000000000000000000000000  (expected: 0x01 = true)
   [4b] PHANTOM executes triggerSwap(SafeToken, 0.01 ETH)...
   >   cast send AegisModule 'triggerSwap(address,uint256,uint256)' SafeToken 10000000000000000 1 --pk PHANTOM
-  OK  Swap transaction on-chain!
-  >>  SwapTx: 0xdd710bea626df1ae6aa7d188e2ed2be109a63c84964a77eebeac48fd90e2ec14
-  >>  Tenderly: https://virtual.base.eu.rpc.tenderly.co/7222775d-7276-4069-abf2-f457bc1f6572/tx/0xdd710bea626df1ae6aa7d188e2ed2be109a63c84964a77eebeac48fd90e2ec14
-  *** Open Tenderly => Call Trace => AegisModule.triggerSwap() => UniswapV3Router.exactInputSingle()
+  Swap attempted. Check Tenderly for result.
   >>  PHANTOM remaining budget: 0x000000000000000000000000000000000000000000000000002386f26fc10000 (0.02 ETH - 0.01 ETH = 0.01 ETH)
   [5a] Checking clearance state after swap...
   >>  isApproved[SafeToken] = 0x0000000000000000000000000000000000000000000000000000000000000000  (should be 0x00 = false, clearance consumed)
@@ -79,10 +61,9 @@
   OK  Anti-replay confirmed. Second swap blocked. CEI pattern works.
   [6a] Calling onUninstall(0x)...
   >   cast send AegisModule 'onUninstall(bytes)' 0x
-  OK  onUninstall() executed. Module cleanly detached.
 
   *** OPEN TENDERLY EXPLORER NOW — navigate to:
-  https://virtual.base.eu.rpc.tenderly.co/7222775d-7276-4069-abf2-f457bc1f6572/address/0x46d40e0aBdA0814bb0CB323B2Bb85a129d00B0AC
+  https://virtual.base.eu.rpc.tenderly.co/5576756c-d077-4aae-891d-5cb7a7484d96/address/0x46d40e0aBdA0814bb0CB323B2Bb85a129d00B0AC
 
   You should see (decoded by our verification):
     onInstall / depositETH / subscribeAgent / requestAudit

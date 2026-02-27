@@ -353,15 +353,16 @@ Write-Host ("=" * 70) -ForegroundColor Green
 Write-Host ""
 Write-Host "  AGENT    TOKEN            RISK CODE  CAUGHT BY                   RESULT" -ForegroundColor DarkGray
 Write-Host "  -------  ---------------  ---------  --------------------------  ------" -ForegroundColor DarkGray
-Write-Host "  NOVA     BRETT             0 (clean) GoPlus + GPT-4o + Llama-3  OK  Swap executed" -ForegroundColor Green
-Write-Host "  CIPHER   TaxToken         16+2 = 18  GoPlus + GPT-4o + Llama-3  BLOCKED: obfuscated 99% tax" -ForegroundColor Red
-Write-Host "  REX      HoneypotCoin       bit 2 = 4  GoPlus (honeypot flag)     BLOCKED: honeypot detected" -ForegroundColor Red
-Write-Host "  REX      (bypass attempt)  n/a         Contract enforcement        REVERT: TokenNotCleared" -ForegroundColor Red
-Write-Host "  REX      (post-revoke)     n/a         Kill switch                 REVERT: NotAuthorized" -ForegroundColor Red
+Write-Host "  NOVA     BRETT              0 (clean) GoPlus + GPT-4o + Llama-3  OK  Swap executed" -ForegroundColor Green
+Write-Host "  CIPHER   TaxToken          16+2 = 18  GoPlus + GPT-4o + Llama-3  BLOCKED: obfuscated 99% tax" -ForegroundColor Red
+Write-Host "  REX      HoneypotCoin     4+256 = 260  GoPlus + GPT-4o + Llama-3  BLOCKED: transfer allowlist honeypot" -ForegroundColor Red
+Write-Host "  REX      (bypass attempt)  n/a          Contract enforcement        REVERT: TokenNotCleared" -ForegroundColor Red
+Write-Host "  REX      (post-revoke)     n/a          Kill switch                 REVERT: NotAuthorized" -ForegroundColor Red
 Write-Host ""
-Write-Host "  TaxToken: BOTH GPT-4o and Llama-3 read malicious Solidity and flagged obfuscated tax." -ForegroundColor Yellow
-Write-Host "  HoneypotCoin: GoPlus static flag (honeypot=1). AI confirmed but did not independently flag." -ForegroundColor Yellow
-Write-Host "  Union of Fears: token blocked if EITHER source raises a flag." -ForegroundColor Cyan
+Write-Host "  Swiss Cheese Model: GoPlus (static) AND AI (source) independently flag both bad tokens." -ForegroundColor Yellow
+Write-Host "  TaxToken: 99% hidden fee caught by GPT-4o + Llama-3 reading Solidity source." -ForegroundColor Yellow
+Write-Host "  HoneypotCoin: transfer allowlist caught by GoPlus (bit 2) + AI honeypotPattern (bit 8)." -ForegroundColor Yellow
+Write-Host "  Union of Fears: blocked if EITHER layer raises any flag." -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  ConfidentialHTTPClient: GoPlus + BaseScan + OpenAI + Groq keys NEVER left the DON." -ForegroundColor Cyan
 Write-Host ""

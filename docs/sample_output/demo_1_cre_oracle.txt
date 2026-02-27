@@ -1,5 +1,5 @@
   🔎 Checking Tenderly VNet health...
-  ✅ VNet healthy (block: 42714032)
+  ✅ VNet healthy (block: 42714059)
 
 ══════════════════════════════════════════════════════════════════════
   🔗 AEGIS PROTOCOL V4  ·  DEMO 1: THE AI BLACK BOX
@@ -18,7 +18,7 @@
   [Scene 1] Depositing 0.05 ETH into AegisModule treasury...
   › cast send AegisModule 'depositETH()' --value 0.05ether
   ✅ 0.05 ETH deposited. Treasury is live.
-  ℹ️  Treasury balance (raw wei): 0x00000000000000000000000000000000000000000000000000b1a2bc2ec50000
+  ℹ️  Treasury balance (raw wei): 0x00000000000000000000000000000000000000000000000003311fc80a570000
   [Scene 2] Subscribing NEXUS (the AI agent) with a 0.05 ETH budget...
   › cast send AegisModule 'subscribeAgent(address,uint256)' <NEXUS> 50000000000000000
   ✅ NEXUS subscribed with 0.05 ETH budget!
@@ -27,69 +27,69 @@
   › cast send AegisModule 'requestAudit(address)' <BRETT 0x532f...>
   ✅ AuditRequested event emitted on-chain!
   ℹ️  Token: 0x532f27101965dd16442E59d40670FaF5eBB142E4 (BRETT (Base))
-  ℹ️  Tx Hash: 0x1e8bf6ad9eccd91d7ccff7648184b370ae4507bdfcab488c19ff1571409b7710
-  ℹ️  Tenderly explorer: https://virtual.base.eu.rpc.tenderly.co/5576756c-d077-4aae-891d-5cb7a7484d96/tx/0x1e8bf6ad9eccd91d7ccff7648184b370ae4507bdfcab488c19ff1571409b7710
+  ℹ️  Tx Hash: 0x99ffcb6a0646ac93a3e7cea8350f8f41315c89c62ef487caca4b2217918f7eb1
+  ℹ️  Tenderly explorer: https://virtual.base.eu.rpc.tenderly.co/5576756c-d077-4aae-891d-5cb7a7484d96/tx/0x99ffcb6a0646ac93a3e7cea8350f8f41315c89c62ef487caca4b2217918f7eb1
 
   ────────────────────────────────────────────────────────────────────
   🔗 CHAINLINK CRE — WASM SANDBOX OUTPUT
   ────────────────────────────────────────────────────────────────────
 
-  › docker exec aegis-oracle-node bash -c "cd /app && cre workflow simulate /app --evm-tx-hash 0x1e8bf6ad9eccd91d7ccff7648184b370ae4507bdfcab488c19ff1571409b7710 --evm-event-index 0 --non-interactive --trigger-index 0 -R /app -T tenderly-fork 2>&1"
+  › docker exec aegis-oracle-node bash -c "cd /app && cre workflow simulate /app --evm-tx-hash 0x99ffcb6a0646ac93a3e7cea8350f8f41315c89c62ef487caca4b2217918f7eb1 --evm-event-index 0 --non-interactive --trigger-index 0 -R /app -T tenderly-fork 2>&1"
 
   ┌─ BEGIN RAW CRE OUTPUT ────────────────────────────────────────────┐
   Initializing...
   Checking RPC connectivity...
   Compiling workflow...
   ✓ Workflow compiled
-  Fetching transaction receipt for 0x1e8bf6ad9eccd91d7ccff7648184b370ae4507bdfcab488c19ff1571409b7710...
-  2026-02-27T18:50:43Z [SIMULATION] Simulator Initialized
+  Fetching transaction receipt for 0x99ffcb6a0646ac93a3e7cea8350f8f41315c89c62ef487caca4b2217918f7eb1...
+  2026-02-27T19:00:19Z [SIMULATION] Simulator Initialized
   
-  2026-02-27T18:50:43Z [SIMULATION] Running trigger trigger=evm:ChainSelector:15971525489660198786@1.0.0
-  2026-02-27T18:50:43Z [USER LOG] 🛡️ AegisModule V4 | AuditRequested intercepted
-  2026-02-27T18:50:43Z [USER LOG] 🛡️ AEGIS MODULE V4 | Auditing: 0x532f27101965dd16442e59d40670faf5ebb142e4
-  2026-02-27T18:50:43Z [USER LOG] __GOPLUS_START__
-  2026-02-27T18:50:43Z [USER LOG] [GoPlus] Authenticating with ConfidentialHTTPClient (APP_KEY stays in DON)...
-  2026-02-27T18:50:43Z [USER LOG] [GoPlus] JWT acquired — AEGIS_GOPLUS_KEY stays inside the Decentralized Oracle Network
-  2026-02-27T18:50:43Z [USER LOG] [GoPlus] Fetching token_security for 0x532f27101965dd16442e59d40670faf5ebb142e4 (auth=false) via ConfidentialHTTPClient
-  2026-02-27T18:50:44Z [USER LOG] [GoPlus] HTTP 200
-  2026-02-27T18:50:44Z [USER LOG] [GoPlus] unverified=0 sellRestriction=0 honeypot=0 proxy=0
-  2026-02-27T18:50:44Z [USER LOG] [BaseScan] ConfidentialHTTPClient → BaseScan for 0x532f27101965dd16442e59d40670faf5ebb142e4
-  2026-02-27T18:50:44Z [USER LOG] [BaseScan] AEGIS_BASESCAN_SECRET stays inside the Decentralized Oracle Network
-  2026-02-27T18:50:44Z [USER LOG] [BaseScan] HTTP 200 — key never left DON
-  2026-02-27T18:50:44Z [USER LOG] [BaseScan] Contract: BrettToken | 52963 chars of Solidity
-  2026-02-27T18:50:44Z [USER LOG] [BaseScan] Proxy=0 | Compiler=v0.8.17+commit.8df45f5f
-  2026-02-27T18:50:44Z [USER LOG] [BaseScan] Source truncated to 15000 chars for AI input
-  2026-02-27T18:50:44Z [USER LOG] [BaseScan] Sending 15000 chars to AI models
-  2026-02-27T18:50:44Z [USER LOG] [AI] Contract under audit: BrettToken
-  2026-02-27T18:50:44Z [USER LOG] [AI] Prompt sent to AI (first 400 chars): You are the Aegis Protocol Lead Security Auditor for a DeFi firewall. Analyze this ERC-20 token contract for MALICIOUS patterns ONLY.
+  2026-02-27T19:00:19Z [SIMULATION] Running trigger trigger=evm:ChainSelector:15971525489660198786@1.0.0
+  2026-02-27T19:00:19Z [USER LOG] 🛡️ AegisModule V4 | AuditRequested intercepted
+  2026-02-27T19:00:19Z [USER LOG] 🛡️ AEGIS MODULE V4 | Auditing: 0x532f27101965dd16442e59d40670faf5ebb142e4
+  2026-02-27T19:00:19Z [USER LOG] __GOPLUS_START__
+  2026-02-27T19:00:19Z [USER LOG] [GoPlus] Authenticating with ConfidentialHTTPClient (APP_KEY stays in DON)...
+  2026-02-27T19:00:19Z [USER LOG] [GoPlus] JWT acquired — AEGIS_GOPLUS_KEY stays inside the Decentralized Oracle Network
+  2026-02-27T19:00:19Z [USER LOG] [GoPlus] Fetching token_security for 0x532f27101965dd16442e59d40670faf5ebb142e4 (auth=false) via ConfidentialHTTPClient
+  2026-02-27T19:00:19Z [USER LOG] [GoPlus] HTTP 200
+  2026-02-27T19:00:19Z [USER LOG] [GoPlus] unverified=0 sellRestriction=0 honeypot=0 proxy=0
+  2026-02-27T19:00:19Z [USER LOG] [BaseScan] ConfidentialHTTPClient → BaseScan for 0x532f27101965dd16442e59d40670faf5ebb142e4
+  2026-02-27T19:00:19Z [USER LOG] [BaseScan] AEGIS_BASESCAN_SECRET stays inside the Decentralized Oracle Network
+  2026-02-27T19:00:20Z [USER LOG] [BaseScan] HTTP 200 — key never left DON
+  2026-02-27T19:00:20Z [USER LOG] [BaseScan] Contract: BrettToken | 52963 chars of Solidity
+  2026-02-27T19:00:20Z [USER LOG] [BaseScan] Proxy=0 | Compiler=v0.8.17+commit.8df45f5f
+  2026-02-27T19:00:20Z [USER LOG] [BaseScan] Source truncated to 15000 chars for AI input
+  2026-02-27T19:00:20Z [USER LOG] [BaseScan] Sending 15000 chars to AI models
+  2026-02-27T19:00:20Z [USER LOG] [AI] Contract under audit: BrettToken
+  2026-02-27T19:00:20Z [USER LOG] [AI] Prompt sent to AI (first 400 chars): You are the Aegis Protocol Lead Security Auditor for a DeFi firewall. Analyze this ERC-20 token contract for MALICIOUS patterns ONLY.
   
   Return ONLY a valid JSON object with these exact boolean keys plus a reasoning string:
     obfuscatedTax: TRUE only if there is a hidden fee >  5% deducted inside _transfer/_update that is NOT clearly named 'tax' or 'fee'. Standard Ownable, renounceOwnership, or roya
-  2026-02-27T18:50:44Z [USER LOG] [AI] → GPT-4o via ConfidentialHTTPClient | AEGIS_OPENAI_SECRET stays in DON
-  2026-02-27T18:50:46Z [USER LOG] [GPT-4o] HTTP 200
-  2026-02-27T18:50:46Z [USER LOG] [GPT-4o] Response: {"obfuscatedTax": false, "privilegeEscalation": false, "externalCallRisk": false, "logicBomb": false, "reasoning": "The contract uses standard OpenZeppelin ERC-20 and Ownable patterns without any hidden fees, backdoors, or unguarded external calls."}
-  2026-02-27T18:50:46Z [USER LOG] [GPT-4o] Risk bits → tax=false priv=false extCall=false bomb=false
-  2026-02-27T18:50:46Z [USER LOG] [GPT-4o] Reasoning: The contract uses standard OpenZeppelin ERC-20 and Ownable patterns without any hidden fees, backdoors, or unguarded external calls.
-  2026-02-27T18:50:46Z [USER LOG] [AI] → Llama-3 via Groq ConfidentialHTTPClient | AEGIS_GROQ_SECRET stays in DON
-  2026-02-27T18:50:47Z [USER LOG] [Llama-3] HTTP 200
-  2026-02-27T18:50:47Z [USER LOG] [Llama-3] Response: {
+  2026-02-27T19:00:20Z [USER LOG] [AI] → GPT-4o via ConfidentialHTTPClient | AEGIS_OPENAI_SECRET stays in DON
+  2026-02-27T19:00:22Z [USER LOG] [GPT-4o] HTTP 200
+  2026-02-27T19:00:22Z [USER LOG] [GPT-4o] Response: {"obfuscatedTax": false, "privilegeEscalation": false, "externalCallRisk": false, "logicBomb": false, "reasoning": "The contract uses standard OpenZeppelin libraries without any hidden fees, backdoors, or unguarded external calls."}
+  2026-02-27T19:00:22Z [USER LOG] [GPT-4o] Risk bits → tax=false priv=false extCall=false bomb=false
+  2026-02-27T19:00:22Z [USER LOG] [GPT-4o] Reasoning: The contract uses standard OpenZeppelin libraries without any hidden fees, backdoors, or unguarded external calls.
+  2026-02-27T19:00:22Z [USER LOG] [AI] → Llama-3 via Groq ConfidentialHTTPClient | AEGIS_GROQ_SECRET stays in DON
+  2026-02-27T19:00:23Z [USER LOG] [Llama-3] HTTP 200
+  2026-02-27T19:00:23Z [USER LOG] [Llama-3] Response: {
     "obfuscatedTax": false,
      "privilegeEscalation": false,
      "externalCallRisk": false,
      "logicBomb": false,
      "reasoning": "No malicious patterns found in the provided ERC-20 token contract."
   }
-  2026-02-27T18:50:47Z [USER LOG] [Llama-3] Risk bits → tax=false priv=false extCall=false bomb=false
-  2026-02-27T18:50:47Z [USER LOG] [Llama-3] Reasoning: No malicious patterns found in the provided ERC-20 token contract.
-  2026-02-27T18:50:47Z [USER LOG] [AI] Union of Fears → obfuscatedTax=0 privilegeEscalation=0 externalCallRisk=0 logicBomb=0
-  2026-02-27T18:50:47Z [USER LOG] ⚖️ Final Risk Code: 0
-  2026-02-27T18:50:47Z [USER LOG] ✅ onReport delivered to AegisModule at 0x46d40e0aBdA0814bb0CB323B2Bb85a129d00B0AC
+  2026-02-27T19:00:23Z [USER LOG] [Llama-3] Risk bits → tax=false priv=false extCall=false bomb=false
+  2026-02-27T19:00:23Z [USER LOG] [Llama-3] Reasoning: No malicious patterns found in the provided ERC-20 token contract.
+  2026-02-27T19:00:23Z [USER LOG] [AI] Union of Fears → obfuscatedTax=0 privilegeEscalation=0 externalCallRisk=0 logicBomb=0
+  2026-02-27T19:00:23Z [USER LOG] ⚖️ Final Risk Code: 0
+  2026-02-27T19:00:23Z [USER LOG] ✅ onReport delivered to AegisModule at 0x46d40e0aBdA0814bb0CB323B2Bb85a129d00B0AC
   
   ✓ Workflow Simulation Result:
   "Audit Complete"
   
-  2026-02-27T18:50:47Z [SIMULATION] Execution finished signal received
-  2026-02-27T18:50:47Z [SIMULATION] Skipping WorkflowEngineV2
+  2026-02-27T19:00:23Z [SIMULATION] Execution finished signal received
+  2026-02-27T19:00:23Z [SIMULATION] Skipping WorkflowEngineV2
   
   ╭──────────────────────────────────────────────────────╮
   │ Simulation complete! Ready to deploy your workflow?  │
@@ -100,7 +100,7 @@
 
   📡 CRE oracle returned Risk Code: 0
   📝 Committing oracle verdict on-chain via onReportDirect...
-  ✅ Oracle verdict committed: riskCode=0 tradeId=0 for BRETT (Base)
+  ✅ Oracle verdict committed: riskCode=0 tradeId=5 for BRETT (Base)
   [Scene 5] Reading on-chain verdict for BRETT (Base)...
   › cast call AegisModule 'isApproved(address)' <BRETT (Base)>
 
