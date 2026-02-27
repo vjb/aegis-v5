@@ -218,11 +218,13 @@ docker exec aegis-oracle-node bash -c \
 ### Step 1 — Agent Submits Trade Intent
 The AI agent (holding only gas ETH) sends a UserOp calling `AegisModule.requestAudit(token)`. This emits `AuditRequested` on-chain. **No capital moves yet.**
 
+> **Key security property:** The agent can only choose *which token* to request. **The firewall rules (`firewallConfig`) are set by the human owner** via `setFirewallConfig()` and are stored on-chain in the module. The agent cannot modify them. An agent cannot loosen its own leash.
+
 ### Step 2 — Chainlink CRE Renders Verdict
-The Chainlink CRE DON catches the event and runs a multi-phase audit:
+The Chainlink CRE DON catches the event and runs a multi-phase audit against the **owner-defined** `firewallConfig` (emitted alongside the trade intent):
 - **GoPlus** — static on-chain analysis (honeypot, sell restriction, proxy)
 - **BaseScan** — source code retrieval (via Confidential HTTP)
-- **GPT-4o + Llama-3** — dual-model AI consensus (obfuscated tax, logic bombs)
+- **GPT-4o + Llama-3** — dual-model AI consensus (obfuscated tax, privilege escalation, logic bombs)
 
 The result is an **8-bit risk matrix** delivered to `AegisModule.onReport(tradeId, riskScore)` through the Chainlink KeystoneForwarder. **Only the KeystoneForwarder can call this function.**
 
