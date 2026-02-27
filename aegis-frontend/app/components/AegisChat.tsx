@@ -2,7 +2,65 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Send, Loader2, BrainCircuit, ChevronRight } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
+
+// Lightweight markdown renderer — no external deps, works reliably in Next.js App Router
+function renderMd(text: string) {
+    const lines = text.split('\n');
+    const out: React.ReactNode[] = [];
+    let i = 0;
+    while (i < lines.length) {
+        const line = lines[i];
+        // Numbered list item
+        const numMatch = line.match(/^(\d+)\. (.*)/);
+        if (numMatch) {
+            const items: string[] = [];
+            while (i < lines.length && lines[i].match(/^\d+\. /)) {
+                items.push(lines[i].replace(/^\d+\. /, ''));
+                i++;
+            }
+            out.push(<ol key={i} style={{ paddingLeft: '1.3em', marginBottom: '0.5em' }}>{items.map((t, j) => <li key={j} style={{ marginBottom: '0.2em' }}>{inlineMd(t)}</li>)}</ol>);
+            continue;
+        }
+        // Bullet list item
+        if (line.startsWith('- ') || line.startsWith('• ')) {
+            const items: string[] = [];
+            while (i < lines.length && (lines[i].startsWith('- ') || lines[i].startsWith('• '))) {
+                items.push(lines[i].replace(/^[-•] /, ''));
+                i++;
+            }
+            out.push(<ul key={i} style={{ paddingLeft: '1.3em', marginBottom: '0.5em' }}>{items.map((t, j) => <li key={j} style={{ marginBottom: '0.2em' }}>{inlineMd(t)}</li>)}</ul>);
+            continue;
+        }
+        // Empty line = paragraph break
+        if (line.trim() === '') {
+            out.push(<div key={i} style={{ height: '0.5em' }} />);
+            i++;
+            continue;
+        }
+        // Heading (##)
+        const headingMatch = line.match(/^#{1,3} (.+)/);
+        if (headingMatch) {
+            out.push(<p key={i} style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.3em' }}>{inlineMd(headingMatch[1])}</p>);
+            i++; continue;
+        }
+        // Normal line
+        out.push(<p key={i} style={{ marginBottom: '0.25em', lineHeight: 1.75 }}>{inlineMd(line)}</p>);
+        i++;
+    }
+    return out;
+}
+
+function inlineMd(text: string): React.ReactNode[] {
+    // Handle **bold** and `code` inline
+    const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/);
+    return parts.map((part, i) => {
+        if (part.startsWith('**') && part.endsWith('**'))
+            return <strong key={i} style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{part.slice(2, -2)}</strong>;
+        if (part.startsWith('`') && part.endsWith('`'))
+            return <code key={i} style={{ background: 'rgba(56,189,248,0.12)', padding: '1px 5px', borderRadius: 4, fontSize: '0.9em', color: 'var(--cyan)' }}>{part.slice(1, -1)}</code>;
+        return part;
+    });
+}
 
 type Message = {
     id: string;
@@ -177,7 +235,7 @@ export default function AegisChat({
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto" style={{ padding: '20px 16px 8px' }}>
-                <div className="space-y-5">
+                <div className="space-y-8">
                     {messages.map(msg => (
                         <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
                             {msg.role === 'aegis' && (
@@ -209,16 +267,7 @@ export default function AegisChat({
                                         <Loader2 className="w-3 h-3 animate-spin inline mr-1.5" />thinking…
                                     </span>
                                 ) : (
-                                    <ReactMarkdown
-                                        components={{
-                                            p: ({ children }) => <p style={{ marginBottom: '0.5em', lineHeight: 1.75 }}>{children}</p>,
-                                            ul: ({ children }) => <ul style={{ paddingLeft: '1.2em', marginBottom: '0.5em', lineHeight: 1.75 }}>{children}</ul>,
-                                            ol: ({ children }) => <ol style={{ paddingLeft: '1.2em', marginBottom: '0.5em', lineHeight: 1.75 }}>{children}</ol>,
-                                            li: ({ children }) => <li style={{ marginBottom: '0.2em' }}>{children}</li>,
-                                            strong: ({ children }) => <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{children}</strong>,
-                                            code: ({ children }) => <code style={{ background: 'rgba(56,189,248,0.1)', padding: '1px 5px', borderRadius: 4, fontSize: '0.9em', color: 'var(--cyan)' }}>{children}</code>,
-                                        }}
-                                    >{msg.text}</ReactMarkdown>
+                                    <>{renderMd(msg.text)}</>
                                 )}
                             </div>
                         </div>
