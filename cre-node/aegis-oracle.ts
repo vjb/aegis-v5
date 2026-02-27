@@ -15,7 +15,9 @@
  *   - nodeRuntime.log() inside runInNodeMode surfaces as [USER LOG] in simulate.
  *   - runtime.log() inside the handler callback is silently suppressed.
  *   - All log lines capped at 900 chars (CRE limit: 1KB per log line).
- *   - ConfidentialHTTPClient used for BaseScan, OpenAI, Groq — keys never leave DON.
+ *   - ConfidentialHTTPClient used for GoPlus (JWT), BaseScan, OpenAI, Groq — keys never leave DON.
+ *   - GoPlus auth: APP_KEY + APP_SECRET → short-lived JWT → Bearer token on token_security requests.
+ *   - Authenticated GoPlus unlocks: is_blacklisted, lp_holders, dex_info (premium fields).
  */
 
 import {
@@ -155,12 +157,22 @@ type AIAnalysisResult = {
 
 // ─── Phase 1: GoPlus Static Analysis (Node Mode) ─────────────────────────────
 // Runs inside runInNodeMode → nodeRuntime.log() appears as [USER LOG].
+// Uses ConfidentialHTTPClient for GoPlus JWT auth — APP_KEY/APP_SECRET stay in DON.
+// Falls back to unauthenticated call if JWT exchange fails.
+type StaticAnalysisInput = {
+    log: EVMLog;
+    goPlusAppKey: string;
+    goPlusAppSecret: string;
+};
+
 const performStaticAnalysis = (
     nodeRuntime: NodeRuntime<Config>,
-    log: EVMLog
+    input: StaticAnalysisInput
 ): AuditResult => {
+    const { log, goPlusAppKey, goPlusAppSecret } = input;
     let unverifiedCode = 0, sellRestriction = 0, honeypot = 0, proxyContract = 0;
-    const httpClient = new HTTPClient();
+    const confidentialClient = new ConfidentialHTTPClient();
+    const httpClient = new HTTPClient(); // fallback only
 
     if (!log.topics || log.topics.length < 4) {
         throw new Error("Invalid log topics for AuditRequested");
@@ -179,11 +191,63 @@ const performStaticAnalysis = (
         nodeRuntime.log(`[GoPlus] MOCK registry hit: ${mockData.name}`);
         nodeRuntime.log(`[GoPlus] unverified=${unverifiedCode} sellRestriction=${sellRestriction} honeypot=${honeypot}`);
     } else {
-        nodeRuntime.log(`[GoPlus] Calling real API for ${targetAddress}...`);
+        nodeRuntime.log(`__GOPLUS_START__`); // UI phase marker — drives Oracle Feed indicator
+        nodeRuntime.log(`[GoPlus] Authenticating with ConfidentialHTTPClient (APP_KEY stays in DON)...`);
+
+        // ── Step 1: Exchange APP_KEY + APP_SECRET for a short-lived JWT ──────────
+        let goPlusToken = "";
+        const timestamp = Math.floor(Date.now() / 1000).toString();
+        // GoPlus signature: HMAC-SHA256 not available in WASM, so we use the
+        // /token endpoint with APP_KEY + APP_SECRET + time as form params.
+        const tokenRes = confidentialClient.sendRequest(nodeRuntime, {
+            vaultDonSecrets: [
+                { key: "AEGIS_GOPLUS_APP_KEY", namespace: "aegis" },
+                { key: "AEGIS_GOPLUS_APP_SECRET", namespace: "aegis" },
+            ],
+            request: {
+                url: "https://api.gopluslabs.io/api/v1/token",
+                method: "POST",
+                multiHeaders: { "Content-Type": { values: ["application/json"] } },
+                bodyString: JSON.stringify({
+                    app_key: goPlusAppKey,
+                    time: timestamp,
+                    sign: goPlusAppSecret  // GoPlus simple auth: secret used directly as sign param
+                })
+            }
+        }).result();
+
+        if (tokenRes.statusCode === 200) {
+            try {
+                const tokenBody = JSON.parse(new TextDecoder().decode(tokenRes.body));
+                goPlusToken = tokenBody.result?.access_token || "";
+                nodeRuntime.log(`[GoPlus] JWT acquired — authenticated tier unlocked`);
+            } catch { nodeRuntime.log(`[GoPlus] JWT parse failed — falling back to unauthenticated`); }
+        } else {
+            nodeRuntime.log(`[GoPlus] Auth HTTP ${tokenRes.statusCode} — falling back to unauthenticated`);
+        }
+
+        // ── Step 2: Call token_security with Bearer token (or unauthenticated fallback) ──
+        nodeRuntime.log(`[GoPlus] Fetching token_security for ${targetAddress} (auth=${!!goPlusToken})`);
         const goPlusUrl = `https://api.gopluslabs.io/api/v1/token_security/8453?contract_addresses=${targetAddress}`;
-        const goPlusRes = httpClient.sendRequest(nodeRuntime, { method: "GET", url: goPlusUrl }).result();
+
+        let goPlusRes: any;
+        if (goPlusToken) {
+            goPlusRes = confidentialClient.sendRequest(nodeRuntime, {
+                vaultDonSecrets: [{ key: "AEGIS_GOPLUS_APP_KEY", namespace: "aegis" }],
+                request: {
+                    url: goPlusUrl,
+                    method: "GET",
+                    multiHeaders: { "Authorization": { values: [`Bearer ${goPlusToken}`] } }
+                }
+            }).result();
+        } else {
+            // Unauthenticated fallback (free tier)
+            goPlusRes = httpClient.sendRequest(nodeRuntime, { method: "GET", url: goPlusUrl }).result();
+        }
+
         nodeRuntime.log(`[GoPlus] HTTP ${goPlusRes.statusCode}`);
         if (goPlusRes.statusCode !== 200) throw new Error(`GoPlus Error: ${goPlusRes.statusCode}`);
+
         const body = JSON.parse(new TextDecoder().decode(goPlusRes.body));
         const data = body.result?.[targetAddress];
         if (data) {
@@ -191,6 +255,30 @@ const performStaticAnalysis = (
             if (data.cannot_sell_all === "1") sellRestriction = 1;
             if (data.is_honeypot === "1") honeypot = 1;
             if (data.is_proxy === "1") proxyContract = 1;
+
+            // ── Premium fields (only available on authenticated tier) ──────────
+            if (goPlusToken) {
+                // Blacklisted address — cannot interact with the token
+                if (data.is_blacklisted === "1") {
+                    sellRestriction = 1;
+                    nodeRuntime.log(`[GoPlus/Premium] is_blacklisted=1 → sellRestriction flag set`);
+                }
+                // LP holder concentration risk — top holder owns >80% of liquidity
+                if (Array.isArray(data.lp_holders) && data.lp_holders.length > 0) {
+                    const topLpPct = parseFloat(data.lp_holders[0]?.percent || "0");
+                    if (topLpPct > 0.8) {
+                        honeypot = 1; // concentrated LP = rug pull risk
+                        nodeRuntime.log(`[GoPlus/Premium] LP concentration=${(topLpPct * 100).toFixed(1)}% → honeypot flag set`);
+                    }
+                }
+                // Trade-only-on-one-DEX risk (super-thin liquidity)
+                if (data.dex && Array.isArray(data.dex) && data.dex.length === 0) {
+                    unverifiedCode = 1;
+                    nodeRuntime.log(`[GoPlus/Premium] No DEX pools found → unverified flag set`);
+                }
+                nodeRuntime.log(`[GoPlus/Premium] Full field read: blacklisted=${data.is_blacklisted} lp_holders=${data.lp_holders?.length || 0} dex=${data.dex?.length || 0}`);
+            }
+
             nodeRuntime.log(`[GoPlus] unverified=${unverifiedCode} sellRestriction=${sellRestriction} honeypot=${honeypot} proxy=${proxyContract}`);
         } else {
             unverifiedCode = 1;
@@ -397,12 +485,15 @@ const onAuditTrigger = (runtime: Runtime<Config>, log: EVMLog): string => {
         if (typeof parsed.allowUnverified === 'boolean') allowUnverified = parsed.allowUnverified;
     } catch { /* use defaults */ }
 
-    // Fetch secrets (these are retrieved on the handler runtime — fine for coordination)
+    // Fetch secrets (retrieved on handler runtime — fine for coordination)
     const basescanKey = runtime.getSecret({ id: "AEGIS_BASESCAN_SECRET" }).result().value;
     const openAiKey = runtime.getSecret({ id: "AEGIS_OPENAI_SECRET" }).result().value;
     const groqKey = runtime.getSecret({ id: "AEGIS_GROQ_SECRET" }).result().value;
+    const goPlusAppKey = runtime.getSecret({ id: "AEGIS_GOPLUS_APP_KEY" }).result().value;
+    const goPlusAppSecret = runtime.getSecret({ id: "AEGIS_GOPLUS_APP_SECRET" }).result().value;
 
     // ── Phase 1: GoPlus (runInNodeMode — non-BFT API, BFT median aggregation) ──
+    // GoPlus JWT auth via ConfidentialHTTPClient — APP_KEY/SECRET stay inside DON
     const staticResult = runtime.runInNodeMode(
         performStaticAnalysis,
         ConsensusAggregationByFields<AuditResult>({
@@ -417,7 +508,7 @@ const onAuditTrigger = (runtime: Runtime<Config>, log: EVMLog): string => {
             externalCallRisk: median,
             logicBomb: median,
         })
-    )(log).result();
+    )({ log, goPlusAppKey, goPlusAppSecret }).result();
 
     const targetAddress = staticResult.targetAddress;
 
