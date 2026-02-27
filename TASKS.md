@@ -52,4 +52,50 @@
 *Context: The agent no longer signs standard transactions. It uses permissionless.js to sign ERC-4337 UserOperations via a Pimlico bundler.*
 
 - [ ] 3.1 **Install AA SDKs:** Run `pnpm add permissionless viem @rhinestone/module-sdk`.
-- [ ] 3.2 **Write the Test (`test/bot.spec.ts`):** Mock a Pimlico Bundler client. Write a test asserting the bot constructs an
+- [ ] 3.2 **Write the Test (`test/bot.spec.ts`):** Mock a Pimlico Bundler client. Write a test asserting the bot constructs an ERC-4337 `UserOperation` targeting the Smart Account's `execute` function.
+- [ ] 3.3 **Write Implementation (`src/agent/bot.ts`):**
+  - Read `v3-reference/bot.ts`.
+  - Initialize the `permissionless` SmartAccountClient using the `PIMLICO_API_KEY` from `.env`.
+  - Implement the UserOp generation logic.
+- [ ] 3.4 **The Debug Loop:** Run tests. Log all UserOp encoding realizations in `lessons_learned.md`.
+- [ ] **[CHECKPOINT 3]** Execute `git commit -m "feat(agent): refactor bot to use permissionless.js and UserOps"`. Wait for human confirmation.
+
+---
+
+## Phase 4: Local E2E Simulation (Tenderly / Anvil)
+*Context: Proving the entire loop works end-to-end on a local fork.*
+
+- [ ] 4.1 **Update Provisioning:** Copy and update `scripts/new_tenderly_testnet.ps1` to deploy `AegisModule` instead of `AegisVault`.
+- [ ] 4.2 **The Grand Test:** Write a script `scripts/e2e_simulation.ts` that deploys a mock Safe, installs `AegisModule`, runs `bot.ts` to submit the UserOp, mocks the CRE callback, and asserts the Safe's ERC-20 token balance increased.
+- [ ] 4.3 **The Debug Loop:** Execute the script against a local Anvil/Tenderly fork. Resolve integration friction.
+- [ ] **[CHECKPOINT 4]** Execute `git commit -m "test(e2e): verify full V4 module lifecycle"`. Wait for human confirmation.
+
+---
+
+## Phase 5: The Frontend & Session Key Issuance (Next.js)
+*Context: The human owner needs a UI to install the AegisModule onto their Smart Account and issue the ERC-7715 Session Key to the AI Agent.*
+
+
+
+- [ ] 5.1 **Frontend Scaffolding:** - Read `v3-reference/aegis-frontend` (if available) to understand the V3 UI components.
+  - Install standard Account Abstraction UI dependencies: `pnpm add @rhinestone/module-sdk wagmi viem @tanstack/react-query`.
+- [ ] 5.2 **Module Installation Component:** - Write a React component (`InstallAegis.tsx`) that uses `wagmi` and the Rhinestone SDK to propose a transaction that installs `AegisModule` onto the connected user's Safe.
+- [ ] 5.3 **Session Key Generation Component:** - Write a React component (`HireAgent.tsx`) that generates an ERC-7715 Session Key.
+  - Set the policy: Target = `AegisModule` address, Budget = 2 ETH (or equivalent testnet token).
+  - Export the generated Session Key credentials to a format the `bot.ts` script can consume (e.g., a local JSON file or `.env` variable for the local testnet).
+- [ ] 5.4 **The Debug Loop:** Run the Next.js dev server. Connect a local burner wallet, deploy a Safe, install the module, and issue the key. Log any Wagmi/Viem dependency clashes in `lessons_learned.md`.
+- [ ] **[CHECKPOINT 5]** Execute `git commit -m "feat(ui): implement module installation and session key issuance"`. Wait for human confirmation.
+
+---
+
+## Phase 6: Documentation & Finalization (The VC Polish)
+*Context: We are finalizing the repository so it tells a perfect, coherent story to hackathon judges and future employers.*
+
+- [ ] 6.1 **Generate Architecture Docs:** - Create `docs/ERC7579_ROADMAP.md` using the exact structure and Mermaid diagrams agreed upon in our architectural planning.
+- [ ] 6.2 **Update README.md:** - Overwrite the default Rhinestone README. 
+  - Add the "Corporate Bank Account" analogy.
+  - Detail the 7-step JIT execution loop.
+  - Add a bold callout linking to `docs/ERC7579_ROADMAP.md`.
+- [ ] 6.3 **Finalize Lessons Learned:** - Clean up `docs/lessons_learned.md`. Format it so it reads like a professional engineering post-mortem (Problem -> Root Cause -> Solution). This proves we deeply understand the Account Abstraction plumbing.
+- [ ] 6.4 **Cleanup:** Run a final `forge clean`, format the Solidity with `forge fmt`, and format the TypeScript with `prettier`.
+- [ ] **[FINAL CHECKPOINT]** Execute `git add .` and `git commit -m "docs: finalize Aegis V4 repository for production release"`. Wait for human confirmation.
