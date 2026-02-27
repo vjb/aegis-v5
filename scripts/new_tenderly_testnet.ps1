@@ -191,6 +191,23 @@ if ([string]::IsNullOrEmpty($NewModuleAddress)) {
         $ConfigContent | Set-Content $ConfigPath
         Write-Host "  > config.json updated (vaultAddress → AegisModule)" -ForegroundColor Green
     }
+
+    # ── 8. Verify AegisModule on Tenderly ─────────────────────────────────
+    Write-Host "`n8. Verifying AegisModule on Tenderly explorer..." -ForegroundColor Yellow
+    $VerifierUrl = "$NewRpcUrl/verify"
+    $CtorArgs = (cast abi-encode "constructor(address)" "$KeystoneForwarder" 2>$null | Select-Object -Last 1).Trim()
+    $env:TENDERLY_ACCESS_KEY = $TenderlyKey
+    $env:FOUNDRY_DISABLE_NIGHTLY_WARNING = "true"
+    $verifyOut = forge verify-contract $NewModuleAddress src/AegisModule.sol:AegisModule `
+        --verifier custom `
+        --verifier-url $VerifierUrl `
+        --etherscan-api-key $TenderlyKey `
+        --constructor-args $CtorArgs 2>&1
+    if ($verifyOut -match "Response:.*OK") {
+        Write-Host "  > AegisModule verified on Tenderly" -ForegroundColor Green
+    } else {
+        Write-Host "  > Verification submitted (may take ~10 min to appear in UI)" -ForegroundColor DarkGray
+    }
 }
 
 # ── Done ────────────────────────────────────────────────────────────────

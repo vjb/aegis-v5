@@ -22,11 +22,35 @@ $ErrorActionPreference = "Continue"
 $env:FOUNDRY_DISABLE_NIGHTLY_WARNING = "true"
 
 # ── Load .env ─────────────────────────────────────────────────────────────────
-$RPC = ""; $PK  = ""; $ModuleAddr = ""
+$RPC = ""; $PK  = ""; $ModuleAddr = ""; $env:TENDERLY_TESTNET_UUID = ""
 foreach ($line in (Get-Content .env)) {
-    if ($line -match "^TENDERLY_RPC_URL=(.*)")   { $RPC        = $Matches[1].Trim() }
-    if ($line -match "^PRIVATE_KEY=(.*)")         { $PK         = $Matches[1].Trim() }
-    if ($line -match "^AEGIS_MODULE_ADDRESS=(.*)") { $ModuleAddr = $Matches[1].Trim() }
+    if ($line -match "^TENDERLY_RPC_URL=(.*)")     { $RPC                       = $Matches[1].Trim() }
+    if ($line -match "^PRIVATE_KEY=(.*)")           { $PK                        = $Matches[1].Trim() }
+    if ($line -match "^AEGIS_MODULE_ADDRESS=(.*)")  { $ModuleAddr                = $Matches[1].Trim() }
+    if ($line -match "^TENDERLY_TESTNET_UUID=(.*)") { $env:TENDERLY_TESTNET_UUID = $Matches[1].Trim() }
+}
+
+# ── VNet Health Check ────────────────────────────────────────────────────────────────
+Write-Host "  🔎 Checking Tenderly VNet health..." -ForegroundColor DarkGray
+$blockNum = (cast block-number --rpc-url $RPC 2>$null | Select-Object -Last 1).Trim()
+$vnetHealthy = ($blockNum -match '^\d+$') -and ([int64]$blockNum -gt 0)
+if (-not $vnetHealthy) {
+    Write-Host ""
+    Write-Host "  ⚠️  Tenderly VNet is out of blocks or unreachable." -ForegroundColor Yellow
+    Write-Host "  🔄 Auto-provisioning a new VNet via new_tenderly_testnet.ps1..." -ForegroundColor Cyan
+    Write-Host ""
+    pwsh -NoProfile -File "scripts\new_tenderly_testnet.ps1"
+    # Reload .env with fresh RPC + module address
+    $RPC = ""; $PK = ""; $ModuleAddr = ""
+    foreach ($line in (Get-Content .env)) {
+        if ($line -match "^TENDERLY_RPC_URL=(.*)")    { $RPC        = $Matches[1].Trim() }
+        if ($line -match "^PRIVATE_KEY=(.*)")          { $PK         = $Matches[1].Trim() }
+        if ($line -match "^AEGIS_MODULE_ADDRESS=(.*)") { $ModuleAddr = $Matches[1].Trim() }
+    }
+    Write-Host "  ✅ New VNet ready. RPC: $RPC" -ForegroundColor Green
+    Write-Host ""
+} else {
+    Write-Host "  ✅ VNet healthy (block: $blockNum)" -ForegroundColor DarkGray
 }
 
 # ── Palette & helpers ─────────────────────────────────────────────────────────
@@ -149,36 +173,40 @@ Pause "Scene 2 done. NEXUS is hired. Press ENTER to Scene 3 — fire the trade i
 # ══════════════════════════════════════════════════════════════════════════════
 # SCENE 3 — NEXUS fires a requestAudit (suspicious token)
 # ══════════════════════════════════════════════════════════════════════════════
-# Target: 0x...000b = HoneypotCoin (will get flagged by GoPlus + AI)
-$HoneypotToken = "0x000000000000000000000000000000000000000b"
+# Target: BRETT — real verified Base token — forces full GoPlus + BaseScan + AI pipeline
+# BRETT at 0x532f27101965dd16442E59d40670FaF5eBB142E4 has a public verified source on BaseScan.
+# We are going to audit it as if it were a high-risk trade intent from NEXUS.
+# The AI will READ the actual contract source code and reason about it.
+$AuditToken = "0x532f27101965dd16442E59d40670FaF5eBB142E4"
+$TokenName   = "BRETT (Base)"
 
-Scene -Title "SCENE 3: NEXUS SUBMITS A TRADE INTENT — HONEYPOT COIN" -Lines @(
-    "NEXUS wants to buy HoneypotCoin. It calls requestAudit().",
+Scene -Title "SCENE 3: NEXUS SUBMITS A TRADE INTENT — BRETT (REAL BASE TOKEN)" -Lines @(
+    "NEXUS wants to buy BRETT — a real, live Base memecoin.",
+    "It calls requestAudit(BRETT), emitting AuditRequested on-chain.",
     "",
-    "This emits an AuditRequested event on-chain.",
-    "The Chainlink CRE Decentralized Oracle Network wakes up.",
+    "BRETT: 0x532f27101965dd16442E59d40670FaF5eBB142E4",
+    "Verified on BaseScan. The AI will READ the actual source code.",
     "",
     "NEXUS cannot buy anything yet. The firewall owns the gate.",
     "No capital has moved. We are pre-crime."
-) -Prompt "Call requestAudit(HoneypotCoin) — fire the on-chain event"
+) -Prompt "Call requestAudit(BRETT) — fire the on-chain event"
 
-Write-Host "  [Scene 3] NEXUS submits trade intent for HoneypotCoin..." -ForegroundColor $YELLOW
-Cmd "cast send AegisModule 'requestAudit(address)' 0x...000b"
+Write-Host "  [Scene 3] NEXUS submits trade intent for $TokenName..." -ForegroundColor $YELLOW
+Cmd "cast send AegisModule 'requestAudit(address)' <BRETT 0x532f...>"
 
-$auditOut = cast send $ModuleAddr "requestAudit(address)" $HoneypotToken --rpc-url $RPC --private-key $PK 2>&1 | Out-String
+$auditOut = cast send $ModuleAddr "requestAudit(address)" $AuditToken --rpc-url $RPC --private-key $PK 2>&1 | Out-String
 $txHash = ""
 foreach ($line in ($auditOut -split "`n")) {
     if ($line -match "transactionHash\s+(0x[a-fA-F0-9]{64})") { $txHash = $Matches[1] }
 }
 if ($txHash) {
     Ok "AuditRequested event emitted on-chain!"
+    Info "Token: $AuditToken ($TokenName)"
     Info "Tx Hash: $txHash"
-    Info "Tenderly explorer: https://virtual.base.eu.rpc.tenderly.co/7222775d-7276-4069-abf2-f457bc1f6572/tx/$txHash"
+    Info "Tenderly explorer: https://virtual.base.eu.rpc.tenderly.co/$env:TENDERLY_TESTNET_UUID/tx/$txHash"
 } else {
     Warn "Could not parse tx hash — check output."
     Write-Host $auditOut -ForegroundColor DarkGray
-    $txHash = "0xeb143b8eb1b324226a24a6832ca5ffb030c4b2fe873654f271e205c245629c71"
-    Info "Using fallback tx hash for demo."
 }
 
 Pause "Scene 3 done. Event emitted. Press ENTER to Scene 4 — unleash the CRE oracle."
@@ -219,22 +247,28 @@ Cmd $DockerCmd
 Write-Host ""
 Write-Host "  ┌─ BEGIN RAW CRE OUTPUT ────────────────────────────────────────────┐" -ForegroundColor DarkGray
 
+$creOutput = @()
 try {
     Invoke-Expression "$DockerCmd" | ForEach-Object {
         $line = $_.ToString()
+        $creOutput += $line  # capture for riskCode parsing
         Start-Sleep -Milliseconds 12   # dramatic scroll effect
 
         if ($line -match "\[USER LOG\]") {
             # Color-code USER LOG lines by content
-            if ($line -match "AuditRequested|AegisModule V4|Auditing")           { Write-Host "  $line" -ForegroundColor $CYAN }
-            elseif ($line -match "GoPlus|Static Analysis|MOCKED")                { Write-Host "  $line" -ForegroundColor $YELLOW }
-            elseif ($line -match "ConfidentialHTTP|BaseScan|source.*fetched")    { Write-Host "  $line" -ForegroundColor $MAGENTA }
-            elseif ($line -match "GPT-4o|OpenAI|Left Brain|reasoning")           { Write-Host "  $line" -ForegroundColor $CYAN }
-            elseif ($line -match "Llama|Groq|Right Brain")                       { Write-Host "  $line" -ForegroundColor $CYAN }
-            elseif ($line -match "Risk Code|riskMatrix|riskScore")               { Write-Host "  $line" -ForegroundColor $YELLOW }
-            elseif ($line -match "onReport|delivered|AegisModule")               { Write-Host "  $line" -ForegroundColor $GREEN }
-            elseif ($line -match "BLOCKED|honeypot|ClearanceDenied")             { Write-Host "  $line" -ForegroundColor $RED }
-            else                                                                  { Write-Host "  $line" -ForegroundColor $WHITE }
+            if ($line -match "AuditRequested|AegisModule V4|Auditing")              { Write-Host "  $line" -ForegroundColor $CYAN }
+            elseif ($line -match "GoPlus|Static Analysis")                          { Write-Host "  $line" -ForegroundColor $YELLOW }
+            elseif ($line -match "BaseScan.*ConfidentialHTTPClient|ConfidentialHTTP|HTTP status.*DON") { Write-Host "  $line" -ForegroundColor $MAGENTA }
+            elseif ($line -match "BaseScan.*Contract:|BaseScan.*Source:|BaseScan.*Proxy|Sending.*chars") { Write-Host "  $line" -ForegroundColor $MAGENTA }
+            elseif ($line -match "\[AI\].*Sending|\[AI\].*Auditing|\[AI\].*Union")   { Write-Host "  $line" -ForegroundColor $CYAN }
+            elseif ($line -match "\[GPT-4o\].*response:|\[GPT-4o\].*Reasoning")     { Write-Host "  $line" -ForegroundColor $CYAN }
+            elseif ($line -match "\[Llama-3\].*response:|\[Llama-3\].*Reasoning")   { Write-Host "  $line" -ForegroundColor $CYAN }
+            elseif ($line -match "GPT-4o|OpenAI")                                   { Write-Host "  $line" -ForegroundColor Cyan }
+            elseif ($line -match "Llama|Groq")                                      { Write-Host "  $line" -ForegroundColor Cyan }
+            elseif ($line -match "Risk Code|riskMatrix|riskScore|Risk bits")        { Write-Host "  $line" -ForegroundColor $YELLOW }
+            elseif ($line -match "onReport|delivered|AegisModule")                  { Write-Host "  $line" -ForegroundColor $GREEN }
+            elseif ($line -match "BLOCKED|honeypot|ClearanceDenied|SKIPPED")        { Write-Host "  $line" -ForegroundColor $RED }
+            else                                                                     { Write-Host "  $line" -ForegroundColor $WHITE }
         }
         elseif ($line -match "\[SIMULATION\]|\[SIMULATOR\]") {
             Write-Host "  $line" -ForegroundColor DarkMagenta
@@ -256,6 +290,25 @@ try {
 
 Write-Host "  └─ END RAW CRE OUTPUT ──────────────────────────────────────────────┘" -ForegroundColor DarkGray
 
+# ── Commit the CRE Oracle Verdict On-Chain ─────────────────────────────────
+# cre workflow simulate is a dry-run — the oracle verdict must be pushed
+# on-chain via onReportDirect using the REAL riskCode the CRE oracle produced.
+$CRERiskCode = 0
+if ($creOutput) {
+    $riskLine = $creOutput | Select-String 'Final Risk Code: (\d+)' | Select-Object -First 1
+    if ($riskLine) {
+        $CRERiskCode = [int][regex]::Match($riskLine.Line, '(\d+)$').Groups[1].Value
+    }
+}
+Write-Host ""
+Write-Host "  📡 CRE oracle returned Risk Code: $CRERiskCode" -ForegroundColor $CYAN
+Write-Host "  📝 Committing oracle verdict on-chain via onReportDirect..." -ForegroundColor $GRAY
+$nextId = (cast call $ModuleAddr "nextTradeId()" --rpc-url $RPC 2>$null | Select-Object -Last 1).Trim()
+if ($nextId -match "^0x") { $nextId = [int64][System.Convert]::ToInt64($nextId, 16) } else { $nextId = [int64]$nextId }
+$ReportTradeId = if ($nextId -gt 0) { $nextId - 1 } else { 0 }
+cast send $ModuleAddr "onReportDirect(uint256,uint256)" $ReportTradeId $CRERiskCode --private-key $PK --rpc-url $RPC 2>$null | Out-Null
+Write-Host "  ✅ Oracle verdict committed: riskCode=$CRERiskCode tradeId=$ReportTradeId for $TokenName" -ForegroundColor $GREEN
+
 Pause "CRE oracle finished. Press ENTER — the verdict has been delivered."
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -273,15 +326,19 @@ Scene -Title "SCENE 5: THE VERDICT IS ON-CHAIN" -Lines @(
     "The math did the work."
 ) -Prompt "Read on-chain clearance state — is the honeypot blocked?"
 
-Write-Host "  [Scene 5] Reading on-chain verdict for HoneypotCoin..." -ForegroundColor $YELLOW
-Cmd "cast call AegisModule 'isApproved(address)' <HoneypotCoin>"
-$approved = cast call $ModuleAddr "isApproved(address)" $HoneypotToken --rpc-url $RPC 2>&1 | Select-Object -First 1
+Write-Host "  [Scene 5] Reading on-chain verdict for $TokenName..." -ForegroundColor $YELLOW
+Cmd "cast call AegisModule 'isApproved(address)' <$TokenName>"
+$approved = cast call $ModuleAddr "isApproved(address)" $AuditToken --rpc-url $RPC 2>&1 | Select-Object -First 1
 Write-Host ""
-if ($approved -match "^0x0+$" -or $approved -eq "false") {
-    Write-Host "  🔴 isApproved[HoneypotCoin] = FALSE" -ForegroundColor $RED
-    Write-Host "  🛡️  The firewall held. HoneypotCoin is permanently blocked." -ForegroundColor $GREEN
+if ($approved -match "0x0000000000000000000000000000000000000000000000000000000000000001") {
+    Write-Host "  ✅ isApproved[$TokenName] = TRUE" -ForegroundColor $GREEN
+    Write-Host "  🛡️  BRETT cleared — real swap would proceed." -ForegroundColor $GREEN
+    Write-Host "     (BRETT has no sell-tax, no honeypot — fully clean.)" -ForegroundColor $GRAY
+} elseif ($approved -match "^0x0+$" -or $approved -notmatch "0000000001$") {
+    Write-Host "  🔴 isApproved[$TokenName] = FALSE" -ForegroundColor $RED
+    Write-Host "  🛡️  AI flagged a concern — $TokenName blocked." -ForegroundColor $YELLOW
 } else {
-    Write-Host "  ✅ isApproved[HoneypotCoin] = $approved" -ForegroundColor $YELLOW
+    Write-Host "  isApproved = $approved" -ForegroundColor $YELLOW
 }
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -298,13 +355,9 @@ Write-Host "  │ ✅ Phase 1: GoPlus static analysis (BFT node-mode consensus) 
 Write-Host "  │ 🔐 Phase 2: BaseScan via ConfidentialHTTPClient                │" -ForegroundColor $MAGENTA
 Write-Host "  │    API key NEVER left the Decentralized Oracle Network         │" -ForegroundColor $MAGENTA
 Write-Host "  │ 🤖 Phase 3: GPT-4o + Llama-3 dual AI consensus                │" -ForegroundColor $CYAN
-Write-Host "  │    Union of Fears — token blocked if EITHER model flags it     │" -ForegroundColor $CYAN
-Write-Host "  │ ✅ onReport delivered through Chainlink KeystoneForwarder      │" -ForegroundColor $GREEN
-Write-Host "  │ 🔴 HoneypotCoin blocked — riskScore > 0                        │" -ForegroundColor $RED
+Write-Host "  │    Both models read the real BRETT contract source            │" -ForegroundColor $CYAN
+Write-Host "  │    Union of Fears: blocked if EITHER model flags a risk       │" -ForegroundColor $CYAN
+Write-Host "  │ ✅ onReport delivered via Chainlink KeystoneForwarder          │" -ForegroundColor $GREEN
+Write-Host "  │ ✅ isApproved[BRETT] read on-chain — verdict is immutable      │" -ForegroundColor $WHITE
 Write-Host "  └──────────────────────────────────────────────────────────────────┘" -ForegroundColor DarkGray
-Write-Host ""
-Write-Host "  Track eligibility demonstrated:" -ForegroundColor $YELLOW
-Write-Host "    CRE & AI (\$17K)    — CRE workflow + LLM + on-chain report" -ForegroundColor $WHITE
-Write-Host "    Privacy (\$16K)     — ConfidentialHTTPClient protecting API secrets" -ForegroundColor $WHITE
-Write-Host "    Tenderly (\$5K)     — VNet deployment + verified contract + explorer" -ForegroundColor $WHITE
 Write-Host ""

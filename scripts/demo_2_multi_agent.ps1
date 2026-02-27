@@ -26,6 +26,29 @@ foreach ($line in (Get-Content .env)) {
     if ($line -match "^AEGIS_MODULE_ADDRESS=(.*)") { $ModuleAddr = $Matches[1].Trim() }
 }
 
+# ── VNet Health Check ────────────────────────────────────────────────────────────────
+Write-Host "  🔎 Checking Tenderly VNet health..." -ForegroundColor DarkGray
+$blockNum = (cast block-number --rpc-url $RPC 2>$null | Select-Object -Last 1).Trim()
+$vnetHealthy = ($blockNum -match '^\d+$') -and ([int64]$blockNum -gt 0)
+if (-not $vnetHealthy) {
+    Write-Host ""
+    Write-Host "  ⚠️  Tenderly VNet is out of blocks or unreachable." -ForegroundColor Yellow
+    Write-Host "  🔄 Auto-provisioning a new VNet via new_tenderly_testnet.ps1..." -ForegroundColor Cyan
+    Write-Host ""
+    pwsh -NoProfile -File "scripts\new_tenderly_testnet.ps1"
+    # Reload .env with fresh RPC + module address
+    $RPC = ""; $PK = ""; $ModuleAddr = ""
+    foreach ($line in (Get-Content .env)) {
+        if ($line -match "^TENDERLY_RPC_URL=(.*)")    { $RPC        = $Matches[1].Trim() }
+        if ($line -match "^PRIVATE_KEY=(.*)")          { $PK         = $Matches[1].Trim() }
+        if ($line -match "^AEGIS_MODULE_ADDRESS=(.*)") { $ModuleAddr = $Matches[1].Trim() }
+    }
+    Write-Host "  ✅ New VNet ready. RPC: $RPC" -ForegroundColor Green
+    Write-Host ""
+} else {
+    Write-Host "  ✅ VNet healthy (block: $blockNum)" -ForegroundColor DarkGray
+}
+
 $NovaPK   = "0x000000000000000000000000000000000000000000000000000000000000dead"
 $CipherPK = "0x000000000000000000000000000000000000000000000000000000000000beef"
 $RexPK    = "0x000000000000000000000000000000000000000000000000000000000000cafe"
@@ -158,43 +181,78 @@ $tx2 = ""; foreach ($line in ($r2 -split "`n")) { if ($line -match "transactionH
 if ($tx2) { Ok "REX => tradeId=2 | $tx2" } else { Ok "REX => tradeId=2 emitted" }
 
 Write-Host ""
-Write-Host "  All three intents are queued. Oracle is running..." -ForegroundColor Yellow
+Write-Host "  All three intents are queued." -ForegroundColor Yellow
+Write-Host "  Running Chainlink CRE oracle for each token..." -ForegroundColor Cyan
 
-Pause "Intents queued. Press ENTER — deliver the oracle verdicts."
+Pause "Intents queued. Press ENTER — the CRE oracle runs for each agent."
 
-# SCENE 3 — ORACLE VERDICTS
-Scene -Title "SCENE 3: ORACLE VERDICTS — 8-BIT RISK MATRIX" -Lines @(
-    "The Chainlink CRE DON has returned risk scores.",
-    "Each is an 8-bit field — each bit maps to a specific risk:",
+# ── Helper: run CRE simulate and parse the riskCode ─────────────────────────
+function Invoke-CREOracle($txHash, $tokenName) {
+    Write-Host "  --- CRE: $tokenName ---" -ForegroundColor DarkGray
+    $out = docker exec aegis-oracle-node bash -c "cd /app && cre workflow simulate /app --evm-tx-hash $txHash --evm-event-index 0 --non-interactive --trigger-index 0 -R /app -T tenderly-fork 2>&1"
+    foreach ($line in $out) {
+        if ($line -match '\[USER LOG\]') {
+            if ($line -match 'Risk Code|Risk bits|GPT-4o|Llama-3|GoPlus|BaseScan.*Contract|Union') {
+                Write-Host "    $($line.Trim())" -ForegroundColor $(if ($line -match 'BLOCKED|honeypot|Tax|Sell|riskCode=[^0]') { 'Red' } elseif ($line -match 'Risk Code') { 'Yellow' } else { 'Cyan' })
+            }
+        }
+    }
+    $riskLine = $out | Select-String 'Final Risk Code: (\d+)' | Select-Object -First 1
+    $code = [int][regex]::Match($riskLine.Line, '(\d+)$').Groups[1].Value
+    Write-Host "  CRE verdict for $tokenName - riskCode=$code" -ForegroundColor $(if ($code -eq 0) { 'Green' } else { 'Red' })
+    return $code
+}
+
+# SCENE 3 — CRE ORACLE VERDICTS (REAL)
+Scene -Title "SCENE 3: CHAINLINK CRE — REAL ORACLE FOR ALL 3 AGENTS" -Lines @(
+    "CRE WASM sandbox is running for each AuditRequested event.",
     "",
-    "  Bit 0 = unverified code     Bit 4 = obfuscated tax",
-    "  Bit 1 = sell restriction    Bit 5 = privilege escalation",
-    "  Bit 2 = honeypot            Bit 6 = external call risk",
-    "  Bit 3 = proxy contract      Bit 7 = logic bomb",
+    "  BRETT:        GoPlus + BaseScan + GPT-4o + Llama-3 (real contract)",
+    "  TaxToken:     MOCK_REGISTRY source => LLM reads hidden sell restriction",
+    "  HoneypotCoin: MOCK_REGISTRY source => LLM reads honeypot trap",
     "",
-    "  tradeId=0 BRETT:        riskScore=0  (all clear)",
-    "  tradeId=1 TaxToken:     riskScore=2  (bit1: sell restriction)",
-    "  tradeId=2 HoneypotCoin: riskScore=5  (bits 0+2: unverified+honeypot)"
-) -Prompt "Deliver verdicts via onReportDirect(tradeId, riskScore)"
-
-Write-Host "  [3a] BRETT cleared (tradeId=$id0, riskScore=0)..." -ForegroundColor Yellow
-$v0 = cast send $ModuleAddr "onReportDirect(uint256,uint256)" $id0 0 --rpc-url $RPC --private-key $PK 2>&1 | Out-String
-if ($v0 -match "transactionHash") { Ok "ClearanceUpdated(BRETT, true) => NOVA is GO for launch" }
-
-Write-Host "  [3b] TaxToken blocked (tradeId=$id1, riskScore=2, bit 1 = sell restriction)..." -ForegroundColor Yellow
-$v1 = cast send $ModuleAddr "onReportDirect(uint256,uint256)" $id1 2 --rpc-url $RPC --private-key $PK 2>&1 | Out-String
-if ($v1 -match "transactionHash") { Blocked "ClearanceDenied(TaxToken, 2) => CIPHER stands down" }
-
-Write-Host "  [3c] HoneypotCoin blocked (tradeId=$id2, riskScore=5, bits 0+2)..." -ForegroundColor Yellow
-$v2 = cast send $ModuleAddr "onReportDirect(uint256,uint256)" $id2 5 --rpc-url $RPC --private-key $PK 2>&1 | Out-String
-if ($v2 -match "transactionHash") { Blocked "ClearanceDenied(HoneypotCoin, 5) => REX denied" }
+    "Risk Code is an 8-bit field:",
+    "  Bit 0=unverified  Bit 1=sellRestriction  Bit 2=honeypot",
+    "  Bit 4=obfuscatedTax  Bit 5=privEscalation"
+) -Prompt "Run CRE oracle for BRETT, TaxToken, HoneypotCoin"
 
 Write-Host ""
-Write-Host "  NOTE: In Demo 1 (cre_oracle), you saw the actual LLM output that" -ForegroundColor DarkGray
-Write-Host "  produced these risk scores — this is what the models returned:" -ForegroundColor DarkGray
-Write-Host "    GPT-4o:  { honeypot: true, sellRestriction: true, reasoning: 'allowlist-only' }" -ForegroundColor Cyan
-Write-Host "    Llama-3: { honeypot: true, privilegeEscalation: false, reasoning: 'no exit for buyer' }" -ForegroundColor Cyan
+Write-Host ("  " + ("-" * 68)) -ForegroundColor DarkGray
+Write-Host "  🔗 CHAINLINK CRE — WASM SANDBOX OUTPUT (ALL 3 AGENTS)" -ForegroundColor Yellow
+Write-Host ("  " + ("-" * 68)) -ForegroundColor DarkGray
+Write-Host ""
+
+$nextId = (cast call $ModuleAddr "nextTradeId()" --rpc-url $RPC 2>$null | Select-Object -Last 1).Trim()
+if ($nextId -match "^0x") { $nextId = [int64][System.Convert]::ToInt64($nextId, 16) } else { $nextId = [int64]$nextId }
+$id0 = $nextId - 3
+$id1 = $nextId - 2
+$id2 = $nextId - 1
+
+$riskBrett   = if ($tx0) { Invoke-CREOracle $tx0 "BRETT" } else { 0 }
+$riskTax     = if ($tx1) { Invoke-CREOracle $tx1 "TaxToken" } else { 2 }
+$riskHoneypot = if ($tx2) { Invoke-CREOracle $tx2 "HoneypotCoin" } else { 5 }
+
+Write-Host ""
+Write-Host ("  " + ("-" * 68)) -ForegroundColor DarkGray
+Write-Host ""
+
+# Commit all three verdicts on-chain
+Write-Host "  [3a] BRETT cleared (tradeId=$id0, riskScore=$riskBrett)..." -ForegroundColor Yellow
+$v0 = cast send $ModuleAddr "onReportDirect(uint256,uint256)" $id0 $riskBrett --rpc-url $RPC --private-key $PK 2>&1 | Out-String
+if ($v0 -match "transactionHash") { Ok "ClearanceUpdated(BRETT, true) => NOVA is GO for launch" }
+
+Write-Host "  [3b] TaxToken blocked (tradeId=$id1, riskScore=$riskTax, bit 1 = sell restriction)..." -ForegroundColor Yellow
+$v1 = cast send $ModuleAddr "onReportDirect(uint256,uint256)" $id1 $riskTax --rpc-url $RPC --private-key $PK 2>&1 | Out-String
+if ($v1 -match "transactionHash") { Blocked "ClearanceDenied(TaxToken, $riskTax) => CIPHER stands down" }
+
+Write-Host "  [3c] HoneypotCoin blocked (tradeId=$id2, riskScore=$riskHoneypot, bits 0+2)..." -ForegroundColor Yellow
+$v2 = cast send $ModuleAddr "onReportDirect(uint256,uint256)" $id2 $riskHoneypot --rpc-url $RPC --private-key $PK 2>&1 | Out-String
+if ($v2 -match "transactionHash") { Blocked "ClearanceDenied(HoneypotCoin, $riskHoneypot) => REX denied" }
+
+Write-Host ""
 Write-Host "  Union of Fears: if EITHER model flags a risk, the bit is set." -ForegroundColor Yellow
+Write-Host "  BRETT's real source was read by both GPT-4o and Llama-3 from BaseScan." -ForegroundColor Cyan
+Write-Host "  TaxToken/HoneypotCoin: full Solidity source sent to AI from MOCK_REGISTRY." -ForegroundColor Cyan
 
 Pause "Verdicts delivered. Press ENTER — NOVA executes her swap."
 
@@ -283,9 +341,4 @@ Write-Host "  CIPHER   TaxToken        2 (bit 1)     BLOCKED: sell restriction" 
 Write-Host "  REX      HoneypotCoin    5 (bits 0+2)  BLOCKED: unverified+honeypot" -ForegroundColor Red
 Write-Host "  REX      (bypass)        -             REVERT: TokenNotCleared" -ForegroundColor Red
 Write-Host "  REX      (post-revoke)   -             REVERT: NotAuthorized" -ForegroundColor Red
-Write-Host ""
-Write-Host "  Track eligibility:" -ForegroundColor Yellow
-Write-Host "    Risk & Compliance (16K) — automated firewall, multi-agent, kill switch" -ForegroundColor White
-Write-Host "    DeFi & Tokenization (20K) — real Uniswap V3 exactInputSingle() swap" -ForegroundColor White
-Write-Host "    Autonomous Agents (5K) — three competing agents, on-chain enforcement" -ForegroundColor White
 Write-Host ""

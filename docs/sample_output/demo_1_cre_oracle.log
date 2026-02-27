@@ -1,3 +1,5 @@
+  🔎 Checking Tenderly VNet health...
+  ✅ VNet healthy (block: 42690870)
 
 ══════════════════════════════════════════════════════════════════════
   🔗 AEGIS PROTOCOL V4  ·  DEMO 1: THE AI BLACK BOX
@@ -21,48 +23,85 @@
   › cast send AegisModule 'subscribeAgent(address,uint256)' <NEXUS> 50000000000000000
   ✅ NEXUS subscribed with 0.05 ETH budget!
   ℹ️  NEXUS on-chain budget: 0x00000000000000000000000000000000000000000000000000b1a2bc2ec50000 (raw wei = 0.05 ETH)
-  [Scene 3] NEXUS submits trade intent for HoneypotCoin...
-  › cast send AegisModule 'requestAudit(address)' 0x...000b
+  [Scene 3] NEXUS submits trade intent for BRETT (Base)...
+  › cast send AegisModule 'requestAudit(address)' <BRETT 0x532f...>
   ✅ AuditRequested event emitted on-chain!
-  ℹ️  Tx Hash: 0x1e303d6b4d74a4cfb53c151f5a86d5132685b7fd654a17bd49081465b3f7c3f2
-  ℹ️  Tenderly explorer: https://virtual.base.eu.rpc.tenderly.co/7222775d-7276-4069-abf2-f457bc1f6572/tx/0x1e303d6b4d74a4cfb53c151f5a86d5132685b7fd654a17bd49081465b3f7c3f2
+  ℹ️  Token: 0x532f27101965dd16442E59d40670FaF5eBB142E4 (BRETT (Base))
+  ℹ️  Tx Hash: 0x62ac7ab61e9050b348108cb417c340148f017af11bf3cc12249e8465f0472879
+  ℹ️  Tenderly explorer: https://virtual.base.eu.rpc.tenderly.co/aa470a4f-6bcc-4935-b08b-84d32732eaae/tx/0x62ac7ab61e9050b348108cb417c340148f017af11bf3cc12249e8465f0472879
 
   ────────────────────────────────────────────────────────────────────
   🔗 CHAINLINK CRE — WASM SANDBOX OUTPUT
   ────────────────────────────────────────────────────────────────────
 
-  › docker exec aegis-oracle-node bash -c "cd /app && cre workflow simulate /app --evm-tx-hash 0x1e303d6b4d74a4cfb53c151f5a86d5132685b7fd654a17bd49081465b3f7c3f2 --evm-event-index 0 --non-interactive --trigger-index 0 -R /app -T tenderly-fork 2>&1"
+  › docker exec aegis-oracle-node bash -c "cd /app && cre workflow simulate /app --evm-tx-hash 0x62ac7ab61e9050b348108cb417c340148f017af11bf3cc12249e8465f0472879 --evm-event-index 0 --non-interactive --trigger-index 0 -R /app -T tenderly-fork 2>&1"
 
   ┌─ BEGIN RAW CRE OUTPUT ────────────────────────────────────────────┐
   Initializing...
   Checking RPC connectivity...
   Compiling workflow...
   ✓ Workflow compiled
-  Fetching transaction receipt for 0x1e303d6b4d74a4cfb53c151f5a86d5132685b7fd654a17bd49081465b3f7c3f2...
-  2026-02-27T04:18:35Z [SIMULATION] Simulator Initialized
+  Fetching transaction receipt for 0x62ac7ab61e9050b348108cb417c340148f017af11bf3cc12249e8465f0472879...
+  2026-02-27T05:46:07Z [SIMULATION] Simulator Initialized
   
-  2026-02-27T04:18:35Z [SIMULATION] Running trigger trigger=evm:ChainSelector:15971525489660198786@1.0.0
-  2026-02-27T04:18:35Z [USER LOG] 🛡️ AegisModule V4 | AuditRequested intercepted
-  2026-02-27T04:18:35Z [USER LOG] 🛡️ AEGIS MODULE V4 | Auditing: 0x000000000000000000000000000000000000000b
-  2026-02-27T04:18:35Z [USER LOG] [GoPlus] MOCKED: HoneypotCoin
-  2026-02-27T04:18:35Z [USER LOG] ⚖️ Final Risk Code: 4
-  2026-02-27T04:18:35Z [USER LOG] ✅ onReport delivered to AegisModule at 0x46d40e0aBdA0814bb0CB323B2Bb85a129d00B0AC
+  2026-02-27T05:46:07Z [SIMULATION] Running trigger trigger=evm:ChainSelector:15971525489660198786@1.0.0
+  2026-02-27T05:46:08Z [USER LOG] 🛡️ AegisModule V4 | AuditRequested intercepted
+  2026-02-27T05:46:08Z [USER LOG] 🛡️ AEGIS MODULE V4 | Auditing: 0x532f27101965dd16442e59d40670faf5ebb142e4
+  2026-02-27T05:46:08Z [USER LOG] [GoPlus] Calling real API for 0x532f27101965dd16442e59d40670faf5ebb142e4...
+  2026-02-27T05:46:08Z [USER LOG] [GoPlus] HTTP 200
+  2026-02-27T05:46:08Z [USER LOG] [GoPlus] unverified=0 sellRestriction=0 honeypot=0 proxy=0
+  2026-02-27T05:46:08Z [USER LOG] [BaseScan] ConfidentialHTTPClient → BaseScan for 0x532f27101965dd16442e59d40670faf5ebb142e4
+  2026-02-27T05:46:08Z [USER LOG] [BaseScan] AEGIS_BASESCAN_SECRET stays inside the Decentralized Oracle Network
+  2026-02-27T05:46:09Z [USER LOG] [BaseScan] HTTP 200 — key never left DON
+  2026-02-27T05:46:09Z [USER LOG] [BaseScan] Contract: BrettToken | 52963 chars of Solidity
+  2026-02-27T05:46:09Z [USER LOG] [BaseScan] Proxy=0 | Compiler=v0.8.17+commit.8df45f5f
+  2026-02-27T05:46:09Z [USER LOG] [BaseScan] Source truncated to 15000 chars for AI input
+  2026-02-27T05:46:09Z [USER LOG] [BaseScan] Sending 15000 chars to AI models
+  2026-02-27T05:46:09Z [USER LOG] [AI] Contract under audit: BrettToken
+  2026-02-27T05:46:09Z [USER LOG] [AI] Prompt sent to AI (first 400 chars): You are the Aegis Protocol Lead Security Auditor for a DeFi firewall. Analyze this ERC-20 token contract for MALICIOUS patterns ONLY.
+  
+  Return ONLY a valid JSON object with these exact boolean keys plus a reasoning string:
+    obfuscatedTax: TRUE only if there is a hidden fee >  5% deducted inside _transfer/_update that is NOT clearly named 'tax' or 'fee'. Standard Ownable, renounceOwnership, or roya
+  2026-02-27T05:46:09Z [USER LOG] [AI] → GPT-4o via ConfidentialHTTPClient | AEGIS_OPENAI_SECRET stays in DON
+  2026-02-27T05:46:11Z [USER LOG] [GPT-4o] HTTP 200
+  2026-02-27T05:46:11Z [USER LOG] [GPT-4o] Response: {"obfuscatedTax": false, "privilegeEscalation": false, "externalCallRisk": false, "logicBomb": false, "reasoning": "The contract uses standard OpenZeppelin ERC-20 and Ownable patterns without any hidden fees, backdoors, or unguarded external calls."}
+  2026-02-27T05:46:11Z [USER LOG] [GPT-4o] Risk bits → tax=false priv=false extCall=false bomb=false
+  2026-02-27T05:46:11Z [USER LOG] [GPT-4o] Reasoning: The contract uses standard OpenZeppelin ERC-20 and Ownable patterns without any hidden fees, backdoors, or unguarded external calls.
+  2026-02-27T05:46:11Z [USER LOG] [AI] → Llama-3 via Groq ConfidentialHTTPClient | AEGIS_GROQ_SECRET stays in DON
+  2026-02-27T05:46:11Z [USER LOG] [Llama-3] HTTP 200
+  2026-02-27T05:46:11Z [USER LOG] [Llama-3] Response: {
+    "obfuscatedTax": false,
+     "privilegeEscalation": false,
+     "externalCallRisk": false,
+     "logicBomb": false,
+     "reasoning": "No malicious patterns found in the provided ERC-20 token contract."
+  }
+  2026-02-27T05:46:11Z [USER LOG] [Llama-3] Risk bits → tax=false priv=false extCall=false bomb=false
+  2026-02-27T05:46:11Z [USER LOG] [Llama-3] Reasoning: No malicious patterns found in the provided ERC-20 token contract.
+  2026-02-27T05:46:11Z [USER LOG] [AI] Union of Fears → obfuscatedTax=0 privilegeEscalation=0 externalCallRisk=0 logicBomb=0
+  2026-02-27T05:46:11Z [USER LOG] ⚖️ Final Risk Code: 0
+  2026-02-27T05:46:12Z [USER LOG] ✅ onReport delivered to AegisModule at 0x46d40e0aBdA0814bb0CB323B2Bb85a129d00B0AC
   
   ✓ Workflow Simulation Result:
   "Audit Complete"
   
-  2026-02-27T04:18:35Z [SIMULATION] Execution finished signal received
-  2026-02-27T04:18:35Z [SIMULATION] Skipping WorkflowEngineV2
+  2026-02-27T05:46:12Z [SIMULATION] Execution finished signal received
+  2026-02-27T05:46:12Z [SIMULATION] Skipping WorkflowEngineV2
   
   ⚠️  Update available! You’re running 1.1.0, but 1.2.0 is the latest.
   Run `cre update` or visit https://github.com/smartcontractkit/cre-cli/releases to upgrade.
   
   └─ END RAW CRE OUTPUT ──────────────────────────────────────────────┘
-  [Scene 5] Reading on-chain verdict for HoneypotCoin...
-  › cast call AegisModule 'isApproved(address)' <HoneypotCoin>
 
-  🔴 isApproved[HoneypotCoin] = FALSE
-  🛡️  The firewall held. HoneypotCoin is permanently blocked.
+  📡 CRE oracle returned Risk Code: 0
+  📝 Committing oracle verdict on-chain via onReportDirect...
+  ✅ Oracle verdict committed: riskCode=0 tradeId=0 for BRETT (Base)
+  [Scene 5] Reading on-chain verdict for BRETT (Base)...
+  › cast call AegisModule 'isApproved(address)' <BRETT (Base)>
+
+  ✅ isApproved[BRETT (Base)] = TRUE
+  🛡️  BRETT cleared — real swap would proceed.
+     (BRETT has no sell-tax, no honeypot — fully clean.)
 
 
 ══════════════════════════════════════════════════════════════════════
@@ -76,13 +115,9 @@
   │ 🔐 Phase 2: BaseScan via ConfidentialHTTPClient                │
   │    API key NEVER left the Decentralized Oracle Network         │
   │ 🤖 Phase 3: GPT-4o + Llama-3 dual AI consensus                │
-  │    Union of Fears — token blocked if EITHER model flags it     │
-  │ ✅ onReport delivered through Chainlink KeystoneForwarder      │
-  │ 🔴 HoneypotCoin blocked — riskScore > 0                        │
+  │    Both models read the real BRETT contract source            │
+  │    Union of Fears: blocked if EITHER model flags a risk       │
+  │ ✅ onReport delivered via Chainlink KeystoneForwarder          │
+  │ ✅ isApproved[BRETT] read on-chain — verdict is immutable      │
   └──────────────────────────────────────────────────────────────────┘
-
-  Track eligibility demonstrated:
-    CRE & AI (\)    — CRE workflow + LLM + on-chain report
-    Privacy (\)     — ConfidentialHTTPClient protecting API secrets
-    Tenderly (\)     — VNet deployment + verified contract + explorer
 

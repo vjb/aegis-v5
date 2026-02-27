@@ -49,12 +49,66 @@ const MOCK_REGISTRY: Record<string, { name: string, goplus: any, source: string 
     "0x000000000000000000000000000000000000000b": {
         name: "HoneypotCoin",
         goplus: { is_open_source: "1", cannot_sell_all: "0", is_honeypot: "1", is_proxy: "0" },
-        source: `// Honeypot — allowlist-only transfers`
+        source: `// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.20;
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+/// @title HoneypotCoin - transfers restricted to owner allowlist
+contract HoneypotCoin is ERC20, Ownable {
+    mapping(address => bool) private _allowedSellers;
+
+    constructor() ERC20("HoneypotCoin", "HPC") Ownable(msg.sender) {
+        _mint(msg.sender, 1_000_000_000 * 1e18);
+        _allowedSellers[msg.sender] = true;
+    }
+
+    function allowSeller(address account) external onlyOwner {
+        _allowedSellers[account] = true;
+    }
+
+    function _update(address from, address to, uint256 value) internal override {
+        // Only owner-approved addresses can transfer out of the contract
+        // All other sellers are permanently locked out
+        if (from != address(0) && from != owner() && !_allowedSellers[from]) {
+            revert("HoneypotCoin: transfers not allowed for non-approved sellers");
+        }
+        super._update(from, to, value);
+    }
+}`
     },
     "0x000000000000000000000000000000000000000c": {
         name: "TaxToken",
         goplus: { is_open_source: "1", cannot_sell_all: "1", is_honeypot: "0", is_proxy: "0" },
-        source: `// 99% sell tax`
+        source: `// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.20;
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+/// @title TaxToken - obfuscated 99% sell fee collected by owner
+contract TaxToken is ERC20, Ownable {
+    address private _feeCollector;
+    uint256 private _taxBasisPoints = 9900; // 99% in basis points, disguised as 'protocol fee'
+
+    constructor() ERC20("TaxToken", "TAXT") Ownable(msg.sender) {
+        _feeCollector = msg.sender;
+        _mint(msg.sender, 500_000_000 * 1e18);
+    }
+
+    function setTax(uint256 bps) external onlyOwner { _taxBasisPoints = bps; }
+    function setFeeCollector(address fc) external onlyOwner { _feeCollector = fc; }
+
+    function _update(address from, address to, uint256 value) internal override {
+        if (from != address(0) && to != address(0) && from != owner()) {
+            uint256 fee = (value * _taxBasisPoints) / 10000;
+            uint256 net  = value - fee;
+            super._update(from, _feeCollector, fee);
+            super._update(from, to, net);
+        } else {
+            super._update(from, to, value);
+        }
+    }
+}`
     },
 };
 
@@ -118,6 +172,156 @@ const performStaticAnalysis = (
     };
 };
 
+// Input type for AI analysis node-mode pass
+type AIAnalysisInput = {
+    targetAddress: string;
+    maxTax: number;
+    blockProxies: boolean;
+    strictLogic: boolean;
+    blockHoneypots: boolean;
+    basescanKey: string;
+    openAiKey: string;
+    groqKey: string;
+};
+
+type AIAnalysisResult = {
+    obfuscatedTax: number;
+    privilegeEscalation: number;
+    externalCallRisk: number;
+    logicBomb: number;
+};
+
+// ─── Phase 2 + 3: BaseScan + Dual-LLM Consensus (Node Mode) ──────────────────
+// Runs inside runInNodeMode so nodeRuntime.log() surfaces as [USER LOG].
+const performAIAnalysis = (
+    nodeRuntime: NodeRuntime<Config>,
+    input: AIAnalysisInput
+): AIAnalysisResult => {
+    const { targetAddress, maxTax, blockProxies, strictLogic, blockHoneypots,
+        basescanKey, openAiKey, groqKey } = input;
+    let obfuscatedTax = 0, privilegeEscalation = 0, externalCallRisk = 0, logicBomb = 0;
+
+    const confidentialClient = new ConfidentialHTTPClient();
+    const mockData = MOCK_REGISTRY[targetAddress];
+    let sourceCode = "";
+    let contractName = "";
+
+    // Phase 2: BaseScan source fetch
+    if (mockData) {
+        sourceCode = mockData.source;
+        contractName = mockData.name;
+        nodeRuntime.log(`[BaseScan] Using mock source for ${contractName} (${sourceCode.length} chars)`);
+    } else {
+        nodeRuntime.log(`[BaseScan] ConfidentialHTTPClient fetching source for ${targetAddress}...`);
+        nodeRuntime.log(`[BaseScan] NOTE: AEGIS_BASESCAN_SECRET never leaves the DON`);
+        let currentAddress = targetAddress;
+        for (let i = 0; i < 2; i++) {
+            const bsUrl = `https://api.etherscan.io/v2/api?chainid=8453&module=contract&action=getsourcecode&address=${currentAddress}&apikey=${basescanKey}`;
+            const bsRes = confidentialClient.sendRequest(nodeRuntime, {
+                vaultDonSecrets: [{ key: "AEGIS_BASESCAN_SECRET", namespace: "aegis" }],
+                request: { url: bsUrl, method: "GET" }
+            }).result();
+            nodeRuntime.log(`[BaseScan] HTTP ${bsRes.statusCode} (key stayed in DON)`);
+            if (bsRes.statusCode !== 200) break;
+            const bsBody = JSON.parse(new TextDecoder().decode(bsRes.body));
+            if (bsBody.status !== "1" || !bsBody.result?.length) {
+                nodeRuntime.log(`[BaseScan] No verified source found — contract may be unverified`);
+                break;
+            }
+            const contractData = bsBody.result[0];
+            sourceCode = contractData.SourceCode;
+            contractName = contractData.ContractName;
+            nodeRuntime.log(`[BaseScan] Fetched: ${contractName} | ${sourceCode.length} chars of Solidity`);
+            nodeRuntime.log(`[BaseScan] Proxy=${contractData.Proxy} | Compiler=${contractData.CompilerVersion}`);
+            if (contractData.Proxy === "1" && contractData.Implementation) { currentAddress = contractData.Implementation; continue; }
+            break;
+        }
+        if (sourceCode.length > 15000) sourceCode = sourceCode.slice(0, 15000);
+        nodeRuntime.log(`[BaseScan] Sending ${sourceCode.length} chars to AI (truncated to 15000 max)`);
+    }
+
+    // Phase 3: Dual-LLM consensus
+    if (sourceCode && sourceCode.length > 0) {
+        const aiPrompt = `You are the Aegis Protocol Lead Security Auditor. Analyze the following smart contract.
+Return ONLY a JSON object with keys: obfuscatedTax (bool), privilegeEscalation (bool), externalCallRisk (bool), logicBomb (bool), reasoning (string).
+Firewall rules: maxTax=${maxTax}%, blockProxies=${blockProxies}, strictLogic=${strictLogic}, blockHoneypots=${blockHoneypots}.
+Contract name: ${contractName}
+Contract source:
+${sourceCode}`;
+
+        nodeRuntime.log(`[AI] Auditing contract: ${contractName}`);
+        nodeRuntime.log(`[AI] Prompt preview: ${aiPrompt.slice(0, 300)}...`);
+        nodeRuntime.log(`[AI] Sending to GPT-4o via ConfidentialHTTPClient (AEGIS_OPENAI_SECRET never leaves DON)...`);
+
+        // GPT-4o
+        const openAiRes = confidentialClient.sendRequest(nodeRuntime, {
+            vaultDonSecrets: [{ key: "AEGIS_OPENAI_SECRET", namespace: "aegis" }],
+            request: {
+                url: "https://api.openai.com/v1/chat/completions",
+                method: "POST",
+                multiHeaders: {
+                    "Authorization": { values: [`Bearer ${openAiKey}`] },
+                    "Content-Type": { values: ["application/json"] }
+                },
+                bodyString: JSON.stringify({ model: "gpt-4o", temperature: 0.0, response_format: { type: "json_object" }, messages: [{ role: "user", content: aiPrompt }] })
+            }
+        }).result();
+
+        nodeRuntime.log(`[GPT-4o] HTTP status: ${openAiRes.statusCode}`);
+        if (openAiRes.statusCode === 200) {
+            const rawGpt = JSON.parse(new TextDecoder().decode(openAiRes.body)).choices[0].message.content;
+            nodeRuntime.log(`[GPT-4o] Response (truncated to 800): ${rawGpt.slice(0, 800)}`);
+            const r = JSON.parse(rawGpt);
+            if (r.obfuscatedTax) obfuscatedTax = 1;
+            if (r.privilegeEscalation) privilegeEscalation = 1;
+            if (r.externalCallRisk) externalCallRisk = 1;
+            if (r.logicBomb) logicBomb = 1;
+            nodeRuntime.log(`[GPT-4o] Bits: tax=${r.obfuscatedTax} priv=${r.privilegeEscalation} extCall=${r.externalCallRisk} bomb=${r.logicBomb}`);
+            nodeRuntime.log(`[GPT-4o] Reasoning: ${String(r.reasoning).slice(0, 700)}`);
+        } else {
+            nodeRuntime.log(`[GPT-4o] ERROR HTTP ${openAiRes.statusCode}`);
+        }
+
+        nodeRuntime.log(`[AI] Sending to Llama-3 via Groq ConfidentialHTTPClient (AEGIS_GROQ_SECRET never leaves DON)...`);
+
+        // Llama-3 via Groq
+        const groqRes = confidentialClient.sendRequest(nodeRuntime, {
+            vaultDonSecrets: [{ key: "AEGIS_GROQ_SECRET", namespace: "aegis" }],
+            request: {
+                url: "https://api.groq.com/openai/v1/chat/completions",
+                method: "POST",
+                multiHeaders: {
+                    "Authorization": { values: [`Bearer ${groqKey}`] },
+                    "Content-Type": { values: ["application/json"] }
+                },
+                bodyString: JSON.stringify({ model: "llama-3.1-8b-instant", temperature: 0.0, response_format: { type: "json_object" }, messages: [{ role: "user", content: aiPrompt }] })
+            }
+        }).result();
+
+        nodeRuntime.log(`[Llama-3] HTTP status: ${groqRes.statusCode}`);
+        if (groqRes.statusCode === 200) {
+            const rawLlama = JSON.parse(new TextDecoder().decode(groqRes.body)).choices[0].message.content;
+            nodeRuntime.log(`[Llama-3] Response (truncated to 800): ${rawLlama.slice(0, 800)}`);
+            const r = JSON.parse(rawLlama);
+            // Union of Fears: flag if EITHER model says yes
+            if (r.obfuscatedTax) obfuscatedTax = 1;
+            if (r.privilegeEscalation) privilegeEscalation = 1;
+            if (r.externalCallRisk) externalCallRisk = 1;
+            if (r.logicBomb) logicBomb = 1;
+            nodeRuntime.log(`[Llama-3] Bits: tax=${r.obfuscatedTax} priv=${r.privilegeEscalation} extCall=${r.externalCallRisk} bomb=${r.logicBomb}`);
+            nodeRuntime.log(`[Llama-3] Reasoning: ${String(r.reasoning).slice(0, 700)}`);
+        } else {
+            nodeRuntime.log(`[Llama-3] ERROR HTTP ${groqRes.statusCode}`);
+        }
+
+        nodeRuntime.log(`[AI] Union of Fears — obfuscatedTax=${obfuscatedTax} privilegeEscalation=${privilegeEscalation} externalCallRisk=${externalCallRisk} logicBomb=${logicBomb}`);
+    } else {
+        nodeRuntime.log(`[AI] SKIPPED — no source code found for ${targetAddress} (unverified contract)`);
+    }
+
+    return { obfuscatedTax, privilegeEscalation, externalCallRisk, logicBomb };
+};
+
 // ─── Main DON Trigger ─────────────────────────────────────────────────────────
 // V4 NOTE: The AuditRequested event signature is now emitted by AegisModule.sol,
 // but is structurally IDENTICAL to V3:
@@ -178,90 +382,25 @@ const onAuditTrigger = (runtime: Runtime<Config>, log: EVMLog): string => {
     )(log).result();
 
     const targetAddress = staticResult.targetAddress;
-    const mockData = MOCK_REGISTRY[targetAddress];
 
-    // Phase 2: BaseScan source fetch (Confidential HTTP)
-    const confidentialClient = new ConfidentialHTTPClient();
-    let sourceCode = "";
-    let contractName = "";
+    // Phase 2 + 3: BaseScan ConfidentialHTTP fetch + Dual-LLM consensus
+    // These run in runInNodeMode because they are non-BFT operations (standard APIs).
+    // nodeRuntime.log() inside this block surfaces as [USER LOG] in simulate output.
+    const aiResult = runtime.runInNodeMode(
+        performAIAnalysis,
+        ConsensusAggregationByFields<AIAnalysisResult>({
+            obfuscatedTax: median,
+            privilegeEscalation: median,
+            externalCallRisk: median,
+            logicBomb: median,
+        })
+    )({
+        targetAddress, maxTax, blockProxies, strictLogic, blockHoneypots,
+        basescanKey, openAiKey, groqKey
+    }).result();
 
-    if (mockData) {
-        sourceCode = mockData.source;
-        contractName = mockData.name;
-    } else {
-        let currentAddress = targetAddress;
-        for (let i = 0; i < 2; i++) {
-            const bsUrl = `https://api.etherscan.io/v2/api?chainid=8453&module=contract&action=getsourcecode&address=${currentAddress}&apikey=${basescanKey}`;
-            const bsRes = confidentialClient.sendRequest(runtime, {
-                vaultDonSecrets: [{ key: "AEGIS_BASESCAN_SECRET", namespace: "aegis" }],
-                request: { url: bsUrl, method: "GET" }
-            }).result();
-            if (bsRes.statusCode !== 200) break;
-            const bsBody = JSON.parse(new TextDecoder().decode(bsRes.body));
-            if (bsBody.status !== "1" || !bsBody.result?.length) break;
-            const contractData = bsBody.result[0];
-            sourceCode = contractData.SourceCode;
-            contractName = contractData.ContractName;
-            if (contractData.Proxy === "1" && contractData.Implementation) { currentAddress = contractData.Implementation; continue; }
-            break;
-        }
-        if (sourceCode.length > 15000) sourceCode = sourceCode.slice(0, 15000);
-    }
+    const { obfuscatedTax, privilegeEscalation, externalCallRisk, logicBomb } = aiResult;
 
-    // Phase 3: Dual-model AI consensus (Confidential HTTP)
-    let obfuscatedTax = 0, privilegeEscalation = 0, externalCallRisk = 0, logicBomb = 0;
-
-    if (sourceCode && sourceCode.length > 0 && !(mockData && targetAddress === "0x000000000000000000000000000000000000000b")) {
-        const aiPrompt = `You are the Aegis Protocol Lead Security Auditor. Analyze the following smart contract.
-Return ONLY a JSON object with keys: obfuscatedTax (bool), privilegeEscalation (bool), externalCallRisk (bool), logicBomb (bool), reasoning (string).
-Firewall rules: maxTax=${maxTax}%, blockProxies=${blockProxies}, strictLogic=${strictLogic}, blockHoneypots=${blockHoneypots}.
-Contract: ${sourceCode}`;
-
-        // OpenAI GPT-4o
-        const openAiRes = confidentialClient.sendRequest(runtime, {
-            vaultDonSecrets: [{ key: "AEGIS_OPENAI_SECRET", namespace: "aegis" }],
-            request: {
-                url: "https://api.openai.com/v1/chat/completions",
-                method: "POST",
-                multiHeaders: {
-                    "Authorization": { values: [`Bearer ${openAiKey}`] },
-                    "Content-Type": { values: ["application/json"] }
-                },
-                bodyString: JSON.stringify({ model: "gpt-4o", temperature: 0.0, response_format: { type: "json_object" }, messages: [{ role: "user", content: aiPrompt }] })
-            }
-        }).result();
-
-        if (openAiRes.statusCode === 200) {
-            const r = JSON.parse(JSON.parse(new TextDecoder().decode(openAiRes.body)).choices[0].message.content);
-            if (r.obfuscatedTax) obfuscatedTax = 1;
-            if (r.privilegeEscalation) privilegeEscalation = 1;
-            if (r.externalCallRisk) externalCallRisk = 1;
-            if (r.logicBomb) logicBomb = 1;
-        }
-
-        // Groq Llama-3
-        const groqRes = confidentialClient.sendRequest(runtime, {
-            vaultDonSecrets: [{ key: "AEGIS_GROQ_SECRET", namespace: "aegis" }],
-            request: {
-                url: "https://api.groq.com/openai/v1/chat/completions",
-                method: "POST",
-                multiHeaders: {
-                    "Authorization": { values: [`Bearer ${groqKey}`] },
-                    "Content-Type": { values: ["application/json"] }
-                },
-                bodyString: JSON.stringify({ model: "llama-3.1-8b-instant", temperature: 0.0, response_format: { type: "json_object" }, messages: [{ role: "user", content: aiPrompt }] })
-            }
-        }).result();
-
-        if (groqRes.statusCode === 200) {
-            const r = JSON.parse(JSON.parse(new TextDecoder().decode(groqRes.body)).choices[0].message.content);
-            // Union of Fears: flag if EITHER model flags it
-            if (r.obfuscatedTax) obfuscatedTax = 1;
-            if (r.privilegeEscalation) privilegeEscalation = 1;
-            if (r.externalCallRisk) externalCallRisk = 1;
-            if (r.logicBomb) logicBomb = 1;
-        }
-    }
 
     // ─── Assemble 8-bit risk matrix ──────────────────────────────────────
     let riskMatrix = 0;

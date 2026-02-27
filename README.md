@@ -56,11 +56,79 @@ AI Agent (Session Key / UserOp)
 
 | Component | Status | Evidence |
 |---|---|---|
-| `AegisModule.sol` (ERC-7579) | ✅ **Deployed** | `0xE5D4716ba20DefCc50C863952474A0edc3574A2B` on Base VNet |
+| `AegisModule.sol` (ERC-7579) | ✅ **Deployed & Verified** | `0x46d40e0aBdA0814bb0CB323B2Bb85a129d00B0AC` on Base VNet |
 | Forge Tests | ✅ **7/7 passing** | `forge test --match-contract AegisModuleTest` |
 | Jest Tests | ✅ **12/12 passing** | `pnpm exec jest` |
-| Chainlink CRE Live Simulate | ✅ **Passing** | `AuditRequested → GoPlus → riskScore=1 → onReport delivered` |
-| E2E Mock Simulation | ✅ **Passing** | `npx ts-node scripts/e2e_mock_simulation.ts` |
+| Chainlink CRE Live Oracle | ✅ **All 3 demos verified** | GoPlus + BaseScan + GPT-4o + Llama-3 pipeline |
+| BRETT (real Base token) | ✅ **Risk Code 0** | Both AI models: all flags false → `isApproved=TRUE` |
+| TaxToken (mock malicious) | 🔴 **Risk Code 18** | AI detected hidden sell restriction + obfuscated tax |
+| HoneypotCoin (mock malicious) | 🔴 **Risk Code 4** | AI detected honeypot pattern |
+| Uniswap V3 Swap | ✅ **Live on fork** | `NOVA` agent executed real WETH→BRETT swap after CRE clearance |
+
+---
+
+## 🎬 Demo Scripts
+
+All three demos run automatically via PowerShell. The VNet health check at the top of each script auto-provisions a fresh Tenderly VNet if blocks are exhausted.
+
+```powershell
+# Run any demo in non-interactive mode (for CI/logging)
+.\scripts\demo_1_cre_oracle.ps1
+.\scripts\demo_2_multi_agent.ps1
+.\scripts\demo_3_erc7579_architecture.ps1
+
+# Run interactive with narrated pauses (for recording)
+.\scripts\demo_1_cre_oracle.ps1 -Interactive
+```
+
+### Demo 1 — The AI Black Box
+**What it shows:** The complete Chainlink CRE oracle pipeline on a single real token (BRETT).
+
+1. `depositETH()` + `subscribeAgent(NEXUS, 0.05 ETH)` — agent hired, budget set
+2. `requestAudit(BRETT)` → `AuditRequested` event emitted on-chain
+3. `cre workflow simulate` — WASM sandbox activates:
+   - **Phase 1:** GoPlus API (live) → `honeypot=0 sellRestriction=0 unverified=0`
+   - **Phase 2:** BaseScan via `ConfidentialHTTPClient` → 52,963 chars of real `BrettToken.sol` — **API key never left the DON**
+   - **Phase 3:** GPT-4o + Llama-3 both read the real source → `Risk Code: 0`
+4. Oracle verdict committed on-chain → `isApproved[BRETT] = TRUE`
+
+See: [`docs/sample_output/demo_1_cre_oracle.log`](docs/sample_output/demo_1_cre_oracle.log)
+
+### Demo 2 — The Firewall That Runs Itself
+**What it shows:** Three AI agents, three simultaneous trade intents, real CRE oracle for every one.
+
+- `NOVA` → BRETT → CRE: Risk Code 0 → `ClearanceUpdated(BRETT, true)` → real Uniswap V3 swap ✅
+- `CIPHER` → TaxToken → CRE: Risk Code 18 (AI reads hidden sell restriction in mock Solidity) → `ClearanceDenied` 🔴
+- `REX` → HoneypotCoin → CRE: Risk Code 4 (AI reads honeypot trap) → `ClearanceDenied` 🔴
+- REX then tries to bypass the block → `triggerSwap()` reverts with `TokenNotCleared` ✅
+
+See: [`docs/sample_output/demo_2_multi_agent.log`](docs/sample_output/demo_2_multi_agent.log)
+
+### Demo 3 — ERC-7579 Architecture Walk-Through
+**What it shows:** The full ERC-7579 executor module lifecycle with real CRE oracle for TOSHI.
+
+1. Module installed on Smart Account via `onInstall()`
+2. PHANTOM agent subscribed with 0.02 ETH budget
+3. `requestAudit(TOSHI)` → CRE oracle runs → Risk Code 0 → `isApproved[TOSHI] = TRUE`
+4. `triggerSwap(TOSHI, 0.01 ETH)` → clearance consumed (anti-replay) → `isApproved[TOSHI] = FALSE`
+5. Second swap attempt reverts with `TokenNotCleared` → CEI pattern proven
+6. `killSwitch()` → agent deauthorized
+7. `onUninstall()` → module removed from account
+
+See: [`docs/sample_output/demo_3_erc7579_architecture.log`](docs/sample_output/demo_3_erc7579_architecture.log)
+
+---
+
+## ✅ Confirmed Clean Tokens (Base Mainnet)
+
+All verified through real CRE oracle — GoPlus live API + BaseScan source fetch + GPT-4o + Llama-3:
+
+| Token | Address | CRE Risk Code | Both AI Models |
+|---|---|---|---|
+| BRETT | `0x532f27101965dd16442E59d40670FaF5eBB142E4` | **0** | All flags false |
+| TOSHI | `0xAC1Bd2486aAf3B5C0fc3Fd868558b082a531B2B4` | **0** | All flags false |
+| DEGEN | `0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed` | **0** | All flags false |
+| WETH (native) | `0x4200000000000000000000000000000000000006` | **0** | All flags false |
 
 ---
 
@@ -69,35 +137,33 @@ AI Agent (Session Key / UserOp)
 ```
 aegis-v4/
 ├── src/
-│   ├── AegisModule.sol          # ← The core ERC-7579 executor module
-│   ├── oracle/
-│   │   └── aegis-oracle.ts      # ← Chainlink CRE DON oracle workflow
-│   └── agent/
-│       └── bot.ts               # ← BYOA agent (ERC-4337 UserOp builder)
+│   └── AegisModule.sol              # ← The core ERC-7579 executor module
 │
-├── test/
-│   ├── AegisModule.t.sol        # ← 7 Forge TDD tests (run before implementation)
-│   ├── oracle.spec.ts           # ← 6 Jest tests (ABI encoding, risk matrix)
-│   └── bot.spec.ts              # ← 6 Jest tests (calldata, BYOA safety)
-│
-├── cre-node/                    # ← Chainlink CRE oracle node configuration
-│   ├── aegis-oracle.ts          # ← Oracle workflow entry point
-│   ├── workflow.yaml            # ← CRE workflow config (--target tenderly-fork)
-│   ├── project.yaml             # ← CRE project config (chain + RPC)
-│   ├── config.json              # ← Runtime config (AegisModule address)
-│   └── secrets.yaml             # ← Maps secret IDs to .env vars
+├── cre-node/
+│   ├── aegis-oracle.ts              # ← CRE oracle: GoPlus + BaseScan + GPT-4o + Llama-3
+│   ├── workflow.yaml                # ← CRE workflow config (EVM log trigger)
+│   ├── project.yaml                 # ← CRE project config (chain + RPC)
+│   ├── config.json                  # ← Runtime config (AegisModule address)
+│   └── secrets.yaml                 # ← Maps secret IDs to .env vars
 │
 ├── scripts/
-│   ├── new_tenderly_testnet.ps1 # ← One-command VNet provisioner (V4)
-│   ├── start_oracle.ps1         # ← Starts Chainlink CRE Docker node
-│   ├── e2e_mock_simulation.ts   # ← E2E test with mocked oracle
-│   └── live_e2e.ts              # ← E2E test with real CRE node
+│   ├── new_tenderly_testnet.ps1     # ← One-command VNet provisioner + auto-verify
+│   ├── start_oracle.ps1             # ← Starts Chainlink CRE Docker node
+│   ├── demo_1_cre_oracle.ps1        # ← Demo 1: BRETT real CRE oracle pipeline
+│   ├── demo_2_multi_agent.ps1       # ← Demo 2: 3 agents, real CRE for each token
+│   └── demo_3_erc7579_architecture.ps1  # ← Demo 3: Full ERC-7579 lifecycle + TOSHI CRE
+│
+├── test/
+│   ├── AegisModule.t.sol            # ← 7 Forge TDD tests
+│   ├── oracle.spec.ts               # ← 6 Jest tests (ABI encoding, risk matrix)
+│   └── bot.spec.ts                  # ← 6 Jest tests (calldata, BYOA safety)
 │
 ├── docs/
-│   ├── ERC7579_ROADMAP.md       # ← Architecture deep-dive
-│   └── lessons_learned.md       # ← Engineering ledger (bugs + fixes)
+│   ├── ERC7579_ROADMAP.md           # ← Architecture deep-dive
+│   ├── lessons_learned.md           # ← Engineering ledger (bugs + fixes)
+│   └── sample_output/               # ← Real CRE oracle log files from demo runs
 │
-└── docker-compose.yaml          # ← CRE oracle Docker environment
+└── docker-compose.yaml              # ← CRE oracle Docker environment
 ```
 
 ---

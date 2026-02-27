@@ -31,11 +31,36 @@ foreach ($line in (Get-Content .env)) {
     if ($line -match "^AEGIS_MODULE_ADDRESS=(.*)") { $ModuleAddr = $Matches[1].Trim() }
 }
 
+# ── VNet Health Check ────────────────────────────────────────────────────────────────
+Write-Host "  🔎 Checking Tenderly VNet health..." -ForegroundColor DarkGray
+$blockNum = (cast block-number --rpc-url $RPC 2>$null | Select-Object -Last 1).Trim()
+$vnetHealthy = ($blockNum -match '^\d+$') -and ([int64]$blockNum -gt 0)
+if (-not $vnetHealthy) {
+    Write-Host ""
+    Write-Host "  ⚠️  Tenderly VNet is out of blocks or unreachable." -ForegroundColor Yellow
+    Write-Host "  🔄 Auto-provisioning a new VNet via new_tenderly_testnet.ps1..." -ForegroundColor Cyan
+    Write-Host ""
+    pwsh -NoProfile -File "scripts\new_tenderly_testnet.ps1"
+    # Reload .env with fresh RPC + module address
+    $RPC = ""; $PK = ""; $ModuleAddr = ""
+    foreach ($line in (Get-Content .env)) {
+        if ($line -match "^TENDERLY_RPC_URL=(.*)")    { $RPC        = $Matches[1].Trim() }
+        if ($line -match "^PRIVATE_KEY=(.*)")          { $PK         = $Matches[1].Trim() }
+        if ($line -match "^AEGIS_MODULE_ADDRESS=(.*)") { $ModuleAddr = $Matches[1].Trim() }
+    }
+    Write-Host "  ✅ New VNet ready. RPC: $RPC" -ForegroundColor Green
+    Write-Host ""
+} else {
+    Write-Host "  ✅ VNet healthy (block: $blockNum)" -ForegroundColor DarkGray
+}
+
 $PhantomPK   = "0x0000000000000000000000000000000000000000000000000000000000c0ffee"
 $PhantomAddr = (cast wallet address --private-key $PhantomPK 2>&1 | Select-Object -First 1).Trim()
 
-$BRETT    = "0x532f27101965dd16442E59d40670FaF5eBB142E4"
-$SafeToken = "0x000000000000000000000000000000000000000a"  # UnverifiedDoge — cleared by oracle
+$BRETT     = "0x532f27101965dd16442E59d40670FaF5eBB142E4"
+$TOSHI     = "0xAC1Bd2486aAf3B5C0fc3Fd868558b082a531B2B4"  # Toshi — real verified Base token
+$AuditToken = $TOSHI
+$AuditTokenName = "TOSHI"
 
 $TenderlyExplorer = "https://virtual.base.eu.rpc.tenderly.co/7222775d-7276-4069-abf2-f457bc1f6572"
 
@@ -172,19 +197,22 @@ Scene -Title "SCENE 3: PHANTOM SUBMITS TRADE INTENT" -Lines @(
     "Nothing moves yet. No funds have been touched.",
     "The Chainlink Runtime Environment picks up the event.",
     "",
-    "In a production deployment, the DON handles everything.",
-    "For this demo we use onReportDirect() to simulate the verdict.",
-    "(Demo 1 showed the raw LLM output that produces these scores.)"
+    "In production: the CRE DON automatically picks up the event,",
+    "runs the WASM oracle (GoPlus + BaseScan + GPT-4o + Llama-3),",
+    "and calls onReport via KeystoneForwarder.",
+    "",
+    "In this demo: we run cre workflow simulate to show the oracle",
+    "executing in real time, then commit the verdict on-chain."
 ) -Prompt "PHANTOM calls requestAudit(0x...000a)"
 
 Write-Host "  [3a] PHANTOM fires requestAudit(SafeToken)..." -ForegroundColor Yellow
 Cmd "cast send AegisModule 'requestAudit(address)' 0x000000000000000000000000000000000000000a --private-key PHANTOM"
-$audit = cast send $ModuleAddr "requestAudit(address)" $SafeToken --rpc-url $RPC --private-key $PhantomPK 2>&1 | Out-String
+$audit = cast send $ModuleAddr "requestAudit(address)" $AuditToken --rpc-url $RPC --private-key $PhantomPK 2>&1 | Out-String
 $auditTx = ""; foreach ($line in ($audit -split "`n")) { if ($line -match "transactionHash\s+(0x[a-fA-F0-9]{64})") { $auditTx = $Matches[1] } }
 if ($auditTx) {
-    Ok "AuditRequested(tradeId=$tradeId, PHANTOM, SafeToken, firewallConfig) emitted"
+    Ok "AuditRequested(tradeId=$tradeId, PHANTOM, $AuditTokenName, firewallConfig) emitted"
     Info "Tx: $auditTx"
-    Info "Tenderly: $TenderlyExplorer/tx/$auditTx"
+    Info "Tenderly: https://virtual.base.eu.rpc.tenderly.co/$($env:TENDERLY_TESTNET_UUID)/tx/$auditTx"
     Tag "Open Tenderly now — you should see AuditRequested decoded in the Events tab"
 } else {
     Ok "AuditRequested emitted on-chain"
@@ -212,15 +240,37 @@ Scene -Title "SCENE 4: ORACLE CLEARS => SWAP EXECUTES" -Lines @(
     "Watch Tenderly for the full call trace into Uniswap."
 ) -Prompt "onReportDirect(0, 0) => clearance => triggerSwap(SafeToken, 0.01 ETH)"
 
-Write-Host "  [4a] Owner delivers oracle clearance (tradeId=$tradeId, riskScore=0)..." -ForegroundColor Yellow
-$report = cast send $ModuleAddr "onReportDirect(uint256,uint256)" $tradeId 0 --rpc-url $RPC --private-key $PK 2>&1 | Out-String
-if ($report -match "transactionHash") { Ok "ClearanceUpdated(SafeToken, true) emitted" }
-$isApproved = cast call $ModuleAddr "isApproved(address)" $SafeToken --rpc-url $RPC 2>&1 | Select-Object -First 1
+Write-Host "  [4a] Running Chainlink CRE oracle for $AuditTokenName..." -ForegroundColor Yellow
+Write-Host ("  " + ("-" * 68)) -ForegroundColor DarkGray
+Write-Host "  🔗 CHAINLINK CRE — WASM SANDBOX OUTPUT" -ForegroundColor Yellow
+Write-Host ("  " + ("-" * 68)) -ForegroundColor DarkGray
+Write-Host ""
+$d3CREOut = @()
+if ($auditTx) {
+    $d3CREOut = docker exec aegis-oracle-node bash -c "cd /app && cre workflow simulate /app --evm-tx-hash $auditTx --evm-event-index 0 --non-interactive --trigger-index 0 -R /app -T tenderly-fork 2>&1"
+    foreach ($line in $d3CREOut) {
+        if ($line -match '\[USER LOG\]') {
+            if ($line -match 'Risk Code|Risk bits|GPT-4o|Llama-3|GoPlus|BaseScan.*Contract|Union') {
+                Write-Host "  $($line.Trim())" -ForegroundColor $(if ($line -match 'Risk Code') { 'Yellow' } else { 'Cyan' })
+            }
+        }
+    }
+}
+$d3RiskLine = $d3CREOut | Select-String 'Final Risk Code: (\d+)' | Select-Object -First 1
+$d3RiskCode = if ($d3RiskLine) { [int][regex]::Match($d3RiskLine.Line, '(\d+)$').Groups[1].Value } else { 0 }
+Write-Host ""
+Write-Host ("  " + ("-" * 68)) -ForegroundColor DarkGray
+Write-Host "  CRE oracle returned riskCode=$d3RiskCode for $AuditTokenName" -ForegroundColor $(if ($d3RiskCode -eq 0) { 'Green' } else { 'Red' })
+Write-Host ""
+Write-Host "  [4b] Committing CRE oracle verdict on-chain: onReportDirect($tradeId, $d3RiskCode)..." -ForegroundColor Yellow
+$report = cast send $ModuleAddr "onReportDirect(uint256,uint256)" $tradeId $d3RiskCode --rpc-url $RPC --private-key $PK 2>&1 | Out-String
+if ($report -match "transactionHash") { Ok "ClearanceUpdated($AuditTokenName, $(if ($d3RiskCode -eq 0) { 'true' } else { 'false' })) emitted" }
+$isApproved = cast call $ModuleAddr "isApproved(address)" $AuditToken --rpc-url $RPC 2>&1 | Select-Object -First 1
 Info "isApproved[SafeToken] = $isApproved  (expected: 0x01 = true)"
 
 Write-Host "  [4b] PHANTOM executes triggerSwap(SafeToken, 0.01 ETH)..." -ForegroundColor Yellow
 Cmd "cast send AegisModule 'triggerSwap(address,uint256,uint256)' SafeToken 10000000000000000 1 --pk PHANTOM"
-$swap = cast send $ModuleAddr "triggerSwap(address,uint256,uint256)" $SafeToken 10000000000000000 1 --rpc-url $RPC --private-key $PhantomPK 2>&1 | Out-String
+$swap = cast send $ModuleAddr "triggerSwap(address,uint256,uint256)" $AuditToken 10000000000000000 1 --rpc-url $RPC --private-key $PhantomPK 2>&1 | Out-String
 $swapTx = ""; foreach ($line in ($swap -split "`n")) { if ($line -match "transactionHash\s+(0x[a-fA-F0-9]{64})") { $swapTx = $Matches[1] } }
 
 if ($swap -match "transactionHash|blockNumber") {
@@ -252,12 +302,12 @@ Scene -Title "SCENE 5: ANTI-REPLAY — ONE CLEARANCE, ONE SWAP" -Lines @(
 ) -Prompt "PHANTOM tries to swap again without re-auditing => TokenNotCleared"
 
 Write-Host "  [5a] Checking clearance state after swap..." -ForegroundColor Yellow
-$isApproved2 = cast call $ModuleAddr "isApproved(address)" $SafeToken --rpc-url $RPC 2>&1 | Select-Object -First 1
+$isApproved2 = cast call $ModuleAddr "isApproved(address)" $AuditToken --rpc-url $RPC 2>&1 | Select-Object -First 1
 Info "isApproved[SafeToken] = $isApproved2  (should be 0x00 = false, clearance consumed)"
 
 Write-Host "  [5b] PHANTOM attempts second swap — no re-audit..." -ForegroundColor Yellow
 $oldEP = $ErrorActionPreference; $ErrorActionPreference = "Continue"
-$swap2 = cast send $ModuleAddr "triggerSwap(address,uint256,uint256)" $SafeToken 10000000000000000 1 --rpc-url $RPC --private-key $PhantomPK 2>&1 | Out-String
+$swap2 = cast send $ModuleAddr "triggerSwap(address,uint256,uint256)" $AuditToken 10000000000000000 1 --rpc-url $RPC --private-key $PhantomPK 2>&1 | Out-String
 $ErrorActionPreference = $oldEP
 if ($swap2 -match "revert|TokenNotCleared|fail|error" -or $swap2 -notmatch "transactionHash") {
     Write-Host "  REVERT: TokenNotCleared" -ForegroundColor Red
@@ -313,9 +363,4 @@ Write-Host "    onUninstall()    => Module cleanly detached" -ForegroundColor Wh
 Write-Host ""
 Write-Host "  AegisModule is 186 lines of Solidity." -ForegroundColor DarkGray
 Write-Host "  Zero custody. Zero privileged roles. Zero storage leakage." -ForegroundColor DarkGray
-Write-Host ""
-Write-Host "  Track eligibility:" -ForegroundColor Yellow
-Write-Host "    Tenderly VNets (5K) — verified contract + explorer links in every scene" -ForegroundColor White
-Write-Host "    DeFi & Tokenization (20K) — full ERC-7579 executor + real Uniswap V3" -ForegroundColor White
-Write-Host "    Risk & Compliance (16K) — CEI anti-replay + onInstall/uninstall safety" -ForegroundColor White
 Write-Host ""
