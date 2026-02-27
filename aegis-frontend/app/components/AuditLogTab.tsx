@@ -52,10 +52,10 @@ export default function AuditLogTab({ refreshTrigger }: { refreshTrigger?: numbe
     const blocked = events.filter(e => e.status === 'Blocked').length;
 
     return (
-        <div className="space-y-6">
+        <div>
 
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between" style={{ marginBottom: '24px' }}>
                 <div>
                     <h2 className="font-semibold text-base" style={{ color: 'var(--text-primary)' }}>Audit Log</h2>
                     <p className="mono text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
@@ -114,13 +114,13 @@ export default function AuditLogTab({ refreshTrigger }: { refreshTrigger?: numbe
             )}
 
             {/* Events */}
-            <div className="space-y-3">
+            <div>
                 {filtered.map((entry, i) => {
                     const bits = entry.riskCode != null ? decodeBits(entry.riskCode) : [];
                     const isSwap = entry.type === 'SwapExecuted';
 
                     return (
-                        <div key={`${entry.txHash}-${i}`} className="card slide-in" style={{ padding: '16px 20px' }}>
+                        <div key={`${entry.txHash}-${i}`} className="card slide-in" style={{ padding: '16px 20px', marginBottom: '12px' }}>
                             <div className="flex items-start justify-between gap-4">
                                 <div className="flex items-start gap-3.5">
                                     {isSwap

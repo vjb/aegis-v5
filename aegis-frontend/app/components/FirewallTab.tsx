@@ -106,10 +106,10 @@ export default function FirewallTab() {
     const riskMask = BITS.filter(b => isOn(b)).reduce((acc, b) => acc | (1 << b.bit), 0);
 
     return (
-        <div className="space-y-6">
+        <div>
 
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between" style={{ marginBottom: '24px' }}>
                 <div>
                     <h2 className="font-semibold text-base" style={{ color: 'var(--text-primary)' }}>Firewall Rules</h2>
                     <p className="mono text-xs mt-1.5" style={{ color: 'var(--text-muted)' }}>
@@ -161,9 +161,9 @@ export default function FirewallTab() {
             )}
 
             {/* ── Risk Bit Matrix — ALL 8 toggleable ── */}
-            <div>
-                <p className="section-title">Risk Bit Matrix</p>
-                <div className="space-y-2.5">
+            <div style={{ marginBottom: '28px' }}>
+                <p className="section-title" style={{ marginBottom: '14px' }}>Risk Bit Matrix</p>
+                <div>
                     {BITS.map(b => {
                         const on = isOn(b);
                         return (
@@ -171,6 +171,7 @@ export default function FirewallTab() {
                                 className="card w-full text-left flex items-center gap-4 transition-all"
                                 style={{
                                     padding: '16px 18px',
+                                    marginBottom: '10px',
                                     borderColor: on ? 'var(--border-bright)' : 'var(--border)',
                                     background: on ? 'var(--bg-card)' : 'var(--bg-surface)',
                                     opacity: loading ? 0.6 : 1,
@@ -198,11 +199,11 @@ export default function FirewallTab() {
             </div>
 
             {/* ── Thresholds ── */}
-            <div>
-                <p className="section-title">Threshold Tuning</p>
-                <div className="card space-y-7" style={{ padding: '22px' }}>
+            <div style={{ marginBottom: '28px' }}>
+                <p className="section-title" style={{ marginBottom: '14px' }}>Threshold Tuning</p>
+                <div className="card" style={{ padding: '22px' }}>
 
-                    <div>
+                    <div style={{ marginBottom: '24px' }}>
                         <div className="flex justify-between mono text-xs mb-2.5">
                             <span style={{ color: 'var(--text-muted)' }}>Max Allowed Tax <span style={{ color: 'var(--text-subtle)' }}>(Bit 1)</span></span>
                             <span style={{ color: 'var(--cyan)', fontWeight: 600 }}>{cfg.maxTax}%</span>
@@ -247,7 +248,7 @@ export default function FirewallTab() {
                 </button>
             )}
 
-            <p className="mono text-xs text-center" style={{ color: 'var(--text-subtle)' }}>
+            <p className="mono text-xs text-center" style={{ color: 'var(--text-subtle)', marginTop: '20px' }}>
                 Read via <code>firewallConfig()</code> · Saved via <code>setFirewallConfig()</code> · Owner-only tx
             </p>
         </div>
