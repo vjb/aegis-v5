@@ -117,6 +117,7 @@ export default function AegisChat({
     }]);
     const [input, setInput] = useState('');
     const [streaming, setStreaming] = useState(false);
+    const [streamingId, setStreamingId] = useState<string | null>(null);
     const [pendingAuditToken, setPendingAuditToken] = useState<string | null>(null);
     const bottomRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -170,6 +171,7 @@ export default function AegisChat({
 
         const aegisId = (Date.now() + 1).toString();
         setMessages(prev => [...prev, { id: aegisId, role: 'aegis', text: '' }]);
+        setStreamingId(aegisId);
 
         try {
             const history = [...messages, userMsg].map(m => ({
@@ -211,6 +213,11 @@ export default function AegisChat({
             ));
         } finally {
             setStreaming(false);
+            setStreamingId(null);
+            // If the message is still empty after streaming (API returned nothing), show error
+            setMessages(prev => prev.map(m =>
+                m.id === aegisId && m.text === '' ? { ...m, text: '⚠ No response received. Check OPENAI_API_KEY in .env and that the dev server can reach the API.' } : m
+            ));
             setTimeout(() => inputRef.current?.focus(), 50);
         }
     }, [input, streaming, messages, onAuditRequest]);
@@ -245,7 +252,7 @@ export default function AegisChat({
                                 </div>
                             )}
                             <div
-                                className={`rounded-xl mono text-xs ${msg.text === '' ? 'min-w-[60px] min-h-[36px]' : ''}`}
+                                className="rounded-xl mono text-xs"
                                 style={{
                                     maxWidth: '85%',
                                     padding: '14px 18px',
@@ -261,8 +268,10 @@ export default function AegisChat({
                                             : 'var(--border)'}`,
                                     color: 'var(--text-primary)',
                                     lineHeight: 1.75,
+                                    minWidth: streamingId === msg.id ? 80 : undefined,
+                                    minHeight: streamingId === msg.id ? 40 : undefined,
                                 }}>
-                                {msg.text === '' && streaming && msg.role === 'aegis' ? (
+                                {streamingId === msg.id && msg.text === '' ? (
                                     <span style={{ color: 'var(--cyan)' }}>
                                         <Loader2 className="w-3 h-3 animate-spin inline mr-1.5" />thinking…
                                     </span>

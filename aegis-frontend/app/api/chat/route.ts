@@ -204,7 +204,10 @@ export async function POST(req: NextRequest) {
         const openaiKey = env.OPENAI_API_KEY;
         if (!openaiKey) return NextResponse.json({ error: 'OPENAI_API_KEY not set in .env' }, { status: 500 });
 
-        const chainContext = await buildSystemContext();
+        const chainContext = await Promise.race([
+            buildSystemContext(),
+            new Promise<string>(resolve => setTimeout(() => resolve('Chain context: timed out (VNet may be slow or RPC unreachable). Core functionality unaffected.'), 5000)),
+        ]);
 
         const systemPrompt = `You are AEGIS — the AI firewall of the Aegis Protocol V4. You are an autonomous smart contract security system running on Base via Chainlink CRE (Chainlink Runtime Environment).
 
