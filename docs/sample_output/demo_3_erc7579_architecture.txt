@@ -1,5 +1,5 @@
   🔎 Checking Tenderly VNet health...
-  ✅ VNet healthy (block: 42711963)
+  ✅ VNet healthy (block: 42712466)
 
 ======================================================================
   AEGIS PROTOCOL V4  *  DEMO 3: THE ZERO-CUSTODY MODULE
@@ -40,8 +40,8 @@
   [3a] PHANTOM fires requestAudit(SafeToken)...
   >   cast send AegisModule 'requestAudit(address)' 0x000000000000000000000000000000000000000a --private-key PHANTOM
   OK  AuditRequested(tradeId=4, PHANTOM, TOSHI, firewallConfig) emitted
-  >>  Tx: 0xb53f25a7d6d3db5036897b360a0c583fed3d9b865b168f2661c229ad30cfafe1
-  >>  Tenderly: https://virtual.base.eu.rpc.tenderly.co//tx/0xb53f25a7d6d3db5036897b360a0c583fed3d9b865b168f2661c229ad30cfafe1
+  >>  Tx: 0x16622923e0292d5c8023d7cfc43ca84f9f183e94f17c54f540490079a31284ae
+  >>  Tenderly: https://virtual.base.eu.rpc.tenderly.co//tx/0x16622923e0292d5c8023d7cfc43ca84f9f183e94f17c54f540490079a31284ae
   *** Open Tenderly now — you should see AuditRequested decoded in the Events tab
   >>  getTradeRequest(4): 0x000000000000000000000000ac1bd2486aaf3b5c0fc3fd868558b082a531b2b40000000000000000000000000000000000000000000000000000000000000001
   [4a] Running Chainlink CRE oracle for TOSHI...
@@ -49,6 +49,25 @@
   🔗 CHAINLINK CRE — WASM SANDBOX OUTPUT
   --------------------------------------------------------------------
 
+  2026-02-27T17:53:01Z [USER LOG] __GOPLUS_START__
+  2026-02-27T17:53:01Z [USER LOG] [GoPlus] Authenticating with ConfidentialHTTPClient (APP_KEY stays in DON)...
+  2026-02-27T17:53:01Z [USER LOG] [GoPlus] JWT acquired — AEGIS_GOPLUS_KEY stays inside the Decentralized Oracle Network
+  2026-02-27T17:53:01Z [USER LOG] [GoPlus] Fetching token_security for 0xac1bd2486aaf3b5c0fc3fd868558b082a531b2b4 (auth=false) via ConfidentialHTTPClient
+  2026-02-27T17:53:01Z [USER LOG] [GoPlus] HTTP 200
+  2026-02-27T17:53:01Z [USER LOG] [GoPlus] unverified=0 sellRestriction=0 honeypot=0 proxy=0
+  2026-02-27T17:53:02Z [USER LOG] [BaseScan] Contract: ToshiToken | 51132 chars of Solidity
+  2026-02-27T17:53:02Z [USER LOG] [AI] → GPT-4o via ConfidentialHTTPClient | AEGIS_OPENAI_SECRET stays in DON
+  2026-02-27T17:53:04Z [USER LOG] [GPT-4o] HTTP 200
+  2026-02-27T17:53:04Z [USER LOG] [GPT-4o] Response: {"obfuscatedTax": false, "privilegeEscalation": false, "externalCallRisk": false, "logicBomb": false, "reasoning": "The contract uses standard OpenZeppelin ERC-20 and Ownable patterns without any hidden fees, backdoors, or unguarded external calls."}
+  2026-02-27T17:53:04Z [USER LOG] [GPT-4o] Risk bits → tax=false priv=false extCall=false bomb=false
+  2026-02-27T17:53:04Z [USER LOG] [GPT-4o] Reasoning: The contract uses standard OpenZeppelin ERC-20 and Ownable patterns without any hidden fees, backdoors, or unguarded external calls.
+  2026-02-27T17:53:04Z [USER LOG] [AI] → Llama-3 via Groq ConfidentialHTTPClient | AEGIS_GROQ_SECRET stays in DON
+  2026-02-27T17:53:04Z [USER LOG] [Llama-3] HTTP 200
+  2026-02-27T17:53:04Z [USER LOG] [Llama-3] Response: {
+  2026-02-27T17:53:04Z [USER LOG] [Llama-3] Risk bits → tax=false priv=false extCall=false bomb=false
+  2026-02-27T17:53:04Z [USER LOG] [Llama-3] Reasoning: No malicious patterns found in the ToshiToken contract.
+  2026-02-27T17:53:04Z [USER LOG] [AI] Union of Fears → obfuscatedTax=0 privilegeEscalation=0 externalCallRisk=0 logicBomb=0
+  2026-02-27T17:53:04Z [USER LOG] ⚖️ Final Risk Code: 0
 
   --------------------------------------------------------------------
   CRE oracle returned riskCode=0 for TOSHI
@@ -59,8 +78,8 @@
   [4b] PHANTOM executes triggerSwap(SafeToken, 0.01 ETH)...
   >   cast send AegisModule 'triggerSwap(address,uint256,uint256)' SafeToken 10000000000000000 1 --pk PHANTOM
   OK  Swap transaction on-chain!
-  >>  SwapTx: 0xf15c9be0ae612847ad681c6d90795495ce27a62b7de32b9a926b19087e0a661a
-  >>  Tenderly: https://virtual.base.eu.rpc.tenderly.co/7222775d-7276-4069-abf2-f457bc1f6572/tx/0xf15c9be0ae612847ad681c6d90795495ce27a62b7de32b9a926b19087e0a661a
+  >>  SwapTx: 0x29697c461a844a2a4c25522f107b594dfb1354b1154f31dc08f7991684f63ed7
+  >>  Tenderly: https://virtual.base.eu.rpc.tenderly.co/7222775d-7276-4069-abf2-f457bc1f6572/tx/0x29697c461a844a2a4c25522f107b594dfb1354b1154f31dc08f7991684f63ed7
   *** Open Tenderly => Call Trace => AegisModule.triggerSwap() => UniswapV3Router.exactInputSingle()
   >>  PHANTOM remaining budget: 0x000000000000000000000000000000000000000000000000002386f26fc10000 (0.02 ETH - 0.01 ETH = 0.01 ETH)
   [5a] Checking clearance state after swap...
