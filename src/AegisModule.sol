@@ -4,63 +4,71 @@ pragma solidity ^0.8.23;
 import { ERC7579ExecutorBase } from "modulekit/Modules.sol";
 
 /**
- * @title AegisModule V4 — ERC-7579 AI Security Firewall Executor
+ * @title AegisModule V5 — ERC-7579 AI Security Firewall Executor
  * @notice An ERC-7579 Type-2 Executor Module that installs onto a Smart Account
- *         (e.g., Safe) and acts as a zero-custody AI security gateway with
- *         real Uniswap V3 swaps executed directly from the module's treasury.
+ *         (e.g., Safe) and acts as a zero-custody AI security gateway.
+ *         On Base Sepolia, swaps are simulated (emit SwapExecuted).
+ *         On mainnet, the commented-out Uniswap V3 code can be enabled.
  *
  *         Architecture:
  *           AI Agent (subscribed wallet) → requestAudit(token)
  *             → emits AuditRequested → Chainlink CRE DON audits token
  *             → onReport(tradeId, 0) → clears token
- *             → triggerSwap(token, amount) → real Uniswap V3 exactInputSingle()
- *             → purchased tokens land in this module's treasury
+ *             → triggerSwap(token, amount) → swap executes (simulated on testnet)
+ *             → SwapExecuted event emitted
  *
  *         Multi-agent: Owner subscribes multiple AI agents with individual ETH budgets.
  *         Each agent is independently allowlisted and budget-capped.
  *
  * @dev Inherits ERC7579ExecutorBase from rhinestone/modulekit.
- *      Real Uniswap V3 swap: tries 0.3%, 0.05%, 1% fee tiers automatically.
- *      Base mainnet addresses hardcoded (SwapRouter02 + WETH).
+ *      Base Sepolia: mock swap (no DEX liquidity). Mainnet: Uniswap V3 multi-fee-tier.
+ *      Commented-out production code preserved below triggerSwap().
  */
 
-// ─── Interfaces ───────────────────────────────────────────────────────────────
+// ─── Interfaces
+// ───────────────────────────────────────────────────────────────
 
 interface IERC20 {
     function balanceOf(address account) external view returns (uint256);
     function transfer(address to, uint256 amount) external returns (bool);
 }
 
-/// @dev Uniswap V3 SwapRouter02 — Base mainnet 0x2626664c2603336E57B271c5C0b26F421741e481
+/// @dev Uniswap V3 SwapRouter02 interface (for production mainnet swap code)
 interface IV3SwapRouter {
     struct ExactInputSingleParams {
         address tokenIn;
         address tokenOut;
-        uint24  fee;
+        uint24 fee;
         address recipient;
         uint256 amountIn;
         uint256 amountOutMinimum;
         uint160 sqrtPriceLimitX96;
     }
     function exactInputSingle(ExactInputSingleParams calldata params)
-        external payable returns (uint256 amountOut);
+        external
+        payable
+        returns (uint256 amountOut);
 }
 
-// ─── AegisModule ─────────────────────────────────────────────────────────────
+// ─── AegisModule
+// ─────────────────────────────────────────────────────────────
 
 contract AegisModule is ERC7579ExecutorBase {
-
-    // ─── Base Mainnet Constants ────────────────────────────────────────
+    // ─── Base Mainnet Constants
+    // ────────────────────────────────────────
     address public constant SWAP_ROUTER = 0x2626664c2603336E57B271c5C0b26F421741e481;
-    address public constant WETH        = 0x4200000000000000000000000000000000000006;
+    address public constant WETH = 0x4200000000000000000000000000000000000006;
 
-    // ─── Ownership ────────────────────────────────────────────────────
+    // ─── Ownership
+    // ────────────────────────────────────────────────────
     address public owner;
 
-    // ─── Multi-Agent Budget Tracking ──────────────────────────────────
+    // ─── Multi-Agent Budget Tracking
+    // ──────────────────────────────────
     mapping(address => uint256) public agentAllowances;
 
-    // ─── Trade Request State ──────────────────────────────────────────
+    // ─── Trade Request State
+    // ──────────────────────────────────────────
     struct TradeRequest {
         address targetToken;
         bool exists;
@@ -68,18 +76,22 @@ contract AegisModule is ERC7579ExecutorBase {
     mapping(uint256 => TradeRequest) public tradeRequests;
     uint256 public nextTradeId;
 
-    // ─── Clearance State (one-shot per audit cycle) ───────────────────
+    // ─── Clearance State (one-shot per audit cycle)
+    // ───────────────────
     mapping(address => bool) public isApproved;
 
-    // ─── Access Control ───────────────────────────────────────────────
+    // ─── Access Control
+    // ───────────────────────────────────────────────
     /// The Chainlink KeystoneForwarder — ONLY address permitted to call onReport().
     address public immutable keystoneForwarder;
 
-    // ─── Firewall Config ──────────────────────────────────────────────
+    // ─── Firewall Config
+    // ──────────────────────────────────────────────
     string public firewallConfig =
         '{"maxTax":5,"blockProxies":true,"strictLogic":true,"blockHoneypots":true}';
 
-    // ─── Events ───────────────────────────────────────────────────────
+    // ─── Events
+    // ───────────────────────────────────────────────────────
     event AuditRequested(
         uint256 indexed tradeId,
         address indexed user,
@@ -94,7 +106,8 @@ contract AegisModule is ERC7579ExecutorBase {
     event TreasuryDeposit(address indexed from, uint256 amount);
     event TreasuryWithdrawal(address indexed to, uint256 amount);
 
-    // ─── Errors ───────────────────────────────────────────────────────
+    // ─── Errors
+    // ───────────────────────────────────────────────────────
     error NotKeystoneForwarder();
     error NoPendingRequest();
     error TokenNotCleared();
@@ -106,7 +119,8 @@ contract AegisModule is ERC7579ExecutorBase {
     error AllSwapsFailed();
     error ZeroSlippageNotAllowed();
 
-    // ─── Modifiers ────────────────────────────────────────────────────
+    // ─── Modifiers
+    // ────────────────────────────────────────────────────
     modifier onlyOwner() {
         if (msg.sender != owner) revert NotOwner();
         _;
@@ -117,23 +131,40 @@ contract AegisModule is ERC7579ExecutorBase {
         _;
     }
 
-    // ─── Constructor ──────────────────────────────────────────────────
+    // ─── Constructor
+    // ──────────────────────────────────────────────────
     constructor(address _keystoneForwarder) {
         keystoneForwarder = _keystoneForwarder;
         owner = msg.sender;
     }
 
     /// @notice Accept ETH deposits into the module treasury
-    receive() external payable {}
+    receive() external payable { }
 
     // ═══════════════════════════════════════════════════════════════════════
     //  ERC-7579 MODULE LIFECYCLE
     // ═══════════════════════════════════════════════════════════════════════
 
-    function onInstall(bytes calldata /*data*/) external override {}
-    function onUninstall(bytes calldata /*data*/) external override {}
+    function onInstall(
+        bytes calldata /*data*/
+    )
+        external
+        override
+    { }
+    function onUninstall(
+        bytes calldata /*data*/
+    )
+        external
+        override
+    { }
 
-    function isInitialized(address /*smartAccount*/) external pure returns (bool) {
+    function isInitialized(
+        address /*smartAccount*/
+    )
+        external
+        pure
+        returns (bool)
+    {
         return true;
     }
 
@@ -141,8 +172,13 @@ contract AegisModule is ERC7579ExecutorBase {
         return typeID == TYPE_EXECUTOR;
     }
 
-    function name() external pure returns (string memory) { return "AegisModule"; }
-    function version() external pure returns (string memory) { return "4.0.0"; }
+    function name() external pure returns (string memory) {
+        return "AegisModule";
+    }
+
+    function version() external pure returns (string memory) {
+        return "4.0.0";
+    }
 
     // ═══════════════════════════════════════════════════════════════════════
     //  TREASURY MANAGEMENT
@@ -175,7 +211,7 @@ contract AegisModule is ERC7579ExecutorBase {
     /// @notice Owner withdraws ETH from the treasury
     function withdrawETH(uint256 _amount) external onlyOwner {
         require(address(this).balance >= _amount, "Insufficient balance");
-        (bool sent,) = payable(owner).call{value: _amount}("");
+        (bool sent,) = payable(owner).call{ value: _amount }("");
         require(sent, "Transfer failed");
         emit TreasuryWithdrawal(owner, _amount);
     }
@@ -246,32 +282,31 @@ contract AegisModule is ERC7579ExecutorBase {
     }
 
     // ═══════════════════════════════════════════════════════════════════════
-    //  STEP 3 — JIT UNISWAP V3 SWAP
+    //  STEP 3 — JIT SWAP (simulated on Base Sepolia)
     // ═══════════════════════════════════════════════════════════════════════
 
     /**
-     * @notice Called by an AI Agent to execute a real Uniswap V3 swap from the treasury.
+     * @notice Called by an AI Agent to execute a swap from the treasury.
      *         Requires prior clearance from the CRE oracle (isApproved[token] == true).
-     *
-     *         Automatically tries 3 fee tiers: 0.3% → 0.05% → 1%
-     *         Purchased tokens land in this module (treasury).
+     *         On Base Sepolia this is simulated (no DEX liquidity).
+     *         On mainnet, uncomment the Uniswap V3 code below.
      *
      * @param _token The target token (must be cleared by oracle)
      * @param _amountIn ETH amount in wei to spend from the treasury
      * @param _amountOutMinimum Minimum tokens to receive (slippage protection)
      */
-    function triggerSwap(
-        address _token,
-        uint256 _amountIn,
-        uint256 _amountOutMinimum
-    ) external {
-        // ── Guards ──────────────────────────────────────────────────────────
-        if (agentAllowances[msg.sender] < _amountIn && msg.sender != owner) revert InsufficientBudget();
+    function triggerSwap(address _token, uint256 _amountIn, uint256 _amountOutMinimum) external {
+        // ── Guards
+        // ──────────────────────────────────────────────────────────
+        if (agentAllowances[msg.sender] < _amountIn && msg.sender != owner) {
+            revert InsufficientBudget();
+        }
         if (!isApproved[_token]) revert TokenNotCleared();
         if (address(this).balance < _amountIn) revert InsufficientTreasury();
         if (_amountOutMinimum == 0) revert ZeroSlippageNotAllowed();
 
-        // ── Deduct budget BEFORE external call (CEI) ───────────────────────
+        // ── Deduct budget BEFORE external call (CEI)
+        // ───────────────────────
         if (msg.sender != owner) {
             agentAllowances[msg.sender] -= _amountIn;
         }
@@ -279,7 +314,8 @@ contract AegisModule is ERC7579ExecutorBase {
         // ── Reset clearance BEFORE external call (anti-replay + CEI) ───────
         isApproved[_token] = false;
 
-        // ── MOCK SWAP (Base Sepolia — no real Uniswap liquidity) ─────────────
+        // ── MOCK SWAP (Base Sepolia — no real Uniswap liquidity)
+        // ─────────────
         // In production, this would be the real Uniswap V3 multi-fee-tier swap.
         // For testnet demo, we just emit the event and succeed.
         //
@@ -300,8 +336,13 @@ contract AegisModule is ERC7579ExecutorBase {
         emit SwapExecuted(_token, _amountIn, mockAmountOut);
     }
 
-    // ─── View helpers ─────────────────────────────────────────────────────
-    function getTradeRequest(uint256 tradeId) external view returns (address targetToken, bool exists) {
+    // ─── View helpers
+    // ─────────────────────────────────────────────────────
+    function getTradeRequest(uint256 tradeId)
+        external
+        view
+        returns (address targetToken, bool exists)
+    {
         TradeRequest memory r = tradeRequests[tradeId];
         return (r.targetToken, r.exists);
     }

@@ -29,9 +29,7 @@ contract ValidatorTemplateTest is RhinestoneModuleKit, Test {
         instance = makeAccountInstance("ValidatorTemplate");
         vm.deal(address(instance.account), 10 ether);
         instance.installModule({
-            moduleTypeId: MODULE_TYPE_VALIDATOR,
-            module: address(validator),
-            data: ""
+            moduleTypeId: MODULE_TYPE_VALIDATOR, module: address(validator), data: ""
         });
     }
 
@@ -45,10 +43,7 @@ contract ValidatorTemplateTest is RhinestoneModuleKit, Test {
 
         // Get the UserOp data (UserOperation and UserOperationHash)
         UserOpData memory userOpData = instance.getExecOps({
-            target: target,
-            value: value,
-            callData: "",
-            txValidator: address(validator)
+            target: target, value: value, callData: "", txValidator: address(validator)
         });
 
         // Set the signature

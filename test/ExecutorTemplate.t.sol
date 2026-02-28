@@ -25,9 +25,7 @@ contract ExecutorTemplateTest is RhinestoneModuleKit, Test {
         instance = makeAccountInstance("ExecutorTemplate");
         vm.deal(address(instance.account), 10 ether);
         instance.installModule({
-            moduleTypeId: MODULE_TYPE_EXECUTOR,
-            module: address(executor),
-            data: ""
+            moduleTypeId: MODULE_TYPE_EXECUTOR, module: address(executor), data: ""
         });
     }
 

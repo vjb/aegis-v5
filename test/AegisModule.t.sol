@@ -24,12 +24,12 @@ import { AegisModule } from "src/AegisModule.sol";
 contract AegisModuleTest is Test {
     AegisModule public module;
 
-    address public owner     = address(this);
+    address public owner = address(this);
     address public forwarder = address(0xF04AFB11);
-    address public agent1    = address(0xa6e00001);
-    address public agent2    = address(0xa6e00002);
-    address public token     = address(0x70770001);
-    address public honeypot  = address(0x40770002);
+    address public agent1 = address(0xa6e00001);
+    address public agent2 = address(0xa6e00002);
+    address public token = address(0x70770001);
+    address public honeypot = address(0x40770002);
 
     function setUp() public {
         module = new AegisModule(forwarder);
@@ -200,7 +200,7 @@ contract AegisModuleTest is Test {
     // ═══════════════════════════════════════════════════════════════════════
     function test_depositETH() public {
         uint256 before = address(module).balance;
-        module.depositETH{value: 1 ether}();
+        module.depositETH{ value: 1 ether }();
         assertEq(address(module).balance, before + 1 ether);
     }
 
