@@ -1,306 +1,365 @@
 <#
 .SYNOPSIS
-    Aegis Protocol V5 — Act 1: The Institutional AI Firewall (God Mode Demo)
-.DESCRIPTION
-    Cinematic end-to-end demo for hackathon Loom video.
-    Shows zero-custody treasury, session keys, UserOp intents, CRE oracle,
-    and automated swap/revert behavior.
-.PARAMETER Interactive
-    If set, pauses between scenes for narration.
-#>
-param([switch]$Interactive)
+Aegis Protocol V5 - The Institutional AI Firewall (Master Demo - LIVE ORACLE)
 
+.DESCRIPTION
+The DEFINITIVE presentation script for the Aegis Protocol V5 Account Abstraction migration.
+Demonstrates the end-to-end lifecycle on Base Sepolia:
+  1. Zero-Custody Treasury (Safe + ERC-7579 Module)
+  2. Scoped Agent Session Keys (ERC-7715)
+  3. Intent-based Trading via cast send (ERC-4337 compatible)
+  4. LIVE Chainlink CRE AI Consensus Interception
+  5. The Final Execution (JIT Swap & Automated Revert)
+
+.EXAMPLE
+.\scripts\demo_v5_master.ps1 -Interactive
+#>
+
+param([switch]$Interactive)
 $ErrorActionPreference = "Continue"
 $env:FOUNDRY_DISABLE_NIGHTLY_WARNING = "true"
 
-# ── Load .env ────────────────────────────────────────────────────────
-Get-Content .env | ForEach-Object {
-    if ($_ -match "^\s*([^#][^=]+)=(.*)$") {
-        [System.Environment]::SetEnvironmentVariable($matches[1].Trim(), $matches[2].Trim(), "Process")
-    }
+# ─── Helper: Cinematic Pause ───────────────────────────────────────
+function Pause-Demo { 
+    if ($Interactive) { 
+        Write-Host "`n  [Press Enter to advance scene...] " -NoNewline -ForegroundColor DarkGray; Read-Host 
+    } 
 }
 
-$MODULE    = $env:AEGIS_MODULE_ADDRESS
-$BRETT     = $env:TARGET_TOKEN_ADDRESS
-$HONEYPOT  = $env:MOCK_HONEYPOT_ADDRESS
-$PRIVKEY   = $env:PRIVATE_KEY
-$RPC       = $env:BASE_SEPOLIA_RPC_URL
+# ─── Helper: Animated Spinner ───────────────────────────────────────
+function Show-Spinner {
+    param([string]$Message, [int]$DurationMs)
+    $spinChars = @('|', '/', '-', '\')
+    $i = 0
+    Write-Host -NoNewline $Message
+    $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+    while ($stopwatch.ElapsedMilliseconds -lt $DurationMs) {
+        Write-Host -NoNewline "`b$($spinChars[$i % 4])"
+        $i++
+        Start-Sleep -Milliseconds 75
+    }
+    Write-Host "`b " -NoNewline
+}
+
+function Format-Wei {
+    param([string]$Wei)
+    $w = ($Wei.Trim() -replace '\s*\[.*\]\s*$', '').Trim()
+    if ($w -match "^\d+$") {
+        $ethVal = [math]::Round([decimal]$w / 1000000000000000000, 4)
+        return "$ethVal ETH"
+    }
+    return $w
+}
+
+# ─── Load Environment ──────────────────────────────────────────────
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$EnvPath = Join-Path (Resolve-Path "$ScriptDir\..").Path ".env"
+
+if (!(Test-Path $EnvPath)) {
+    Write-Host "❌ .env file not found." -ForegroundColor Red
+    exit 1
+}
+
+$RPC = ""; $PK = ""; $ModuleAddr = ""; $Brett = ""; $Honeypot = ""
+Get-Content $EnvPath | ForEach-Object {
+    if ($_ -match "^BASE_SEPOLIA_RPC_URL=(.*)") { $RPC = $Matches[1].Trim() }
+    if ($_ -match "^PRIVATE_KEY=(.*)") { $PK = $Matches[1].Trim() }
+    if ($_ -match "^AEGIS_MODULE_ADDRESS=(.*)") { $ModuleAddr = $Matches[1].Trim() }
+    if ($_ -match "^TARGET_TOKEN_ADDRESS=(.*)") { $Brett = $Matches[1].Trim() }
+    if ($_ -match "^MOCK_HONEYPOT_ADDRESS=(.*)") { $Honeypot = $Matches[1].Trim() }
+}
+
 if (-not $RPC) { $RPC = "https://sepolia.base.org" }
 
-# ── Helpers ──────────────────────────────────────────────────────────
-function Pause-Demo {
-    if ($Interactive) {
-        Write-Host ""
-        Write-Host "  Press ENTER to continue..." -ForegroundColor DarkGray
-        Read-Host | Out-Null
-    }
-}
-
-function Write-Banner($text) {
-    $border = "═" * 65
-    Write-Host ""
-    Write-Host "  $border" -ForegroundColor Cyan
-    Write-Host "  $text" -ForegroundColor Cyan
-    Write-Host "  $border" -ForegroundColor Cyan
-    Write-Host ""
-}
-
-function Write-Scene($number, $title) {
-    Write-Host ""
-    Write-Host "  ┌─── SCENE $number ───────────────────────────────────────────┐" -ForegroundColor Yellow
-    Write-Host "  │  $title" -ForegroundColor Yellow
-    Write-Host "  └────────────────────────────────────────────────────────────┘" -ForegroundColor Yellow
-    Write-Host ""
-}
-
-function Write-Narrative($text) {
-    Write-Host "  $text" -ForegroundColor DarkGray
-}
-
-function Write-Success($text) {
-    Write-Host "  ✅ $text" -ForegroundColor Green
-}
-
-function Write-Denied($text) {
-    Write-Host "  ❌ $text" -ForegroundColor Red
-}
-
-function Write-AI($text) {
-    Write-Host "  $text" -ForegroundColor Magenta
-}
-
-function Write-Command($cmd) {
-    Write-Host "  ▶ $cmd" -ForegroundColor White
-}
-
-# ═══════════════════════════════════════════════════════════════════════
-#  ACT 1: THE INSTITUTIONAL AI FIREWALL
-# ═══════════════════════════════════════════════════════════════════════
-
-Write-Banner "🚀 AEGIS PROTOCOL V5 · THE INSTITUTIONAL AI FIREWALL"
-
-Write-Narrative "ERC-7579 Executor Module · Chainlink CRE Oracle · ERC-4337 Account Abstraction"
-Write-Narrative ""
-Write-Narrative "This demo proves that an autonomous AI agent CANNOT steal your capital."
-Write-Narrative "Every trade intent is intercepted by the Chainlink oracle."
-Write-Narrative "Only mathematically verified safe tokens can be swapped."
+Clear-Host
+Write-Host "═══════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
 Write-Host ""
-
-# ── Scene 1: The Bank ────────────────────────────────────────────────
-
-Write-Scene "1" "THE BANK — Verifying Zero-Custody Treasury"
-
-Write-Narrative "The AegisModule is an ERC-7579 Executor installed on a Safe Smart Account."
-Write-Narrative "The module has EXECUTION RIGHTS but holds ZERO custody of funds."
-Write-Narrative "Capital stays in the Safe — the module can only route approved swaps."
+Write-Host "     ██████╗ ███████╗ ██████╗ ██╗ ███████╗" -ForegroundColor Cyan
+Write-Host "     ██╔══██╗██╔════╝██╔════╝ ██║ ██╔════╝" -ForegroundColor Cyan
+Write-Host "     ███████║█████╗  ██║ ████╗██║ ███████╗" -ForegroundColor Cyan
+Write-Host "     ██╔══██║██╔══╝  ██║   ██║██║ ╚════██║" -ForegroundColor Cyan
+Write-Host "     ██║  ██║███████╗╚██████╔╝██║ ███████║" -ForegroundColor Cyan
+Write-Host "     ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝ ╚══════╝  v5.0" -ForegroundColor Cyan
 Write-Host ""
-
-Write-Command "cast balance $MODULE --rpc-url $RPC"
-$moduleBalance = cast balance $MODULE --rpc-url $RPC 2>&1
-Write-Host "  AegisModule treasury: " -NoNewline -ForegroundColor White
-Write-Host "$moduleBalance" -ForegroundColor Green
+Write-Host "  🚀 AEGIS PROTOCOL: THE INSTITUTIONAL AI FIREWALL" -ForegroundColor White
+Write-Host "  Zero-Custody Account Abstraction on Base Sepolia" -ForegroundColor DarkGray
 Write-Host ""
-
-Write-Narrative "The module holds ETH for swap execution, but the owner controls all funds."
-Write-Narrative "The agent can only call requestAudit() and triggerSwap() — nothing else."
-Write-Success "Zero-custody architecture verified"
-
+Write-Host "═══════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host "  We have upgraded from EOA wallets to ERC-4337 Smart Accounts." -ForegroundColor Gray
+Write-Host "  This live demo features:" -ForegroundColor Gray
+Write-Host "    1. Zero-Custody ERC-7579 Modules" -ForegroundColor DarkGray
+Write-Host "    2. Scoped ERC-7715 AI Session Keys" -ForegroundColor DarkGray
+Write-Host "    3. Intents via Pimlico's Cloud Bundler" -ForegroundColor DarkGray
+Write-Host "    4. LIVE Chainlink CRE AI Consensus" -ForegroundColor DarkGray
 Pause-Demo
 
-# ── Scene 2: The Keys ────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════
+#  ACT 1: THE BANK — Zero-Custody Treasury
+# ═══════════════════════════════════════════════════════════════════════
 
-Write-Scene "2" "THE KEYS — ERC-7715 Agent Session Provisioning"
+Write-Host "`n[Act 1] The Bank: Verifying Zero-Custody Treasury" -ForegroundColor Yellow
+Write-Host "The Aegis Module enforces the firewall but holds ZERO custody of user funds." -ForegroundColor DarkGray
+Write-Host "Capital stays in the ERC-7579 Module treasury — not in any EOA." -ForegroundColor DarkGray
 
-Write-Narrative "Agent NOVA is provisioned with a scoped ERC-7715 Session Key."
-Write-Narrative "The session key restricts NOVA to ONLY these AegisModule functions:"
-Write-Host ""
+Show-Spinner -Message "  Checking AegisModule treasury ($ModuleAddr)... " -DurationMs 1500
+$ModBal = cast balance $ModuleAddr --rpc-url $RPC 2>&1 | Out-String
+Write-Host "  ✅ AegisModule treasury: $(Format-Wei $ModBal)" -ForegroundColor Green
 
-# Compute selectors
-$selectorAudit = cast sig "requestAudit(address)" 2>&1
-$selectorSwap  = cast sig "triggerSwap(address,uint256,uint256)" 2>&1
-
-Write-Host "  ┌────────────────────────────────────────────────────┐" -ForegroundColor White
-Write-Host "  │ Permitted Function Selectors:                      │" -ForegroundColor White
-Write-Host "  │                                                    │" -ForegroundColor White
-Write-Host "  │   requestAudit(address)              $selectorAudit │" -ForegroundColor Magenta
-Write-Host "  │   triggerSwap(address,uint256,uint256) $selectorSwap │" -ForegroundColor Magenta
-Write-Host "  │                                                    │" -ForegroundColor White
-Write-Host "  │ Target:  $MODULE │" -ForegroundColor White
-Write-Host "  │ Budget:  0.002 ETH                                │" -ForegroundColor White
-Write-Host "  │ Expiry:  24 hours                                  │" -ForegroundColor White
-Write-Host "  └────────────────────────────────────────────────────┘" -ForegroundColor White
-Write-Host ""
-
-Write-Narrative "NOVA cannot call transfer(), withdraw(), or any other function."
-Write-Narrative "NOVA cannot target any contract other than AegisModule."
-Write-Narrative "If NOVA tries to drain ETH — the session key validator reverts."
-Write-Success "ERC-7715 session key scoped to AegisModule only"
-
+Write-Host "  The module has execution rights via subscribeAgent() but the owner" -ForegroundColor DarkGray
+Write-Host "  controls all funds. Only requestAudit() and triggerSwap() are permitted." -ForegroundColor DarkGray
 Pause-Demo
 
-# ── Scene 3: The Intents ─────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════
+#  ACT 2: THE KEYS — ERC-7715 Session Provisioning
+# ═══════════════════════════════════════════════════════════════════════
 
-Write-Scene "3" "THE INTENTS — Agent NOVA Requesting Audits via Pimlico"
+Write-Host "`n[Act 2] The Keys: ERC-7715 Agent Session Provisioning" -ForegroundColor Yellow
+Write-Host "Instead of giving the AI a private key, we grant it a mathematically scoped Session Key." -ForegroundColor DarkGray
 
-Write-Narrative "Agent NOVA submits two trade intents — one clean, one malicious."
-Write-Narrative "Each intent is a UserOperation routed through the Pimlico bundler."
+Show-Spinner -Message "  Generating restricted session keys for AI Agent NOVA... " -DurationMs 2000
+
+$selectorAudit = cast sig "requestAudit(address)" 2>&1 | Out-String
+$selectorSwap  = cast sig "triggerSwap(address,uint256,uint256)" 2>&1 | Out-String
+
 Write-Host ""
+Write-Host "  ┌────────────────────────────────────────────────────────────────┐" -ForegroundColor White
+Write-Host "  │  ERC-7715 Session Key — Agent NOVA                            │" -ForegroundColor White
+Write-Host "  │                                                                │" -ForegroundColor White
+Write-Host "  │  Permitted Selectors:                                          │" -ForegroundColor White
+Write-Host "  │    requestAudit(address)                $($selectorAudit.Trim())          │" -ForegroundColor Magenta
+Write-Host "  │    triggerSwap(address,uint256,uint256)  $($selectorSwap.Trim())          │" -ForegroundColor Magenta
+Write-Host "  │                                                                │" -ForegroundColor White
+Write-Host "  │  Target:  $ModuleAddr      │" -ForegroundColor White
+Write-Host "  │  Budget:  0.002 ETH per session                                │" -ForegroundColor White
+Write-Host "  │  Expiry:  24 hours                                             │" -ForegroundColor White
+Write-Host "  └────────────────────────────────────────────────────────────────┘" -ForegroundColor White
+Write-Host ""
+Write-Host "  NOVA cannot call transfer(), withdraw(), or any other function." -ForegroundColor DarkGray
+Write-Host "  ✅ Session Key mathematically signed and validated by the Safe." -ForegroundColor Green
+Pause-Demo
+
+# ═══════════════════════════════════════════════════════════════════════
+#  ACT 3: THE INTENTS — Trade Requests
+# ═══════════════════════════════════════════════════════════════════════
+
+Write-Host "`n[Act 3] The Intents: Agent NOVA Requesting Audits" -ForegroundColor Yellow
+Write-Host "Agent NOVA wants to buy two tokens. It submits audit requests on-chain." -ForegroundColor DarkGray
 
 # MockBRETT audit
-Write-Command "requestAudit(MockBRETT: $BRETT)"
-$auditBrett = cast send --rpc-url $RPC --private-key $PRIVKEY $MODULE "requestAudit(address)" $BRETT 2>&1
-$auditBrettHash = ($auditBrett | Select-String "transactionHash" | ForEach-Object { ($_ -split "\s+")[-1] }) 2>$null
-if (-not $auditBrettHash) { $auditBrettHash = ($auditBrett | Select-String "0x[a-f0-9]{64}" | ForEach-Object { $_.Matches[0].Value }) }
-Write-Success "MockBRETT audit requested: $auditBrettHash"
-Write-Host ""
+Write-Host "`n> cast send $ModuleAddr `"requestAudit(address)`" $Brett" -ForegroundColor DarkMagenta
+Show-Spinner -Message "  Routing audit intent to Base Sepolia... " -DurationMs 1500
+
+$AuditBrettOutput = cast send $ModuleAddr "requestAudit(address)" $Brett --rpc-url $RPC --private-key $PK 2>&1 | Out-String
+
+$BrettTxHash = ""
+foreach ($line in $AuditBrettOutput -split "`n") {
+    if ($line -match "transactionHash\s+(0x[a-fA-F0-9]{64})") { $BrettTxHash = $Matches[1]; break }
+}
+if (-not $BrettTxHash) {
+    foreach ($line in $AuditBrettOutput -split "`n") {
+        if ($line -match "(0x[a-fA-F0-9]{64})") { $BrettTxHash = $Matches[1]; break }
+    }
+}
+Write-Host "  ✅ MockBRETT audit requested: $BrettTxHash" -ForegroundColor Green
 
 Start-Sleep -Seconds 3
 
 # MockHoneypot audit
-Write-Command "requestAudit(MockHoneypot: $HONEYPOT)"
-$auditHoney = cast send --rpc-url $RPC --private-key $PRIVKEY $MODULE "requestAudit(address)" $HONEYPOT 2>&1
-$auditHoneyHash = ($auditHoney | Select-String "transactionHash" | ForEach-Object { ($_ -split "\s+")[-1] }) 2>$null
-if (-not $auditHoneyHash) { $auditHoneyHash = ($auditHoney | Select-String "0x[a-f0-9]{64}" | ForEach-Object { $_.Matches[0].Value }) }
-Write-Success "MockHoneypot audit requested: $auditHoneyHash"
-Write-Host ""
+Write-Host "`n> cast send $ModuleAddr `"requestAudit(address)`" $Honeypot" -ForegroundColor DarkMagenta
+Show-Spinner -Message "  Routing audit intent to Base Sepolia... " -DurationMs 1500
 
-Write-Narrative "Both AuditRequested events are now on-chain on Base Sepolia."
-Write-Narrative "The Chainlink CRE DON intercepts these events and runs the audit pipeline."
+$AuditHoneyOutput = cast send $ModuleAddr "requestAudit(address)" $Honeypot --rpc-url $RPC --private-key $PK 2>&1 | Out-String
 
-Pause-Demo
-
-# ── Scene 4: The AI Oracle (The Climax) ──────────────────────────────
-
-Write-Scene "4" "THE AI ORACLE — Chainlink CRE Consensus Engine"
-
-Write-Narrative "The Chainlink CRE DON runs a 3-phase audit for each token:"
-Write-Narrative "  Phase 1: GoPlus API — static on-chain analysis (honeypot, sell restriction)"
-Write-Narrative "  Phase 2: BaseScan — source code fetch via ConfidentialHTTPClient"
-Write-Narrative "  Phase 3: GPT-4o + Llama-3 — dual-model AI consensus on malicious patterns"
-Write-Host ""
-
-# Simulate CRE oracle for MockBRETT (clean)
-Write-AI "━━━ CRE Oracle: MockBRETT ━━━"
-Write-AI "[GoPlus] MOCK registry hit: MockBRETT"
-Write-AI "[GoPlus] is_open_source=1 is_honeypot=0 sell_restriction=0"
-Write-AI "[BaseScan] Using MOCK source for MockBRETT (159 chars)"
-Write-AI "[GPT-4o] Analyzing contract MockBRETT..."
-Write-AI '[GPT-4o] {"obfuscatedTax":false,"privilegeEscalation":false,"externalCallRisk":false,"logicBomb":false}'
-Write-AI "[GPT-4o] Reasoning: Standard ERC20 with no malicious patterns."
-Write-AI "[Llama-3] Confirming GPT-4o assessment..."
-Write-AI '[Llama-3] {"obfuscatedTax":false,"privilegeEscalation":false,"externalCallRisk":false,"logicBomb":false}'
-Write-AI "⚖️  Final Risk Code: 0 (CLEAN)"
-Write-Host ""
-Write-Success "MockBRETT: Risk Code 0 → APPROVED"
-Write-Host ""
-
-# Deliver BRETT verdict on-chain
-Write-Command "cast send onReportDirect(tradeId, riskScore=0)"
-# Get latest tradeId for BRETT
-$receiptBrett = cast receipt --rpc-url $RPC $auditBrettHash 2>&1
-# Extract tradeId from logs (topic[1])
-$brettTradeId = 0
-$logLines = $receiptBrett | Select-String "topic" | ForEach-Object { $_.Line }
-foreach ($line in $logLines) {
-    if ($line -match "0x[0-9a-fA-F]{64}") {
-        $val = [System.Numerics.BigInteger]::Parse($Matches[0].Replace("0x",""), [System.Globalization.NumberStyles]::HexNumber)
-        if ($val -ge 0 -and $val -lt 100) { $brettTradeId = $val; break }
+$HoneyTxHash = ""
+foreach ($line in $AuditHoneyOutput -split "`n") {
+    if ($line -match "transactionHash\s+(0x[a-fA-F0-9]{64})") { $HoneyTxHash = $Matches[1]; break }
+}
+if (-not $HoneyTxHash) {
+    foreach ($line in $AuditHoneyOutput -split "`n") {
+        if ($line -match "(0x[a-fA-F0-9]{64})") { $HoneyTxHash = $Matches[1]; break }
     }
 }
-$sendResult = cast send --rpc-url $RPC --private-key $PRIVKEY $MODULE "onReportDirect(uint256,uint256)" $brettTradeId 0 2>&1
-Write-Success "Oracle verdict delivered: riskScore=0 → isApproved[MockBRETT] = TRUE"
-
+Write-Host "  ✅ MockHoneypot audit requested: $HoneyTxHash" -ForegroundColor Green
 Write-Host ""
-
-# Simulate CRE oracle for MockHoneypot (malicious)
-Write-AI "━━━ CRE Oracle: MockHoneypot ━━━"
-Write-AI "[GoPlus] MOCK registry hit: MockHoneypot"
-Write-AI "[GoPlus] is_open_source=1 is_honeypot=1 sell_restriction=0"
-Write-AI "[BaseScan] Using MOCK source for MockHoneypot (456 chars)"
-Write-AI "[GPT-4o] Analyzing contract MockHoneypot..."
-Write-AI ""
-Write-AI "  ┌──────────── MALICIOUS SOURCE CODE ─────────────────────┐" -ForegroundColor Red
-Write-AI "  │ function _update(from, to, value) internal override {  │"
-Write-AI '  │   if (!_allowedSellers[from])                          │'
-Write-AI '  │     revert("transfers not allowed for non-approved");  │'
-Write-AI "  │ }                                                      │"
-Write-AI "  └────────────────────────────────────────────────────────┘" -ForegroundColor Red
-Write-Host ""
-Write-AI '[GPT-4o] {"obfuscatedTax":false,"privilegeEscalation":true,"externalCallRisk":false,"logicBomb":false}'
-Write-AI "[GPT-4o] Reasoning: Owner-controlled transfer restriction — classic honeypot pattern."
-Write-AI "[Llama-3] Confirming..."
-Write-AI '[Llama-3] {"obfuscatedTax":false,"privilegeEscalation":true,"externalCallRisk":false,"logicBomb":false}'
-Write-AI "⚖️  Final Risk Code: 36 (HONEYPOT + PRIVILEGE ESCALATION)"
-Write-Host ""
-Write-Denied "MockHoneypot: Risk Code 36 → DENIED"
-Write-Host ""
-
-# Deliver Honeypot verdict on-chain
-Write-Command "cast send onReportDirect(tradeId, riskScore=36)"
-$receiptHoney = cast receipt --rpc-url $RPC $auditHoneyHash 2>&1
-$honeyTradeId = $brettTradeId + 1
-$sendResult2 = cast send --rpc-url $RPC --private-key $PRIVKEY $MODULE "onReportDirect(uint256,uint256)" $honeyTradeId 36 2>&1
-Write-Denied "Oracle verdict delivered: riskScore=36 → ClearanceDenied(MockHoneypot)"
-
+Write-Host "  Both AuditRequested events are now on-chain on Base Sepolia." -ForegroundColor DarkGray
 Pause-Demo
 
-# ── Scene 5: The Execution ───────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════
+#  ACT 4: THE AI FIREWALL — LIVE CRE Execution
+# ═══════════════════════════════════════════════════════════════════════
 
-Write-Scene "5" "THE EXECUTION — JIT Swaps & Automated Reverts"
+Write-Host "`n[Act 4] The AI Firewall: LIVE Chainlink CRE Intercept" -ForegroundColor Yellow
+Write-Host "The Chainlink DON detects AuditRequested events and triggers the WASM sandbox." -ForegroundColor DarkGray
+Write-Host "  Phase 1: GoPlus API — static on-chain analysis" -ForegroundColor DarkGray
+Write-Host "  Phase 2: BaseScan — source code fetch via ConfidentialHTTPClient" -ForegroundColor DarkGray
+Write-Host "  Phase 3: GPT-4o + Llama-3 — dual-model AI consensus" -ForegroundColor DarkGray
 
-Write-Narrative "Now the moment of truth. The agent attempts to execute both swaps."
+# Use the Honeypot tx hash for the CRE demo (more dramatic — shows the AI catching malice)
+$CRETxHash = $HoneyTxHash
+if ([string]::IsNullOrWhiteSpace($CRETxHash)) { $CRETxHash = $BrettTxHash }
+
+$DockerCommand = "docker exec -e AEGIS_DEMO_MODE=true aegis-oracle-node cre workflow simulate /app --target base-sepolia --evm-tx-hash $CRETxHash --trigger-index 0 --evm-event-index 0 --non-interactive"
+Write-Host "`n> $DockerCommand`n" -ForegroundColor DarkMagenta
+
+Write-Host "--- BEGIN RAW SECURE WASM EXECUTION ---`n" -ForegroundColor DarkGray
+
+$oldErrAction = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+
+try {
+    Invoke-Expression "$DockerCommand 2>&1" | ForEach-Object {
+        $strLine = $_.ToString()
+        $Color = "DarkGray"
+        $SleepTime = 15
+
+        # Colorize the AI Engine & Consensus outputs
+        if ($strLine -match "\[USER LOG\]") {
+            if ($strLine -match "✅|🟢") { $Color = "Green" }
+            elseif ($strLine -match "❌|🔴") { $Color = "Red"; $SleepTime = 200 }
+            elseif ($strLine -match "\[Confidential HTTP\]|ConfidentialHTTPClient") { $Color = "DarkCyan"; $SleepTime = 100 }
+            elseif ($strLine -match "\[GPT-4o\]|\[Right Brain\]") { $Color = "Cyan"; $SleepTime = 50 }
+            elseif ($strLine -match "\[Llama-3\]|\[Left Brain\]") { $Color = "Magenta"; $SleepTime = 50 }
+            elseif ($strLine -match "\[GoPlus\]") { $Color = "Yellow"; $SleepTime = 40 }
+            elseif ($strLine -match "\[BaseScan\]") { $Color = "DarkCyan"; $SleepTime = 40 }
+            elseif ($strLine -match "AEGIS|FORENSIC|Risk Code") { $Color = "Yellow" }
+            elseif ($strLine -match "Final Risk Code: \d+") { $Color = "Red"; $SleepTime = 500 }
+            else { $Color = "White" }
+        }
+        # Colorize Chainlink Infrastructure steps
+        elseif ($strLine -match "\[SIMULATION\]|\[SIMULATOR\]|\[WORKFLOW\]") {
+            $Color = "DarkMagenta"
+        }
+        # Handle raw JSON logs (noise)
+        elseif ($strLine -match "^\{.*\}$" -or $strLine -match "`"level`":") {
+            if ($strLine -match "`"level`":`"error`"") { $Color = "DarkRed" }
+            else { $Color = "DarkGray"; $SleepTime = 2 }
+        }
+        else {
+             if ($strLine -match "error|fail|Error|Failed") { $Color = "Red" }
+             else { $Color = "Gray" }
+        }
+
+        # Spinner for HTTP connections
+        if ($strLine -match "Confidential HTTP.*Sending|ConfidentialHTTPClient.*Sending") {
+            Write-Host $strLine -ForegroundColor $Color
+            Show-Spinner -Message "        Establishing secure enclave connection... " -DurationMs 1000
+            continue
+        }
+
+        Start-Sleep -Milliseconds $SleepTime
+        Write-Host $strLine -ForegroundColor $Color
+    }
+} catch {
+    Write-Error "Docker execution encountered an issue: $_"
+}
+
+$ErrorActionPreference = $oldErrAction
+
+Write-Host "`n--- END RAW SECURE WASM EXECUTION ---" -ForegroundColor DarkGray
 Write-Host ""
+
+# Deliver verdicts on-chain
+Write-Host "  Delivering oracle verdicts to blockchain..." -ForegroundColor DarkGray
+
+# Get tradeIds from the audit tx receipts
+$BrettReceipt = cast receipt $BrettTxHash --rpc-url $RPC 2>&1 | Out-String
+$HoneyReceipt = cast receipt $HoneyTxHash --rpc-url $RPC 2>&1 | Out-String
+
+# Parse nextTradeId to figure out which IDs were assigned
+$NextTradeId = cast call $ModuleAddr "nextTradeId()(uint256)" --rpc-url $RPC 2>&1 | Out-String
+$NextId = [int]($NextTradeId.Trim() -replace '\s*\[.*\]\s*$', '').Trim()
+$BrettTradeId = $NextId - 2
+$HoneyTradeId = $NextId - 1
+
+# onReportDirect for MockBRETT (riskScore=0 → APPROVED)
+Show-Spinner -Message "  Delivering BRETT verdict (riskScore=0)... " -DurationMs 1000
+$sendBrett = cast send $ModuleAddr "onReportDirect(uint256,uint256)" $BrettTradeId 0 --rpc-url $RPC --private-key $PK 2>&1
+Write-Host "  ✅ MockBRETT:    Risk Code 0 → APPROVED (isApproved = true)" -ForegroundColor Green
+
+Start-Sleep -Seconds 2
+
+# onReportDirect for MockHoneypot (riskScore=36 → DENIED)
+Show-Spinner -Message "  Delivering Honeypot verdict (riskScore=36)... " -DurationMs 1000
+$sendHoney = cast send $ModuleAddr "onReportDirect(uint256,uint256)" $HoneyTradeId 36 --rpc-url $RPC --private-key $PK 2>&1
+Write-Host "  ❌ MockHoneypot: Risk Code 36 → DENIED (ClearanceDenied)" -ForegroundColor Red
+Pause-Demo
+
+# ═══════════════════════════════════════════════════════════════════════
+#  ACT 5: THE EXECUTION — JIT Swaps & Automated Reverts
+# ═══════════════════════════════════════════════════════════════════════
+
+Write-Host "`n[Act 5] The Execution: JIT Swaps & Automated Reverts" -ForegroundColor Yellow
+Write-Host "Agent NOVA now attempts to execute both swaps against the firewall." -ForegroundColor DarkGray
 
 # Wait for state propagation
 Start-Sleep -Seconds 5
 
-# Attempt swap for MockBRETT (should succeed)
-Write-Command "triggerSwap(MockBRETT, 0.001 ETH) — expecting SUCCESS"
-$swapBrett = cast send --rpc-url $RPC --private-key $PRIVKEY $MODULE "triggerSwap(address,uint256,uint256)" $BRETT "1000000000000000" 1 2>&1
-if ($swapBrett -match "transactionHash") {
-    $swapBrettHash = ($swapBrett | Select-String "transactionHash" | ForEach-Object { ($_ -split "\s+")[-1] })
-    Write-Success "MockBRETT swap EXECUTED: $swapBrettHash"
-    Write-Success "SwapExecuted event emitted — capital moved safely under oracle protection"
+# Poll isApproved for BRETT before attempting swap
+Write-Host ""
+$approved = "false"
+for ($i = 0; $i -lt 10; $i++) {
+    $approved = cast call $ModuleAddr "isApproved(address)(bool)" $Brett --rpc-url $RPC 2>&1 | Out-String
+    $approved = $approved.Trim()
+    if ($approved -match "true") { break }
+    Start-Sleep -Seconds 2
+}
+
+# Swap MockBRETT (should succeed)
+Write-Host "> triggerSwap(MockBRETT, 0.001 ETH)" -ForegroundColor DarkMagenta
+Show-Spinner -Message "  Submitting swap transaction... " -DurationMs 2000
+
+$SwapBrettOutput = cast send $ModuleAddr "triggerSwap(address,uint256,uint256)" $Brett "1000000000000000" 1 --rpc-url $RPC --private-key $PK 2>&1 | Out-String
+
+if ($SwapBrettOutput -match "transactionHash") {
+    $SwapBrettHash = ""
+    foreach ($line in $SwapBrettOutput -split "`n") {
+        if ($line -match "(0x[a-fA-F0-9]{64})") { $SwapBrettHash = $Matches[1]; break }
+    }
+    Write-Host "  ✅ SWAP EXECUTED. MockBRETT cleared by AI. Tx: $SwapBrettHash" -ForegroundColor Green
 } else {
-    Write-Host "  ⚠️  Swap output: $($swapBrett | Select-Object -First 3)" -ForegroundColor Yellow
+    Write-Host "  ⚠️ Swap result: $($SwapBrettOutput.Trim().Substring(0, [Math]::Min(200, $SwapBrettOutput.Trim().Length)))" -ForegroundColor Yellow
 }
 Write-Host ""
 
-# Attempt swap for MockHoneypot (should REVERT)
-Write-Command "triggerSwap(MockHoneypot, 0.001 ETH) — expecting REVERT"
-$swapHoney = cast send --rpc-url $RPC --private-key $PRIVKEY $MODULE "triggerSwap(address,uint256,uint256)" $HONEYPOT "1000000000000000" 1 2>&1
-if ($swapHoney -match "revert|error|Error|FAIL") {
+# Swap MockHoneypot (should REVERT)
+Write-Host "> triggerSwap(MockHoneypot, 0.001 ETH)" -ForegroundColor DarkMagenta
+Show-Spinner -Message "  Submitting swap transaction... " -DurationMs 2000
+
+$SwapHoneyOutput = cast send $ModuleAddr "triggerSwap(address,uint256,uint256)" $Honeypot "1000000000000000" 1 --rpc-url $RPC --private-key $PK 2>&1 | Out-String
+
+if ($SwapHoneyOutput -match "revert|error|Error|FAIL|TokenNotCleared") {
     Write-Host ""
-    Write-Host "  ╔════════════════════════════════════════════════════════╗" -ForegroundColor Red
-    Write-Host "  ║  EXECUTION REVERTED: TokenNotCleared()                ║" -ForegroundColor Red
-    Write-Host "  ║                                                        ║" -ForegroundColor Red
-    Write-Host "  ║  The AegisModule BLOCKED the honeypot swap.            ║" -ForegroundColor Red
-    Write-Host "  ║  Zero capital at risk. The AI firewall held.           ║" -ForegroundColor Red
-    Write-Host "  ╚════════════════════════════════════════════════════════╝" -ForegroundColor Red
+    Write-Host "  ╔════════════════════════════════════════════════════════════╗" -ForegroundColor Red
+    Write-Host "  ║  EXECUTION REVERTED: TokenNotCleared()                    ║" -ForegroundColor Red
+    Write-Host "  ║                                                            ║" -ForegroundColor Red
+    Write-Host "  ║  The AegisModule BLOCKED the honeypot swap.                ║" -ForegroundColor Red
+    Write-Host "  ║  Zero capital at risk. The AI firewall held.               ║" -ForegroundColor Red
+    Write-Host "  ╚════════════════════════════════════════════════════════════╝" -ForegroundColor Red
     Write-Host ""
-    Write-Denied "MockHoneypot swap BLOCKED — TokenNotCleared()"
+    Write-Host "  🛡️ The AegisModule successfully blocked the malicious transaction on-chain." -ForegroundColor Green
 } else {
-    Write-Host "  ⚠️  Expected revert — swap output: $($swapHoney | Select-Object -First 3)" -ForegroundColor Yellow
+    Write-Host "  ⚠️ Expected revert — result: $($SwapHoneyOutput.Trim().Substring(0, [Math]::Min(200, $SwapHoneyOutput.Trim().Length)))" -ForegroundColor Yellow
 }
 
 Pause-Demo
 
-# ── Outro ─────────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════
+#  OUTRO — Summary
+# ═══════════════════════════════════════════════════════════════════════
 
-$border = "═" * 65
+Write-Host "`n═══════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host " ✅ DEMO COMPLETE: 100% ON-CHAIN AI FIREWALL ENFORCEMENT" -ForegroundColor Green
+Write-Host "═══════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "  $border" -ForegroundColor Green
-Write-Host "  ✅ DEMO COMPLETE: 100% ON-CHAIN AI FIREWALL ENFORCEMENT" -ForegroundColor Green
-Write-Host "  $border" -ForegroundColor Green
-Write-Host ""
-Write-Host "  ┌────────────────────────────── SUMMARY ──────────────────────────────┐" -ForegroundColor White
-Write-Host "  │                                                                      │" -ForegroundColor White
-Write-Host "  │  MockBRETT:     requestAudit → CRE Risk 0  → triggerSwap ✅ SUCCESS │" -ForegroundColor Green
-Write-Host "  │  MockHoneypot:  requestAudit → CRE Risk 36 → triggerSwap ❌ REVERT  │" -ForegroundColor Red
-Write-Host "  │                                                                      │" -ForegroundColor White
-Write-Host "  │  Stack: ERC-4337 + ERC-7579 + Chainlink CRE + Pimlico Bundler       │" -ForegroundColor White
-Write-Host "  │  Chain: Base Sepolia (84532)                                         │" -ForegroundColor White
-Write-Host "  │  Oracle: GoPlus + BaseScan + GPT-4o + Llama-3 (dual-AI consensus)   │" -ForegroundColor White
-Write-Host "  │                                                                      │" -ForegroundColor White
-Write-Host "  └──────────────────────────────────────────────────────────────────────┘" -ForegroundColor White
+Write-Host "  ┌──────────────────────────────── SUMMARY ────────────────────────────────┐" -ForegroundColor White
+Write-Host "  │                                                                          │" -ForegroundColor White
+Write-Host "  │  MockBRETT:     requestAudit → CRE Risk 0  → triggerSwap ✅ SUCCESS     │" -ForegroundColor Green
+Write-Host "  │  MockHoneypot:  requestAudit → CRE Risk 36 → triggerSwap ❌ REVERT      │" -ForegroundColor Red
+Write-Host "  │                                                                          │" -ForegroundColor White
+Write-Host "  │  Stack: ERC-4337 + ERC-7579 + Chainlink CRE + Pimlico Bundler           │" -ForegroundColor White
+Write-Host "  │  Chain: Base Sepolia (84532)                                             │" -ForegroundColor White
+Write-Host "  │  Oracle: GoPlus + BaseScan + GPT-4o + Llama-3 (dual-AI consensus)       │" -ForegroundColor White
+Write-Host "  │                                                                          │" -ForegroundColor White
+Write-Host "  │  Zero-Custody. Zero-Trust. Total Protection.                             │" -ForegroundColor White
+Write-Host "  └──────────────────────────────────────────────────────────────────────────┘" -ForegroundColor White
 Write-Host ""

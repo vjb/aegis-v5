@@ -1,0 +1,115 @@
+═══════════════════════════════════════════════════════════════════════
+
+     ██████╗ ███████╗ ██████╗ ██╗ ███████╗
+     ██╔══██╗██╔════╝██╔════╝ ██║ ██╔════╝
+     ███████║█████╗  ██║ ████╗██║ ███████╗
+     ██╔══██║██╔══╝  ██║   ██║██║ ╚════██║
+     ██║  ██║███████╗╚██████╔╝██║ ███████║
+     ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝ ╚══════╝  v5.0
+
+  ⚙️  ACT 0: DECENTRALIZED INFRASTRUCTURE BOOT
+  Establishing the Base Sepolia perimeter & WASM Sandbox...
+
+═══════════════════════════════════════════════════════════════════════
+
+[Scene 1] Verifying Public Testnet Connection...
+Proving connectivity to live infrastructure, abandoning local mocks.
+> cast chain-id --rpc-url https://sepolia.base.org
+  Pinging Base Sepolia RPC... |/-\|/-\|/-\   ✅ Connected successfully to Base Sepolia (Chain ID: 84532)
+
+> cast balance 0x109D8072B1762263ed094BC05c5110895Adc65Cf
+  Checking deployer bankroll... |/-\|/-\|/   ✅ Dev Wallet funded with 0.0550 ETH (Ready for deployments)
+
+  Deployed Contracts on Base Sepolia:
+    AegisModule:   0x23efaef29ecc0e6ce313f0eed3d5da7e0f5bcd89
+    MockBRETT:     0x46d40e0abda0814bb0cb323b2bb85a129d00b0ac
+    MockHoneypot:  0xf672c8fc888b98db5c9662d26e657417a3c453b5
+
+[Scene 2] Rebuilding Chainlink CRE WASM Sandbox...
+The Aegis AI Oracle requires a secure V8 isolate to execute LLM API calls on-chain.
+Destroying old containers to guarantee a fresh state.
+
+> docker compose down && docker compose up --build -d
+  [Docker]  Container aegis-oracle-node  Stopping
+  [Docker]  Container aegis-oracle-node  Stopped
+  [Docker]  Container aegis-oracle-node  Removing
+  [Docker]  Container aegis-oracle-node  Removed
+  [Docker]  Network aegis-v4_default  Removing
+  [Docker]  Network aegis-v4_default  Removed
+  [Docker] #0 building with "default" instance using docker driver
+  [Docker] 
+  [Docker] #1 [cre-node internal] load build definition from Dockerfile
+  [Docker] #1 transferring dockerfile: 2.58kB 0.0s done
+  [Docker] #1 DONE 0.0s
+  [Docker] 
+  [Docker] #2 [cre-node internal] load metadata for docker.io/library/ubuntu:24.04
+  [Docker] #2 DONE 0.0s
+  [Docker] 
+  [Docker] #3 [cre-node internal] load .dockerignore
+  [Docker] #3 transferring context: 2B done
+  [Docker] #3 DONE 0.0s
+  [Docker] 
+  [Docker] #4 [cre-node  1/10] FROM docker.io/library/ubuntu:24.04
+  [Docker] #4 DONE 0.0s
+  [Docker] 
+  [Docker] #5 [cre-node internal] load build context
+  [Docker] #5 transferring context: 35B done
+  [Docker] #5 DONE 0.1s
+  [Docker] 
+  [Docker] #6 [cre-node  6/10] RUN curl -sSL https://cre.chain.link/install.sh | bash &&     mv /root/.cre/bin/cre /usr/local/bin/cre
+  [Docker] #6 CACHED
+  [Docker] 
+  [Docker] #7 [cre-node  8/10] WORKDIR /app
+  [Docker] #7 CACHED
+  [Docker] 
+  [Docker] #8 [cre-node  4/10] RUN curl -fsSL https://bun.sh/install | bash
+  [Docker] #8 CACHED
+  [Docker] 
+  [Docker] #9 [cre-node  9/10] COPY entrypoint.sh /entrypoint.sh
+  [Docker] #9 CACHED
+  [Docker] 
+  [Docker] #10 [cre-node  2/10] RUN apt-get update && apt-get install -y     curl     git     build-essential     unzip     wget     python3     golang-go     ca-certificates     gnupg     xz-utils     && rm -rf /var/lib/apt/lists/*
+  [Docker] #10 CACHED
+  [Docker] 
+  [Docker] #11 [cre-node  3/10] RUN mkdir -p /etc/apt/keyrings &&     curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg &&     echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list &&     apt-get update && apt-get install -y nodejs
+  [Docker] #11 CACHED
+  [Docker] 
+  [Docker] #12 [cre-node  5/10] RUN curl -L https://foundry.paradigm.xyz | bash &&     foundryup
+  [Docker] #12 CACHED
+  [Docker] 
+  [Docker] #13 [cre-node  7/10] RUN mkdir -p /root/.cache/javy/v5.0.4/linux-x64 &&     curl -L https://github.com/bytecodealliance/javy/releases/download/v5.0.4/javy-x86_64-linux-v5.0.4.gz | gunzip > /root/.cache/javy/v5.0.4/linux-x64/javy &&     chmod +x /root/.cache/javy/v5.0.4/linux-x64/javy
+  [Docker] #13 CACHED
+  [Docker] 
+  [Docker] #14 [cre-node 10/10] RUN chmod +x /entrypoint.sh
+  [Docker] #14 CACHED
+  [Docker] 
+  [Docker] #15 [cre-node] exporting to image
+  [Docker] #15 exporting layers done
+  [Docker] #15 writing image sha256:1b54d382bf24fcbdc6f36b64bffcab76d610c277a43dc6d25e0db97b335e95d8 done
+  [Docker] #15 naming to docker.io/library/aegis-v4-cre-node done
+  [Docker] #15 DONE 0.0s
+  [Docker]  Network aegis-v4_default  Creating
+  [Docker]  Network aegis-v4_default  Created
+  [Docker]  Container aegis-oracle-node  Creating
+  [Docker]  Container aegis-oracle-node  Created
+  [Docker]  Container aegis-oracle-node  Starting
+  [Docker]  Container aegis-oracle-node  Started
+  ✅ Chainlink CRE Oracle Node is LIVE.
+
+[Scene 3] Compiling TypeScript to WebAssembly (Javy)...
+Converting the off-chain AI firewall logic into a deterministically verifiable WASM binary.
+
+> docker exec aegis-oracle-node bash -c "cd /app && bun x cre-setup"
+  Initializing Javy compiler... |/-\|/-\|/-\|/-\|/   [WASM] [cre-sdk-javy-plugin] Detected platform: linux, arch: x64
+  [WASM] [cre-sdk-javy-plugin] Using cached binary: /root/.cache/javy/v5.0.4/linux-x64/javy
+  [WASM] ✅ CRE TS SDK is ready to use.
+  ✅ AI Consensus logic successfully compiled to /app/dist/aegis-oracle.wasm
+
+===========================================================================
+
+ ✅ INFRASTRUCTURE BOOT COMPLETE.
+ The Base Sepolia perimeter is secure. The Chainlink Oracle is listening.
+
+===========================================================================
+  Next Step: Run .\scripts\demo_v5_master.ps1 -Interactive
+

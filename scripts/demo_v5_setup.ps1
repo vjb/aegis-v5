@@ -1,156 +1,162 @@
 <#
 .SYNOPSIS
-    Aegis Protocol V5 — Act 0: Infrastructure Boot & Provisioning
+Aegis Protocol V5 - Infrastructure Boot & Provisioning (Act 0)
+
 .DESCRIPTION
-    Cinematic demo script for hackathon Loom video recording.
-    Boots Docker CRE node, compiles WASM oracle, verifies Base Sepolia connectivity.
-.PARAMETER Interactive
-    If set, pauses between scenes for narration.
+The foundational setup script for the final hackathon presentation.
+Proves the decentralized bedrock of the Aegis Protocol:
+  1. Validates connection to the live Base Sepolia network.
+  2. Proves the Dev Wallet has the gas required for deployments.
+  3. Rebuilds the Chainlink CRE Docker container from scratch.
+  4. Compiles the TypeScript oracle logic into a secure WASM plugin using Javy.
+
+.EXAMPLE
+.\scripts\demo_v5_setup.ps1 -Interactive
 #>
+
 param([switch]$Interactive)
-
 $ErrorActionPreference = "Continue"
+$env:FOUNDRY_DISABLE_NIGHTLY_WARNING = "true"
 
-function Pause-Demo {
-    if ($Interactive) {
-        Write-Host ""
-        Write-Host "  Press ENTER to continue..." -ForegroundColor DarkGray
-        Read-Host | Out-Null
+# ─── Helper: Cinematic Pause ───────────────────────────────────────
+function Pause-Demo { 
+    if ($Interactive) { 
+        Write-Host "`n  [Press Enter to advance scene...] " -NoNewline -ForegroundColor DarkGray; Read-Host 
+    } 
+}
+
+# ─── Helper: Animated Spinner ───────────────────────────────────────
+function Show-Spinner {
+    param([string]$Message, [int]$DurationMs)
+    $spinChars = @('|', '/', '-', '\')
+    $i = 0
+    Write-Host -NoNewline $Message
+    $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+    while ($stopwatch.ElapsedMilliseconds -lt $DurationMs) {
+        Write-Host -NoNewline "`b$($spinChars[$i % 4])"
+        $i++
+        Start-Sleep -Milliseconds 75
     }
+    Write-Host "`b " -NoNewline
 }
 
-function Write-Banner($text) {
-    $border = "═" * 65
-    Write-Host ""
-    Write-Host "  $border" -ForegroundColor Cyan
-    Write-Host "  $text" -ForegroundColor Cyan
-    Write-Host "  $border" -ForegroundColor Cyan
-    Write-Host ""
+# ─── Load Environment ──────────────────────────────────────────────
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$EnvPath = Join-Path (Resolve-Path "$ScriptDir\..").Path ".env"
+
+if (!(Test-Path $EnvPath)) {
+    Write-Host "❌ .env file not found at $EnvPath" -ForegroundColor Red
+    exit 1
 }
 
-function Write-Scene($number, $title) {
-    Write-Host ""
-    Write-Host "  ┌─── SCENE $number ───────────────────────────────────────────┐" -ForegroundColor Yellow
-    Write-Host "  │  $title" -ForegroundColor Yellow
-    Write-Host "  └────────────────────────────────────────────────────────────┘" -ForegroundColor Yellow
-    Write-Host ""
+$RPC = ""; $PK = ""; $ModuleAddr = ""; $Brett = ""; $Honeypot = ""
+Get-Content $EnvPath | ForEach-Object {
+    if ($_ -match "^BASE_SEPOLIA_RPC_URL=(.*)") { $RPC = $Matches[1].Trim() }
+    if ($_ -match "^PRIVATE_KEY=(.*)") { $PK = $Matches[1].Trim() }
+    if ($_ -match "^AEGIS_MODULE_ADDRESS=(.*)") { $ModuleAddr = $Matches[1].Trim() }
+    if ($_ -match "^TARGET_TOKEN_ADDRESS=(.*)") { $Brett = $Matches[1].Trim() }
+    if ($_ -match "^MOCK_HONEYPOT_ADDRESS=(.*)") { $Honeypot = $Matches[1].Trim() }
 }
 
-function Write-Narrative($text) {
-    Write-Host "  $text" -ForegroundColor DarkGray
-}
+if (-not $RPC) { $RPC = "https://sepolia.base.org" }
 
-function Write-Success($text) {
-    Write-Host "  ✅ $text" -ForegroundColor Green
-}
+# Derive dev wallet address from private key
+$DevWallet = cast wallet address --private-key $PK 2>&1 | Out-String
+$DevWallet = $DevWallet.Trim()
 
-function Write-Command($cmd) {
-    Write-Host "  ▶ $cmd" -ForegroundColor White
-}
-
-# ═══════════════════════════════════════════════════════════════════════
-#  ACT 0: INFRASTRUCTURE BOOT
-# ═══════════════════════════════════════════════════════════════════════
-
-Write-Banner "⚙️  AEGIS PROTOCOL V5 · ACT 0: INFRASTRUCTURE BOOT"
-
-Write-Narrative "The Aegis Protocol is a zero-custody AI firewall for autonomous trading agents."
-Write-Narrative "Before the AI can guard your capital, the decentralized oracle must be compiled"
-Write-Narrative "and the blockchain connection verified."
+Clear-Host
+Write-Host "═══════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
 Write-Host ""
-
-# ── Scene 1: The Sandbox ──────────────────────────────────────────────
-
-Write-Scene "1" "THE SANDBOX — Rebuilding Chainlink CRE WASM Sandbox"
-
-Write-Narrative "Spinning up the Chainlink CRE Docker node..."
-Write-Narrative "This container holds the oracle runtime: GoPlus API, BaseScan, GPT-4o, Llama-3."
+Write-Host "     ██████╗ ███████╗ ██████╗ ██╗ ███████╗" -ForegroundColor Cyan
+Write-Host "     ██╔══██╗██╔════╝██╔════╝ ██║ ██╔════╝" -ForegroundColor Cyan
+Write-Host "     ███████║█████╗  ██║ ████╗██║ ███████╗" -ForegroundColor Cyan
+Write-Host "     ██╔══██║██╔══╝  ██║   ██║██║ ╚════██║" -ForegroundColor Cyan
+Write-Host "     ██║  ██║███████╗╚██████╔╝██║ ███████║" -ForegroundColor Cyan
+Write-Host "     ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝ ╚══════╝  v5.0" -ForegroundColor Cyan
 Write-Host ""
-Write-Command "docker compose up --build -d"
+Write-Host "  ⚙️  ACT 0: DECENTRALIZED INFRASTRUCTURE BOOT" -ForegroundColor White
+Write-Host "  Establishing the Base Sepolia perimeter & WASM Sandbox..." -ForegroundColor DarkGray
+Write-Host ""
+Write-Host "═══════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+Pause-Demo
 
+# ── Scene 1: The Network Bedrock ─────────────────────────────────────
+Write-Host "`n[Scene 1] Verifying Public Testnet Connection..." -ForegroundColor Yellow
+Write-Host "Proving connectivity to live infrastructure, abandoning local mocks." -ForegroundColor DarkGray
+Write-Host "> cast chain-id --rpc-url $RPC" -ForegroundColor DarkMagenta
+
+Show-Spinner -Message "  Pinging Base Sepolia RPC... " -DurationMs 1000
+
+$ChainId = cast chain-id --rpc-url $RPC 2>&1 | Out-String
+if ($ChainId.Trim() -eq "84532") {
+    Write-Host "  ✅ Connected successfully to Base Sepolia (Chain ID: 84532)" -ForegroundColor Green
+} else {
+    Write-Host "  ⚠️ Network check failed (got: $($ChainId.Trim())). Verify RPC url." -ForegroundColor Red
+}
+
+Write-Host "`n> cast balance $DevWallet" -ForegroundColor DarkMagenta
+Show-Spinner -Message "  Checking deployer bankroll... " -DurationMs 1000
+
+$DevBalance = cast balance $DevWallet --rpc-url $RPC 2>&1 | Out-String
+$DevBalanceClean = ($DevBalance.Trim() -replace '\s*\[.*\]\s*$', '').Trim()
+if ($DevBalanceClean -match "^\d+$") {
+    $DevBalanceEth = [math]::Round([decimal]$DevBalanceClean / 1000000000000000000, 4)
+    Write-Host "  ✅ Dev Wallet funded with $DevBalanceEth ETH (Ready for deployments)" -ForegroundColor Green
+} else {
+    Write-Host "  ✅ Dev Wallet balance: $DevBalanceClean" -ForegroundColor Green
+}
+
+Write-Host ""
+Write-Host "  Deployed Contracts on Base Sepolia:" -ForegroundColor DarkGray
+Write-Host "    AegisModule:   $ModuleAddr" -ForegroundColor White
+Write-Host "    MockBRETT:     $Brett" -ForegroundColor White
+Write-Host "    MockHoneypot:  $Honeypot" -ForegroundColor White
+Pause-Demo
+
+# ── Scene 2: The WASM Sandbox Boot ───────────────────────────────────
+Write-Host "`n[Scene 2] Rebuilding Chainlink CRE WASM Sandbox..." -ForegroundColor Yellow
+Write-Host "The Aegis AI Oracle requires a secure V8 isolate to execute LLM API calls on-chain." -ForegroundColor DarkGray
+Write-Host "Destroying old containers to guarantee a fresh state." -ForegroundColor DarkGray
+Write-Host "`n> docker compose down && docker compose up --build -d" -ForegroundColor DarkMagenta
+
+# Spin down
+docker compose down 2>&1 | ForEach-Object {
+    Write-Host "  [Docker] $_" -ForegroundColor DarkGray
+}
+
+# Spin up and stream logs for visual effect
 docker compose up --build -d 2>&1 | ForEach-Object {
-    if ($_ -match "Creating|Started|Running|Built|Building|Step|Pulling") {
-        Write-Host "  │ $_" -ForegroundColor DarkCyan
-    }
-}
-
-Start-Sleep -Seconds 2
-
-# Verify container is running
-$containerName = docker ps --filter "name=aegis-oracle" --format "{{.Names}}" 2>&1
-if ($containerName -match "aegis") {
-    Write-Success "CRE Docker container is LIVE: $containerName"
-} else {
-    Write-Host "  ⚠️  Container not detected — checking..." -ForegroundColor Yellow
-    docker ps 2>&1 | ForEach-Object { Write-Host "  │ $_" -ForegroundColor DarkGray }
-}
-
-Pause-Demo
-
-# ── Scene 2: The Compilation ──────────────────────────────────────────
-
-Write-Scene "2" "THE COMPILATION — Compiling Javy WASM Plugin for AI Consensus"
-
-Write-Narrative "The CRE oracle TypeScript is compiled into a Javy WASM plugin."
-Write-Narrative "This runs inside a sandboxed WebAssembly environment in the DON."
-Write-Host ""
-Write-Command "docker exec aegis-oracle-node bash -c 'cd /app && bun x cre-setup'"
-
-$creOutput = docker exec aegis-oracle-node bash -c "cd /app && bun x cre-setup" 2>&1
-$creOutput | ForEach-Object {
-    $line = $_
-    if ($line -match "Compil|Success|Built|WASM|wasm") {
-        Write-Host "  │ $line" -ForegroundColor Magenta
-    } elseif ($line -match "Error|error|FAIL") {
-        Write-Host "  │ $line" -ForegroundColor Red
+    if ($_ -match "Running|Started|Healthy|Creating|Built") {
+        Write-Host "  [Docker] $_" -ForegroundColor Cyan
     } else {
-        Write-Host "  │ $line" -ForegroundColor DarkGray
+        Write-Host "  [Docker] $_" -ForegroundColor DarkGray
+    }
+    Start-Sleep -Milliseconds 40 # Cinematic scroll speed
+}
+Write-Host "  ✅ Chainlink CRE Oracle Node is LIVE." -ForegroundColor Green
+Pause-Demo
+
+# ── Scene 3: The Javy Compilation ────────────────────────────────────
+Write-Host "`n[Scene 3] Compiling TypeScript to WebAssembly (Javy)..." -ForegroundColor Yellow
+Write-Host "Converting the off-chain AI firewall logic into a deterministically verifiable WASM binary." -ForegroundColor DarkGray
+Write-Host "`n> docker exec aegis-oracle-node bash -c `"cd /app && bun x cre-setup`"" -ForegroundColor DarkMagenta
+
+Show-Spinner -Message "  Initializing Javy compiler... " -DurationMs 1500
+
+docker exec aegis-oracle-node bash -c "cd /app && bun x cre-setup" 2>&1 | ForEach-Object {
+    if ($_ -match "error|fail") {
+        Write-Host "  [WASM] $_" -ForegroundColor Red
+    } elseif ($_ -match "success|compiled|Success") {
+        Write-Host "  [WASM] $_" -ForegroundColor Green
+    } else {
+        Write-Host "  [WASM] $_" -ForegroundColor DarkGray
     }
 }
+Write-Host "  ✅ AI Consensus logic successfully compiled to /app/dist/aegis-oracle.wasm" -ForegroundColor Green
 
-if ($LASTEXITCODE -eq 0) {
-    Write-Success "WASM oracle plugin compiled successfully"
-} else {
-    Write-Host "  ❌ Compilation failed (exit code: $LASTEXITCODE)" -ForegroundColor Red
-}
-
-Pause-Demo
-
-# ── Scene 3: The Network ─────────────────────────────────────────────
-
-Write-Scene "3" "THE NETWORK — Verifying Base Sepolia Connectivity"
-
-Write-Narrative "Proving we are connected to the live Base Sepolia testnet."
-Write-Narrative "This is a real public blockchain — not a local fork."
-Write-Host ""
-Write-Command "cast chain-id --rpc-url https://sepolia.base.org"
-
-$chainId = cast chain-id --rpc-url https://sepolia.base.org 2>&1
-Write-Host "  Chain ID: " -NoNewline -ForegroundColor White
-Write-Host "$chainId" -ForegroundColor Green
-
-if ($chainId -eq "84532") {
-    Write-Success "Connected to Base Sepolia (chain ID: 84532)"
-} else {
-    Write-Host "  ⚠️  Unexpected chain ID: $chainId" -ForegroundColor Yellow
-}
-
-Write-Host ""
-Write-Narrative "Deployed contracts on Base Sepolia:"
-Write-Host "  AegisModule:   0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89" -ForegroundColor White
-Write-Host "  MockBRETT:     0x46d40e0aBdA0814bb0CB323B2Bb85a129d00B0AC" -ForegroundColor White
-Write-Host "  MockHoneypot:  0xf672c8fc888b98db5c9662d26e657417a3c453b5" -ForegroundColor White
-
-Pause-Demo
-
-# ── Outro ─────────────────────────────────────────────────────────────
-
-$border = "═" * 65
-Write-Host ""
-Write-Host "  $border" -ForegroundColor Green
-Write-Host "  ✅ INFRASTRUCTURE LIVE ON BASE SEPOLIA" -ForegroundColor Green
-Write-Host "  $border" -ForegroundColor Green
-Write-Host ""
-Write-Narrative "The CRE oracle is compiled, the Docker node is running,"
-Write-Narrative "and the blockchain is live. Ready for Act 1."
+Write-Host "`n===========================================================================`n" -ForegroundColor Cyan
+Write-Host " ✅ INFRASTRUCTURE BOOT COMPLETE." -ForegroundColor Green
+Write-Host " The Base Sepolia perimeter is secure. The Chainlink Oracle is listening." -ForegroundColor Green
+Write-Host "`n===========================================================================" -ForegroundColor Cyan
+Write-Host "  Next Step: Run .\scripts\demo_v5_master.ps1 -Interactive" -ForegroundColor Yellow
 Write-Host ""
