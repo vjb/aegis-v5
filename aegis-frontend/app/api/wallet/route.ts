@@ -35,13 +35,21 @@ export async function GET() {
             publicClient.getBalance({ address: getAddress(env.AEGIS_MODULE_ADDRESS) }).catch(() => BigInt(0)),
         ]);
 
+        const explorerBase = 'https://sepolia.basescan.org';
+        const moduleAddr = env.AEGIS_MODULE_ADDRESS || '';
+
         return NextResponse.json({
             ownerAddress,
             ownerBalanceEth: parseFloat(formatEther(ownerBal)).toFixed(6),
-            moduleAddress: env.AEGIS_MODULE_ADDRESS,
+            moduleAddress: moduleAddr,
             moduleBalanceEth: parseFloat(formatEther(moduleBal)).toFixed(6),
             network: 'Base Sepolia (84532)',
-            explorerBase: `https://sepolia.basescan.org`,
+            explorerBase,
+            contracts: {
+                module: { address: moduleAddr, url: `${explorerBase}/address/${moduleAddr}`, label: 'AegisModule' },
+                mockBrett: { address: env.TARGET_TOKEN_ADDRESS || '', url: `${explorerBase}/address/${env.TARGET_TOKEN_ADDRESS || ''}`, label: 'MockBRETT' },
+                mockHoneypot: { address: env.MOCK_HONEYPOT_ADDRESS || '', url: `${explorerBase}/address/${env.MOCK_HONEYPOT_ADDRESS || ''}`, label: 'MockHoneypot' },
+            },
         });
     } catch (err: any) {
         return NextResponse.json({ error: err.message }, { status: 500 });

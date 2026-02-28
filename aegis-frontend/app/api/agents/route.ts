@@ -43,8 +43,9 @@ export async function GET(req: NextRequest) {
         const env = loadEnv();
         const { publicClient, moduleAddr } = getClients(env);
 
-        // Discover subscribed agents from AgentSubscribed events
-        const fromBlock = BigInt(0);
+        // Base Sepolia limits eth_getLogs to 10,000 blocks — query recent history only
+        const currentBlock = await publicClient.getBlockNumber();
+        const fromBlock = currentBlock > BigInt(9000) ? currentBlock - BigInt(9000) : BigInt(0);
         const logs = await publicClient.getLogs({
             address: moduleAddr,
             event: { type: 'event', name: 'AgentSubscribed', inputs: [{ type: 'address', name: 'agent', indexed: true }, { type: 'uint256', name: 'budget', indexed: false }] } as any,

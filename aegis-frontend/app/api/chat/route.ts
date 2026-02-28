@@ -22,6 +22,7 @@ const KNOWN_NAMES: Record<string, string> = {
 
 const MODULE_ABI = [
     { type: 'function', name: 'agentAllowances', inputs: [{ type: 'address' }], outputs: [{ type: 'uint256' }], stateMutability: 'view' },
+    { type: 'function', name: 'firewallConfig', inputs: [], outputs: [{ type: 'string' }], stateMutability: 'view' },
     { type: 'event', name: 'AgentSubscribed', inputs: [{ type: 'address', name: 'agent', indexed: true }, { type: 'uint256', name: 'budget', indexed: false }] },
     { type: 'event', name: 'ClearanceUpdated', inputs: [{ type: 'address', name: 'token', indexed: true }, { type: 'bool', name: 'approved', indexed: false }] },
     { type: 'event', name: 'ClearanceDenied', inputs: [{ type: 'address', name: 'token', indexed: true }, { type: 'uint256', name: 'riskScore', indexed: false }] },
@@ -66,6 +67,10 @@ async function buildSystemContext(): Promise<string> {
         const moduleAddr = getAddress(moduleAddrRaw);
         const publicClient = createPublicClient({ chain: aegisChain, transport: http(rpc) });
 
+        // Base Sepolia limits eth_getLogs to 10,000 blocks
+        const currentBlock = await publicClient.getBlockNumber();
+        const fromBlock = currentBlock > BigInt(9000) ? currentBlock - BigInt(9000) : BigInt(0);
+
         // ── Owner wallet ──────────────────────────────────────────────────────
         let ownerAddr = 'unknown';
         let ownerBalanceEth = 'unknown';
@@ -83,34 +88,36 @@ async function buildSystemContext(): Promise<string> {
         const moduleBalance = await publicClient.getBalance({ address: moduleAddr }).catch(() => BigInt(0));
         const treasuryEth = (Number(moduleBalance) / 1e18).toFixed(6);
 
-        // ── Firewall config — read from latest AuditRequested event ───────────
-        const auditReqLogs = await publicClient.getLogs({
-            address: moduleAddr, event: AUDIT_REQUESTED_ABI, fromBlock: BigInt(0),
-        }).catch(() => []);
-
+        // ── Firewall config — read directly from contract view function ─────
         let firewallSummary = 'Defaults active — all 8 risk vectors enabled (mask=0xFF). Owner can customize via setFirewallConfig().';
         let firewallExplained = '';
-        if (auditReqLogs.length > 0) {
-            try {
-                const latest = auditReqLogs[auditReqLogs.length - 1];
-                const decoded = decodeEventLog({ abi: [AUDIT_REQUESTED_ABI], eventName: 'AuditRequested', topics: latest.topics, data: latest.data });
-                const cfg = JSON.parse((decoded as any).firewallConfig || '{}');
+        try {
+            const raw = await publicClient.readContract({
+                address: moduleAddr, abi: MODULE_ABI, functionName: 'firewallConfig',
+            }) as string;
+            if (raw && raw.length > 2) {
+                const cfg = JSON.parse(raw);
                 firewallSummary = JSON.stringify(cfg);
                 const lines: string[] = [];
                 if (cfg.maxTax !== undefined) lines.push(`  • maxTax = ${cfg.maxTax}% — blocks tokens with buy/sell tax above this percentage`);
-                if (cfg.blockProxies !== undefined) lines.push(`  • blockProxies = ${cfg.blockProxies} — ${cfg.blockProxies ? 'BLOCKS' : 'allows'} tokens behind upgradeable proxy contracts`);
-                if (cfg.blockHoneypots !== undefined) lines.push(`  • blockHoneypots = ${cfg.blockHoneypots} — ${cfg.blockHoneypots ? 'BLOCKS' : 'allows'} honeypots (tokens that cannot be sold after buying)`);
-                if (cfg.strictLogic !== undefined) lines.push(`  • strictLogic = ${cfg.strictLogic} — ${cfg.strictLogic ? 'BLOCKS' : 'allows'} when BOTH AI models flag suspicious source code (extra-strict)`);
-                if (cfg.allowUnverified !== undefined) lines.push(`  • allowUnverified = ${cfg.allowUnverified} — ${cfg.allowUnverified ? 'allows' : 'BLOCKS'} tokens with no verified source on BaseScan`);
+                if (cfg.blockProxies !== undefined) lines.push(`  • blockProxies = ${cfg.blockProxies} — ${cfg.blockProxies ? 'BLOCKS' : 'ALLOWS'} tokens behind upgradeable proxy contracts`);
+                if (cfg.blockHoneypots !== undefined) lines.push(`  • blockHoneypots = ${cfg.blockHoneypots} — ${cfg.blockHoneypots ? 'BLOCKS' : 'ALLOWS'} honeypots (tokens that cannot be sold after buying)`);
+                if (cfg.strictLogic !== undefined) lines.push(`  • strictLogic = ${cfg.strictLogic} — ${cfg.strictLogic ? 'STRICT' : 'RELAXED'} AI consensus mode for bits 4-7`);
+                if (cfg.allowUnverified !== undefined) lines.push(`  • allowUnverified = ${cfg.allowUnverified} — ${cfg.allowUnverified ? 'ALLOWS' : 'BLOCKS'} tokens with no verified source on BaseScan`);
+                if (cfg.blockSellRestriction !== undefined) lines.push(`  • blockSellRestriction = ${cfg.blockSellRestriction} — ${cfg.blockSellRestriction ? 'BLOCKS' : 'ALLOWS'} tokens with sell restrictions`);
+                if (cfg.blockObfuscatedTax !== undefined) lines.push(`  • blockObfuscatedTax = ${cfg.blockObfuscatedTax} — ${cfg.blockObfuscatedTax ? 'BLOCKS' : 'ALLOWS'} tokens with AI-detected hidden taxes`);
+                if (cfg.blockPrivilegeEscalation !== undefined) lines.push(`  • blockPrivilegeEscalation = ${cfg.blockPrivilegeEscalation} — ${cfg.blockPrivilegeEscalation ? 'BLOCKS' : 'ALLOWS'} tokens with privilege escalation risk`);
+                if (cfg.blockExternalCallRisk !== undefined) lines.push(`  • blockExternalCallRisk = ${cfg.blockExternalCallRisk} — ${cfg.blockExternalCallRisk ? 'BLOCKS' : 'ALLOWS'} tokens with external call risk`);
+                if (cfg.blockLogicBomb !== undefined) lines.push(`  • blockLogicBomb = ${cfg.blockLogicBomb} — ${cfg.blockLogicBomb ? 'BLOCKS' : 'ALLOWS'} tokens with time-gated logic bombs`);
                 firewallExplained = lines.join('\n');
-            } catch { /* raw JSON already set */ }
-        }
+            }
+        } catch { /* firewallConfig not set or call failed — use defaults */ }
 
         // ── Agents with full detail ───────────────────────────────────────────
         const agentLogs = await publicClient.getLogs({
             address: moduleAddr,
             event: MODULE_ABI[1] as any,
-            fromBlock: BigInt(0),
+            fromBlock,
         }).catch(() => []);
 
         const seen = new Set<string>();
@@ -146,8 +153,8 @@ async function buildSystemContext(): Promise<string> {
 
         // ── Recent audit verdicts ─────────────────────────────────────────────
         const [clearedLogs, deniedLogs] = await Promise.all([
-            publicClient.getLogs({ address: moduleAddr, event: MODULE_ABI[2], fromBlock: BigInt(0) }).catch(() => []),
-            publicClient.getLogs({ address: moduleAddr, event: MODULE_ABI[3], fromBlock: BigInt(0) }).catch(() => []),
+            publicClient.getLogs({ address: moduleAddr, event: MODULE_ABI[2], fromBlock }).catch(() => []),
+            publicClient.getLogs({ address: moduleAddr, event: MODULE_ABI[3], fromBlock }).catch(() => []),
         ]);
         const TOKEN_NAMES: Record<string, string> = {
             '0x532f27101965dd16442e59d40670faf5ebb142e4': 'BRETT',

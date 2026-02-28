@@ -18,6 +18,11 @@ type WalletInfo = {
   moduleBalanceEth: string;
   network: string;
   explorerBase: string;
+  contracts?: {
+    module: { address: string; url: string; label: string };
+    mockBrett: { address: string; url: string; label: string };
+    mockHoneypot: { address: string; url: string; label: string };
+  };
   error?: string;
 };
 
@@ -78,6 +83,7 @@ export default function Home() {
   const [walletLoading, setWalletLoading] = useState(true);
   const [lastAuditResult, setLastAuditResult] = useState<{ token: string; status: string; score: number } | null>(null);
   const [dockerUp, setDockerUp] = useState<boolean | null>(null);
+  const [dockerDetail, setDockerDetail] = useState<string>('');
 
   // Panel widths in px percentages (sum = 100)
   const [leftPct, setLeftPct] = useState(40);
@@ -122,7 +128,12 @@ export default function Home() {
         const res = await fetch('/api/docker-status');
         const data = await res.json();
         setDockerUp(data.running);
-      } catch { setDockerUp(false); }
+        if (data.running) {
+          setDockerDetail(`Container: ${data.container}\nUptime: ${data.uptime || 'just started'}\nImage: ${data.image || 'unknown'}`);
+        } else {
+          setDockerDetail('Docker container aegis-oracle-node is not running.\nRun: docker compose up --build -d');
+        }
+      } catch { setDockerUp(false); setDockerDetail('Cannot reach Docker daemon'); }
     };
     checkDocker();
     const id = setInterval(checkDocker, 10000);
@@ -157,7 +168,7 @@ export default function Home() {
           <div>
             <div className="flex items-center gap-2.5">
               <span className="font-bold tracking-tight text-lg mono" style={{ color: 'var(--text-primary)' }}>AEGIS</span>
-              <span className="badge badge-cyan">v4</span>
+              <span className="badge badge-cyan">v5</span>
             </div>
             <p className="mono text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>ERC-7579 Executor · Chainlink CRE Oracle</p>
           </div>
@@ -165,19 +176,19 @@ export default function Home() {
 
         {/* Center — network + oracle status */}
         <div className="flex items-center gap-5 mono text-xs" style={{ color: 'var(--text-muted)' }}>
-          <span className="flex items-center gap-2">
+          <span className="flex items-center gap-2" title={dockerDetail} style={{ cursor: 'help', marginRight: 5 }}>
             <span className="w-2 h-2 rounded-full pulse-slow" style={{ background: dockerUp ? 'var(--green)' : dockerUp === false ? 'var(--red)' : 'var(--amber)', boxShadow: `0 0 6px ${dockerUp ? 'var(--green)' : dockerUp === false ? 'var(--red)' : 'var(--amber)'}` }} />
-            <span style={{ color: dockerUp ? 'var(--green)' : dockerUp === false ? 'var(--red)' : 'var(--amber)' }}>
+            <span style={{ color: dockerUp ? 'var(--green)' : dockerUp === false ? 'var(--red)' : 'var(--amber)', marginRight: 3 }}>
               {dockerUp ? 'CRE Online' : dockerUp === false ? 'CRE Offline' : 'Checking…'}
             </span>
           </span>
-          <span style={{ color: 'var(--border-bright)' }}>·</span>
-          <span className="flex items-center gap-1.5">
+          <span style={{ color: 'var(--border-bright)', margin: '0 2px' }}>·</span>
+          <span className="flex items-center gap-1.5" style={{ marginRight: 3 }}>
             <Radio className="w-3.5 h-3.5" style={{ color: 'var(--cyan)' }} />
             Chainlink CRE DON
           </span>
-          <span style={{ color: 'var(--border-bright)' }}>·</span>
-          <span>{wallet?.network || 'Base VNet'}</span>
+          <span style={{ color: 'var(--border-bright)', margin: '0 2px' }}>·</span>
+          <span style={{ marginLeft: 2 }}>{wallet?.network || 'Base VNet'}</span>
         </div>
 
         {/* Right — wallet pill + kill switch */}
@@ -211,6 +222,19 @@ export default function Home() {
               </>
             )}
           </div>
+
+          {/* Module contract link */}
+          {wallet?.contracts?.module?.address && (
+            <a href={wallet.contracts.module.url} target="_blank" rel="noreferrer"
+              className="flex items-center gap-2 px-3 py-2 rounded-xl mono text-xs"
+              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-subtle)', textDecoration: 'none' }}
+              title={`AegisModule: ${wallet.contracts.module.address}`}>
+              <Shield className="w-3 h-3" style={{ color: 'var(--cyan)' }} />
+              <span>Module</span>
+              <span style={{ color: 'var(--text-subtle)', fontSize: 10 }}>{wallet.contracts.module.address.slice(0, 6)}…{wallet.contracts.module.address.slice(-4)}</span>
+              <span style={{ color: 'var(--cyan)', fontSize: 10 }}>↗</span>
+            </a>
+          )}
 
           {/* Kill switch — solid red when active, solid red border when inactive */}
           <button

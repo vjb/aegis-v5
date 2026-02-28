@@ -46,8 +46,9 @@ export async function GET() {
 
         const publicClient = createPublicClient({ chain: baseSepolia, transport: http(rpc) });
 
-        // Fetch recent events from Base Sepolia
-        const fromBlock = BigInt(0);
+        // Base Sepolia limits eth_getLogs to 10,000 blocks
+        const currentBlock = await publicClient.getBlockNumber();
+        const fromBlock = currentBlock > BigInt(9000) ? currentBlock - BigInt(9000) : BigInt(0);
 
         const [auditLogs, clearedLogs, deniedLogs, swapLogs] = await Promise.all([
             publicClient.getLogs({ address: moduleAddr, event: ABI[0], fromBlock }).catch(() => []),

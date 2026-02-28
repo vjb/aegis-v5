@@ -272,7 +272,7 @@ export default function AegisChat({
                                 }}>
                                 {streamingId === msg.id && msg.text === '' ? (
                                     <span style={{ color: 'var(--cyan)' }}>
-                                        <Loader2 className="w-3 h-3 animate-spin inline mr-1.5" />thinking…
+                                        <Loader2 className="w-3 h-3 animate-spin inline mr-1.5" /> thinking…
                                     </span>
                                 ) : (
                                     <>{renderMd(msg.text)}</>
