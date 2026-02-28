@@ -9235,9 +9235,6 @@ function median() {
 function identical() {
   return new ConsensusFieldAggregation(simpleDescriptor(AggregationType.IDENTICAL));
 }
-function ignore() {
-  return new ConsensusFieldAggregation;
-}
 
 class ConsensusFieldAggregation {
   fieldDescriptor;
@@ -15865,7 +15862,6 @@ var performStaticAnalysis = (nodeRuntime, input) => {
   }
   return {
     targetAddress,
-    goPlusStatus: "",
     unverifiedCode,
     sellRestriction,
     honeypot,
@@ -16079,7 +16075,6 @@ var onAuditTrigger = (runtime2, log) => {
   } catch {}
   const staticResult = runtime2.runInNodeMode(performStaticAnalysis, ConsensusAggregationByFields({
     targetAddress: identical,
-    goPlusStatus: ignore,
     unverifiedCode: median,
     sellRestriction: median,
     honeypot: median,

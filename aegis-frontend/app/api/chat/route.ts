@@ -134,34 +134,43 @@ async function buildSystemContext(): Promise<string> {
         }).catch(() => []);
 
         const seen = new Set<string>();
-        const agentLines: string[] = [];
+        const agentAddresses: string[] = [];
+
+        // Collect from event logs
         for (const log of agentLogs) {
             const addr = ('0x' + (log.topics[1] as string).slice(-40)).toLowerCase();
-            if (seen.has(addr)) continue;
-            seen.add(addr);
+            if (!seen.has(addr)) { seen.add(addr); agentAddresses.push(addr); }
+        }
 
-            const [allowance, gasBalance] = await Promise.all([
-                publicClient.readContract({ address: moduleAddr, abi: MODULE_ABI, functionName: 'agentAllowances', args: [addr as `0x${string}`] }).catch(() => BigInt(0)),
-                publicClient.getBalance({ address: addr as `0x${string}` }).catch(() => BigInt(0)),
-            ]);
+        // Fallback: also check known agent addresses directly on-chain
+        // (events may be outside the block range on Base Sepolia ~28h)
+        const knownAddrs = [
+            ...Object.keys(KNOWN_NAMES),
+            ownerKey ? (await import('viem/accounts')).privateKeyToAccount(ownerKey as `0x${string}`).address.toLowerCase() : '',
+            env.AGENT_WALLET_ADDRESS?.toLowerCase() || '',
+            env.DEV_WALLET_ADDRESS?.toLowerCase() || '',
+        ].filter(Boolean);
+        for (const ka of knownAddrs) {
+            if (!seen.has(ka)) { seen.add(ka); agentAddresses.push(ka); }
+        }
 
-            // Original subscribed budget from latest AgentSubscribed for this address
-            const allForAgent = agentLogs.filter(l => l.topics[1]?.slice(-40).toLowerCase() === addr.slice(2));
-            let originalBudget = '?';
-            if (allForAgent.length > 0) {
-                const last = allForAgent[allForAgent.length - 1];
-                try {
-                    const decoded = decodeEventLog({ abi: MODULE_ABI as any, eventName: 'AgentSubscribed', topics: last.topics, data: last.data });
-                    const budgetWei = (decoded as any).args?.budget ?? (decoded as any).budget;
-                    if (budgetWei !== undefined) originalBudget = (Number(budgetWei) / 1e18).toFixed(4);
-                } catch { /* skip */ }
-            }
+        const agentLines: string[] = [];
+        for (const addr of agentAddresses) {
+            const allowance = await publicClient.readContract({
+                address: moduleAddr, abi: MODULE_ABI, functionName: 'agentAllowances', args: [addr as `0x${string}`]
+            }).catch(() => BigInt(0));
+
+            // Skip addresses with no allowance that weren't in event logs
+            const fromEvent = agentLogs.some(l => ('0x' + (l.topics[1] as string).slice(-40)).toLowerCase() === addr);
+            if (allowance === BigInt(0) && !fromEvent) continue;
+
+            const gasBalance = await publicClient.getBalance({ address: addr as `0x${string}` }).catch(() => BigInt(0));
 
             const name = KNOWN_NAMES[addr] || addr.slice(0, 10) + '…';
             const remaining = (Number(allowance) / 1e18).toFixed(4);
             const gas = (Number(gasBalance) / 1e18).toFixed(4);
             const status = allowance > BigInt(0) ? 'ACTIVE' : 'REVOKED (allowance exhausted/revoked)';
-            agentLines.push(`- ${name} (${addr.slice(0, 10)}…): ${status}, subscribed budget=${originalBudget} ETH, remaining allowance=${remaining} ETH, gas wallet=${gas} ETH`);
+            agentLines.push(`- ${name} (${addr.slice(0, 10)}…): ${status}, remaining allowance=${remaining} ETH, gas wallet=${gas} ETH`);
         }
 
         // ── Recent audit verdicts ─────────────────────────────────────────────
