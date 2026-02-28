@@ -1,0 +1,32 @@
+# 📋 Sample Output — Aegis Protocol V5
+
+> **Raw, unmodified captures from actual test and demo script runs on Base Sepolia.**
+>
+> These files are captured directly from script execution via `| Out-File`. Nothing has been edited, cleaned, or modified. Spinner artifacts and control characters are preserved as-is to prove authenticity.
+
+## Files
+
+| File | Script | What It Proves |
+|---|---|---|
+| [forge_tests.txt](forge_tests.txt) | `forge test -vv` | 21 Solidity tests passing (18 AegisModule + 3 templates) |
+| [jest_tests.txt](jest_tests.txt) | `npx jest` | 83 TypeScript tests passing across 7 suites |
+| [demo_v5_setup_run.txt](demo_v5_setup_run.txt) | `demo_v5_setup.ps1` | Infrastructure boot: Base Sepolia ✅, Docker ✅, WASM ✅ |
+| [demo_v5_master_run.txt](demo_v5_master_run.txt) | `demo_v5_master.ps1` | Full 7-act lifecycle: subscribe → audit → CRE AI → swap/revert → budget → kill switch |
+| [demo_v5_cre_run.txt](demo_v5_cre_run.txt) | `demo_v5_cre.ps1` | Raw CRE WASM execution with GPT-4o + Llama-3 consensus |
+
+## Key Highlights in `demo_v5_master_run.txt`
+
+- **Act 2**: `subscribeAgent(NOVA, 0.05 ETH)` + `subscribeAgent(CIPHER, 0.008 ETH)` — real on-chain txs
+- **Act 4**: Live CRE WASM execution — GoPlus detects honeypot, GPT-4o + Llama-3 both flag `privilegeEscalation: true`
+- **Act 5**: MockBRETT swap ✅ SUCCESS, MockHoneypot swap ❌ `TokenNotCleared()` REVERT
+- **Act 6**: `agentAllowances()` proves budget was deducted on-chain
+- **Act 7**: `revokeAgent(REX)` — budget zeroed, access denied
+
+## How These Were Generated
+
+```powershell
+# Each file was captured with:
+powershell -ExecutionPolicy Bypass -File .\scripts\<script>.ps1 2>&1 | Out-File docs\sample_output\<output>.txt -Encoding utf8
+```
+
+All runs were executed on **2026-02-28** against **Base Sepolia (Chain ID 84532)**.

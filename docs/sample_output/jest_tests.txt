@@ -1,0 +1,15 @@
+PASS test/bot.spec.ts (64.728 s)
+PASS test/oracle.spec.ts (70.498 s)
+PASS test/bot_v5.spec.ts (71.621 s)
+PASS test/session_key.spec.ts (72.366 s)
+PASS test/safe_setup.spec.ts (72.652 s)
+PASS test/frontend.spec.ts (74.588 s)
+PASS test/live_e2e.spec.ts (113.031 s)
+A worker process has failed to exit gracefully and has been force exited. This is likely caused by tests leaking due to improper teardown. Try running with --detectOpenHandles to find leaks. Active timers can also cause this, ensure that .unref() was called on them.
+
+Test Suites: 7 passed, 7 total
+Tests:       1 skipped, 83 passed, 84 total
+Snapshots:   0 total
+Time:        118.09 s
+Ran all test suites.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?

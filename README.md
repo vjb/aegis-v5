@@ -222,7 +222,15 @@ if (logicBomb)                         riskMatrix |= 128; // Bit 7
 ### `demo_v5_cre.ps1` — CRE Deep Dive (~3 min)
 Raw Chainlink CRE WASM execution for CRE & AI judges. No frontend, no abstraction — just the oracle analyzing a known honeypot with full color-coded log streaming.
 
-> **Tip:** All three scripts support `-Interactive` mode with bordered ActIntro scene boxes — perfect for Loom recordings.
+### Sample Output (from actual runs on Base Sepolia)
+
+| File | What It Shows |
+|---|---|
+| [`forge_tests.txt`](docs/sample_output/forge_tests.txt) | 21 Solidity tests passing |
+| [`jest_tests.txt`](docs/sample_output/jest_tests.txt) | 83 TypeScript tests passing across 7 suites |
+| [`demo_v5_setup_run.txt`](docs/sample_output/demo_v5_setup_run.txt) | Infrastructure boot |
+| [`demo_v5_master_run.txt`](docs/sample_output/demo_v5_master_run.txt) | Full 7-act lifecycle with live CRE AI |
+| [`demo_v5_cre_run.txt`](docs/sample_output/demo_v5_cre_run.txt) | Raw CRE WASM execution |
 
 ---
 

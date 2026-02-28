@@ -1,0 +1,36 @@
+No files changed, compilation skipped
+
+Ran 18 tests for test/AegisModule.t.sol:AegisModuleTest
+[PASS] test_depositETH() (gas: 14619)
+[PASS] test_onReportDirect_blocksRandomCaller() (gas: 73334)
+[PASS] test_onReportDirect_ownerCanClear() (gas: 76958)
+[PASS] test_onReport_clearance() (gas: 84402)
+[PASS] test_onReport_denial() (gas: 64250)
+[PASS] test_onReport_keystoneGuard() (gas: 73193)
+[PASS] test_requestAudit_blocksUnauthorizedAgent() (gas: 18370)
+[PASS] test_requestAudit_emitsEvent() (gas: 105674)
+[PASS] test_revokeAgent_blocksAudit() (gas: 33300)
+[PASS] test_subscribeAgent() (gas: 45349)
+[PASS] test_subscribeAgent_onlyOwner() (gas: 16337)
+[PASS] test_tradeId_increment() (gas: 127713)
+[PASS] test_triggerSwap_consumesClearance() (gas: 85413)
+[PASS] test_triggerSwap_deductsBudget() (gas: 102664)
+[PASS] test_triggerSwap_insufficientBudget() (gas: 109011)
+[PASS] test_triggerSwap_mockEmitsEvent() (gas: 103608)
+[PASS] test_triggerSwap_onlyOwnerOrAgent() (gas: 83052)
+[PASS] test_triggerSwap_requiresClearance() (gas: 18533)
+Suite result: ok. 18 passed; 0 failed; 0 skipped; finished in 10.53ms (19.58ms CPU time)
+
+Ran 1 test for test/ValidatorTemplate.t.sol:ValidatorTemplateTest
+[PASS] testExec() (gas: 298721)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 41.58ms (2.57ms CPU time)
+
+Ran 1 test for test/HookTemplate.t.sol:HookTemplateTest
+[PASS] testExec() (gas: 288565)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 42.25ms (2.50ms CPU time)
+
+Ran 1 test for test/ExecutorTemplate.t.sol:ExecutorTemplateTest
+[PASS] testExec() (gas: 300433)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 36.69ms (2.31ms CPU time)
+
+Ran 4 test suites in 65.21ms (131.05ms CPU time): 21 tests passed, 0 failed, 0 skipped (21 total tests)

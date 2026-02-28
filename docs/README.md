@@ -9,7 +9,17 @@
 | [CONFIDENTIAL_HTTP.md](CONFIDENTIAL_HTTP.md) | Privacy track — how `ConfidentialHTTPClient` protects all API keys and source code |
 | [BUNDLER_STRATEGY_DECISION.md](BUNDLER_STRATEGY_DECISION.md) | Why Pimlico Cloud Bundler was selected over direct `handleOps` |
 | [LESSONS_LEARNED.md](LESSONS_LEARNED.md) | Engineering ledger — bugs, root causes, fixes from the full V3→V5 journey |
-| [sample_output/](sample_output/) | Real CRE oracle output from verified demo runs |
+| [sample_output/](sample_output/) | Raw captured test/demo output for hackathon judges |
+
+## Sample Output Files
+
+| File | Description |
+|---|---|
+| [forge_tests.txt](sample_output/forge_tests.txt) | 21 Forge tests passing (18 AegisModule + 3 template tests) |
+| [jest_tests.txt](sample_output/jest_tests.txt) | 83 Jest tests passing across 7 suites |
+| [demo_v5_setup_run.txt](sample_output/demo_v5_setup_run.txt) | Infrastructure boot: Base Sepolia, Docker, WASM compilation |
+| [demo_v5_master_run.txt](sample_output/demo_v5_master_run.txt) | Full 7-act lifecycle with live CRE AI consensus |
+| [demo_v5_cre_run.txt](sample_output/demo_v5_cre_run.txt) | Raw CRE WASM execution against a known honeypot |
 
 ## Demo Script Features
 
