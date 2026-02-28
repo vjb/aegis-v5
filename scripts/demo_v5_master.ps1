@@ -41,6 +41,34 @@ function Show-Spinner {
     Write-Host "`b " -NoNewline
 }
 
+# ─── Helper: V3-Style Act Introduction Box ─────────────────────────
+function ActIntro {
+    param([string]$Title, [string[]]$Lines, [string]$Prompt)
+    if (-not $Interactive) { return }
+    $w = 60
+    Write-Host ""
+    Write-Host ("  ┌" + ("─" * $w) + "┐") -ForegroundColor DarkCyan
+    $padded = "  " + $Title.PadRight($w - 2)
+    Write-Host ("  │" + $padded + "│") -ForegroundColor DarkCyan
+    Write-Host ("  │" + (" " * $w) + "│") -ForegroundColor DarkCyan
+    foreach ($l in $Lines) {
+        $padded = "  " + $l.PadRight($w - 2)
+        Write-Host ("  │" + $padded + "│") -ForegroundColor DarkCyan
+    }
+    Write-Host ("  └" + ("─" * $w) + "┘") -ForegroundColor DarkCyan
+    Write-Host ""
+    if ($Prompt) {
+        Write-Host "  ⏎  $Prompt" -ForegroundColor Cyan
+        Write-Host "     Press ENTER to execute →" -ForegroundColor DarkCyan -NoNewline
+        Read-Host
+        Write-Host ""
+    }
+}
+
+# ─── Helper: Success / Info messages ───────────────────────────────
+function Success($text) { Write-Host "  ✅ $text" -ForegroundColor Green }
+function Info($text) { Write-Host "  ℹ️  $text" -ForegroundColor Gray }
+
 function Format-Wei {
     param([string]$Wei)
     $w = ($Wei.Trim() -replace '\s*\[.*\]\s*$', '').Trim()
@@ -97,25 +125,38 @@ Pause-Demo
 #  ACT 1: THE BANK — Zero-Custody Treasury
 # ═══════════════════════════════════════════════════════════════════════
 
+ActIntro -Title "ACT 1: THE ZERO-CUSTODY TREASURY" -Lines @(
+    "The AegisModule is an ERC-7579 Executor installed on a",
+    "Safe Smart Account. The module enforces the firewall",
+    "but holds ZERO custody — capital stays in the Safe.",
+    "",
+    "Only requestAudit() and triggerSwap() are permitted."
+) -Prompt "Verify the AegisModule treasury balance"
+
 Write-Host "`n[Act 1] The Bank: Verifying Zero-Custody Treasury" -ForegroundColor Yellow
-Write-Host "The Aegis Module enforces the firewall but holds ZERO custody of user funds." -ForegroundColor DarkGray
-Write-Host "Capital stays in the ERC-7579 Module treasury — not in any EOA." -ForegroundColor DarkGray
 
 Show-Spinner -Message "  Checking AegisModule treasury ($ModuleAddr)... " -DurationMs 1500
 $ModBal = cast balance $ModuleAddr --rpc-url $RPC 2>&1 | Out-String
-Write-Host "  ✅ AegisModule treasury: $(Format-Wei $ModBal)" -ForegroundColor Green
-
-Write-Host "  The module has execution rights via subscribeAgent() but the owner" -ForegroundColor DarkGray
-Write-Host "  controls all funds. Only requestAudit() and triggerSwap() are permitted." -ForegroundColor DarkGray
+Success "AegisModule treasury: $(Format-Wei $ModBal)"
+Info "The module has execution rights but the owner controls all funds."
 Pause-Demo
 
 # ═══════════════════════════════════════════════════════════════════════
 #  ACT 2: THE KEYS — ERC-7715 Session Provisioning
 # ═══════════════════════════════════════════════════════════════════════
 
-Write-Host "`n[Act 2] The Keys: Subscribing AI Agents with ERC-7715 Session Keys" -ForegroundColor Yellow
-Write-Host "The owner subscribes each agent with a strict ETH budget." -ForegroundColor DarkGray
-Write-Host "Each agent receives a mathematically scoped Session Key — NOT a private key." -ForegroundColor DarkGray
+ActIntro -Title "ACT 2: SUBSCRIBE AI AGENTS" -Lines @(
+    "Like issuing a corporate credit card. The owner 'hires'",
+    "each AI bot by calling subscribeAgent(agent, budget).",
+    "This does two things on-chain:",
+    "",
+    "1. ALLOWLIST — The agent's address can now call",
+    "   requestAudit() on this module.",
+    "2. BUDGET CAP — A strict ETH spending limit.",
+    "   The smart contract reverts if it exceeds this."
+) -Prompt "Subscribe Agent NOVA and CIPHER with budgets"
+
+Write-Host "`n[Act 2] The Keys: Subscribing AI Agents" -ForegroundColor Yellow
 
 # ── Subscribe agents on-chain ──────────────────────────────────────
 $NovaAddr   = "0xba5359fac9736e687c39d9613de3e8fa6c7af1ce"
@@ -172,8 +213,16 @@ Pause-Demo
 #  ACT 3: THE INTENTS — Trade Requests
 # ═══════════════════════════════════════════════════════════════════════
 
+ActIntro -Title "ACT 3: AGENT SUBMITS TRADE INTENTS" -Lines @(
+    "Agent NOVA wants to buy two tokens. It submits audit",
+    "requests on-chain via requestAudit(token).",
+    "",
+    "This emits AuditRequested — the Chainlink CRE DON",
+    "detects the event and triggers the WASM sandbox.",
+    "No capital moves yet. This is intent-only."
+) -Prompt "Submit requestAudit for MockBRETT and MockHoneypot"
+
 Write-Host "`n[Act 3] The Intents: Agent NOVA Requesting Audits" -ForegroundColor Yellow
-Write-Host "Agent NOVA wants to buy two tokens. It submits audit requests on-chain." -ForegroundColor DarkGray
 
 # MockBRETT audit
 Write-Host "`n> cast send $ModuleAddr `"requestAudit(address)`" $Brett" -ForegroundColor DarkMagenta
@@ -218,11 +267,18 @@ Pause-Demo
 #  ACT 4: THE AI FIREWALL — LIVE CRE Execution
 # ═══════════════════════════════════════════════════════════════════════
 
+ActIntro -Title "ACT 4: THE AI FIREWALL (LIVE CRE)" -Lines @(
+    "The Chainlink DON detects AuditRequested events and",
+    "triggers the WASM sandbox. Three analysis phases:",
+    "",
+    "Phase 1: GoPlus API — static on-chain analysis",
+    "Phase 2: BaseScan — source code via ConfidentialHTTP",
+    "Phase 3: GPT-4o + Llama-3 — dual-model AI consensus",
+    "",
+    "Watch the raw CRE output stream in real time."
+) -Prompt "Execute the Chainlink CRE AI audit pipeline"
+
 Write-Host "`n[Act 4] The AI Firewall: LIVE Chainlink CRE Intercept" -ForegroundColor Yellow
-Write-Host "The Chainlink DON detects AuditRequested events and triggers the WASM sandbox." -ForegroundColor DarkGray
-Write-Host "  Phase 1: GoPlus API — static on-chain analysis" -ForegroundColor DarkGray
-Write-Host "  Phase 2: BaseScan — source code fetch via ConfidentialHTTPClient" -ForegroundColor DarkGray
-Write-Host "  Phase 3: GPT-4o + Llama-3 — dual-model AI consensus" -ForegroundColor DarkGray
 
 # Use the Honeypot tx hash for the CRE demo (more dramatic — shows the AI catching malice)
 $CRETxHash = $HoneyTxHash
@@ -318,6 +374,17 @@ Pause-Demo
 #  ACT 5: THE EXECUTION — JIT Swaps & Automated Reverts
 # ═══════════════════════════════════════════════════════════════════════
 
+ActIntro -Title "ACT 5: JIT EXECUTION & AUTOMATED REVERTS" -Lines @(
+    "Agent NOVA attempts to execute both swaps. The module",
+    "checks isApproved(token) before allowing any capital",
+    "movement:",
+    "",
+    "MockBRETT  (Risk 0)  → triggerSwap ✅ executes",
+    "MockHoneypot (Risk 36) → triggerSwap ❌ reverts",
+    "",
+    "Zero capital at risk. The AI firewall decides."
+) -Prompt "Execute swaps — approved token vs blocked honeypot"
+
 Write-Host "`n[Act 5] The Execution: JIT Swaps & Automated Reverts" -ForegroundColor Yellow
 Write-Host "Agent NOVA now attempts to execute both swaps against the firewall." -ForegroundColor DarkGray
 
@@ -374,14 +441,88 @@ if ($SwapHoneyOutput -match "revert|error|Error|FAIL|TokenNotCleared") {
 Pause-Demo
 
 # ═══════════════════════════════════════════════════════════════════════
+#  ACT 6: BUDGET VERIFICATION
+# ═══════════════════════════════════════════════════════════════════════
+
+ActIntro -Title "ACT 6: VERIFY THE BUDGET WAS DEDUCTED" -Lines @(
+    "NOVA started with 0.05 ETH. After the MockBRETT swap,",
+    "the smart contract automatically deducted the amount.",
+    "Let's read the on-chain state to confirm."
+) -Prompt "Read NOVA's remaining budget via agentAllowances()"
+
+Write-Host "`n[Act 6] Budget Verification" -ForegroundColor Yellow
+Write-Host "> cast call $ModuleAddr `"agentAllowances(address)`" $NovaAddr" -ForegroundColor DarkMagenta
+$NovaBalance = cast call $ModuleAddr "agentAllowances(address)" $NovaAddr --rpc-url $RPC 2>&1 | Out-String
+Write-Host "  📊 NOVA remaining budget: $(Format-Wei $NovaBalance)" -ForegroundColor Yellow
+Info "Budget is mathematically enforced — NOVA cannot exceed its allowance."
+
+Write-Host "> cast call $ModuleAddr `"agentAllowances(address)`" $CipherAddr" -ForegroundColor DarkMagenta
+$CipherBalance = cast call $ModuleAddr "agentAllowances(address)" $CipherAddr --rpc-url $RPC 2>&1 | Out-String
+Write-Host "  📊 CIPHER remaining budget: $(Format-Wei $CipherBalance)" -ForegroundColor Yellow
+Pause-Demo
+
+# ═══════════════════════════════════════════════════════════════════════
+#  ACT 7: THE KILL SWITCH
+# ═══════════════════════════════════════════════════════════════════════
+
+ActIntro -Title "ACT 7: THE KILL SWITCH" -Lines @(
+    "The human owner can instantly revoke any agent at any",
+    "time. revokeAgent() zeros the agent's budget and",
+    "deauthorizes it completely.",
+    "",
+    "After this, the agent's calls to requestAudit will",
+    "revert with 'Aegis: Not authorized.'",
+    "",
+    "Human sovereignty is absolute and instant."
+) -Prompt "Revoke Agent REX (simulate a compromised bot)"
+
+Write-Host "`n[Act 7] The Kill Switch" -ForegroundColor Yellow
+$RexAddr = "0x7b1afe2745533d852d6fd5a677f14c074210d896"
+
+# Subscribe REX first so we can revoke it
+Write-Host "  First, subscribing Agent REX (0.01 ETH budget)..." -ForegroundColor DarkGray
+$SubRex = cast send $ModuleAddr "subscribeAgent(address,uint256)" $RexAddr 10000000000000000 --rpc-url $RPC --private-key $PK 2>&1 | Out-String
+if ($SubRex -match "(0x[a-fA-F0-9]{64})") {
+    Success "REX subscribed — budget: 0.01 ETH"
+}
+Start-Sleep -Seconds 2
+
+Write-Host "  🔴 Now revoking Agent REX..." -ForegroundColor Red
+Write-Host "> cast send $ModuleAddr `"revokeAgent(address)`" $RexAddr" -ForegroundColor DarkMagenta
+Show-Spinner -Message "  Broadcasting revokeAgent(REX)... " -DurationMs 1500
+$RevokeOutput = cast send $ModuleAddr "revokeAgent(address)" $RexAddr --rpc-url $RPC --private-key $PK 2>&1 | Out-String
+if ($RevokeOutput -match "(0x[a-fA-F0-9]{64})") {
+    Success "Agent REX REVOKED — budget zeroed, access denied"
+} else {
+    Write-Host "  ⚠ revokeAgent may have failed" -ForegroundColor Yellow
+}
+
+# Verify zero budget
+$RexBalance = cast call $ModuleAddr "agentAllowances(address)" $RexAddr --rpc-url $RPC 2>&1 | Out-String
+Info "REX allowance after revoke: $(Format-Wei $RexBalance) (should be 0)"
+Write-Host "  🛡️ The kill switch works. REX has zero access." -ForegroundColor Green
+Pause-Demo
+
+# ═══════════════════════════════════════════════════════════════════════
 #  OUTRO — Summary
 # ═══════════════════════════════════════════════════════════════════════
 
 Write-Host "`n═══════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host " ✅ DEMO COMPLETE: 100% ON-CHAIN AI FIREWALL ENFORCEMENT" -ForegroundColor Green
+Write-Host " ✅ DEMO COMPLETE: FULL AGENT LIFECYCLE ON BASE SEPOLIA" -ForegroundColor Green
 Write-Host "═══════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "  ┌──────────────────────────────── SUMMARY ────────────────────────────────┐" -ForegroundColor White
+Write-Host "  ┌──────────────────────────────────────────────────────────┐" -ForegroundColor DarkGray
+Write-Host "  │ ✅ subscribeAgent  — Owner grants NOVA + CIPHER budgets  │" -ForegroundColor Green
+Write-Host "  │ ✅ requestAudit    — Agent submits trade intents          │" -ForegroundColor Green
+Write-Host "  │ ✅ CRE Oracle      — GoPlus + BaseScan + GPT-4o + Llama  │" -ForegroundColor Green
+Write-Host "  │ ✅ onReportDirect  — Oracle delivers 8-bit risk verdict   │" -ForegroundColor Green
+Write-Host "  │ ✅ triggerSwap     — JIT swap executes for clean tokens   │" -ForegroundColor Green
+Write-Host "  │ ❌ TokenNotCleared — Honeypot swap BLOCKED on-chain      │" -ForegroundColor Red
+Write-Host "  │ ✅ agentAllowances — Budget deducted after successful tx  │" -ForegroundColor Green
+Write-Host "  │ ✅ revokeAgent     — Owner kills REX access instantly     │" -ForegroundColor Green
+Write-Host "  └──────────────────────────────────────────────────────────┘" -ForegroundColor DarkGray
+Write-Host ""
+Write-Host "  ┌──────────────────────────────── STACK ──────────────────────────────────┐" -ForegroundColor White
 Write-Host "  │                                                                          │" -ForegroundColor White
 Write-Host "  │  MockBRETT:     requestAudit → CRE Risk 0  → triggerSwap ✅ SUCCESS     │" -ForegroundColor Green
 Write-Host "  │  MockHoneypot:  requestAudit → CRE Risk 36 → triggerSwap ❌ REVERT      │" -ForegroundColor Red

@@ -49,6 +49,38 @@ function Show-Spinner {
     Write-Host "`b " -NoNewline
 }
 
+# ─── Helper: V3-Style Act Introduction Box ─────────────────────────
+function ActIntro {
+    param([string]$Title, [string[]]$Lines, [string]$Prompt)
+    if (-not $Interactive) { return }
+    $w = 60
+    Write-Host ""
+    Write-Host ("  ┌" + ("─" * $w) + "┐") -ForegroundColor DarkCyan
+    $padded = "  " + $Title.PadRight($w - 2)
+    Write-Host ("  │" + $padded + "│") -ForegroundColor DarkCyan
+    Write-Host ("  │" + (" " * $w) + "│") -ForegroundColor DarkCyan
+    foreach ($l in $Lines) {
+        $padded = "  " + $l.PadRight($w - 2)
+        Write-Host ("  │" + $padded + "│") -ForegroundColor DarkCyan
+    }
+    Write-Host ("  └" + ("─" * $w) + "┘") -ForegroundColor DarkCyan
+    Write-Host ""
+    if ($Prompt) {
+        Write-Host "  ⏎  $Prompt" -ForegroundColor Cyan
+        Write-Host "     Press ENTER to execute →" -ForegroundColor DarkCyan -NoNewline
+        Read-Host
+        Write-Host ""
+    }
+}
+
+# ─── Helper: Success / Info messages ───────────────────────────────
+function Success($text) { Write-Host "  ✅ $text" -ForegroundColor Green }
+function Info($text) { Write-Host "  ℹ️  $text" -ForegroundColor Gray }
+
+# ═══════════════════════════════════════════════════════════════════════
+#  HEADER
+# ═══════════════════════════════════════════════════════════════════════
+
 Clear-Host
 Write-Host "═══════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
 Write-Host ""
@@ -60,11 +92,14 @@ Write-Host "     ██║  ██║███████╗╚█████�
 Write-Host "     ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝ ╚══════╝  v5.0" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  🔗 CHAINLINK CRE: CONFIDENTIAL AI CONSENSUS" -ForegroundColor White
-Write-Host "  Zero-Custody Account Abstraction on Base Sepolia" -ForegroundColor DarkGray
+Write-Host "  Raw WASM Execution — No Frontend, No Abstraction" -ForegroundColor DarkGray
 Write-Host ""
 Write-Host "═══════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
 
-# ── 1. Load Environment & V5 Config ────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════
+#  SCENE 1: LOAD ENVIRONMENT
+# ═══════════════════════════════════════════════════════════════════════
+
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $EnvPath = Join-Path (Resolve-Path "$ScriptDir\..").Path ".env"
 
@@ -83,16 +118,41 @@ Get-Content $EnvPath | ForEach-Object {
 
 if (-not $RPC) { $RPC = "https://sepolia.base.org" }
 
-Write-Host "`n[Aegis] Booting Decentralized Firewall Infrastructure..." -ForegroundColor DarkGray
+ActIntro -Title "SCENE 1: THE TARGET" -Lines @(
+    "We are about to analyze a KNOWN HONEYPOT contract on",
+    "Base Sepolia. The CRE WASM sandbox will execute:",
+    "",
+    "  • GoPlus API — static on-chain scam analysis",
+    "  • BaseScan — ConfidentialHTTP source code fetch",
+    "  • GPT-4o — deep semantic forensics (Right Brain)",
+    "  • Llama-3 — high-speed consensus (Left Brain)",
+    "",
+    "The target contract is a trap. Let's see if the AI",
+    "catches it."
+) -Prompt "Load environment and identify the target"
+
+Write-Host "`n[Scene 1] Booting Decentralized Firewall Infrastructure..." -ForegroundColor Yellow
 Write-Host "  ➤ Network:      Base Sepolia (Public Testnet)" -ForegroundColor DarkGray
 Write-Host "  ➤ Module:       $ModuleAddr (ERC-7579)" -ForegroundColor DarkGray
 Write-Host "  ➤ Target:       $TargetToken (Known Honeypot)" -ForegroundColor DarkGray
 Pause-Demo
 
-# ── 2. The Trigger (Simulating the UserOp) ─────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════
+#  SCENE 2: THE TRIGGER (Simulating the UserOp)
+# ═══════════════════════════════════════════════════════════════════════
+
 if ([string]::IsNullOrWhiteSpace($TxHash)) {
-    Write-Host "`n[Aegis] No TxHash provided. Generating live 'AuditRequested' event..." -ForegroundColor Yellow
-    Write-Host "[Aegis] Simulating Agent NOVA routing ERC-4337 intent through Pimlico..." -ForegroundColor DarkGray
+    ActIntro -Title "SCENE 2: THE TRIGGER" -Lines @(
+        "No TxHash provided. We'll generate a LIVE",
+        "AuditRequested event on Base Sepolia.",
+        "",
+        "In production, an AI agent would submit this via",
+        "a Pimlico-bundled ERC-4337 UserOperation.",
+        "Here, we simulate it with a direct cast send."
+    ) -Prompt "Generate the on-chain AuditRequested event"
+
+    Write-Host "`n[Scene 2] Generating live 'AuditRequested' event..." -ForegroundColor Yellow
+    Info "Simulating Agent NOVA routing ERC-4337 intent through Pimlico..."
     
     $CastCommand = "cast send $ModuleAddr `"requestAudit(address)`" $TargetToken --rpc-url $RPC --private-key <PRIVATE_KEY>"
     Write-Host "`n> $CastCommand" -ForegroundColor DarkMagenta
@@ -116,16 +176,33 @@ if ([string]::IsNullOrWhiteSpace($TxHash)) {
         exit 1
     }
     
-    Write-Host "  ✅ UserOperation Confirmed. AuditRequested Event Emitted." -ForegroundColor Green
+    Success "UserOperation Confirmed. AuditRequested Event Emitted."
     Write-Host "  ➤ TxHash: $TxHash" -ForegroundColor White
     Pause-Demo
 }
 
-# ── 3. The CRE WASM Sandbox (The Core Flex) ────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════
+#  SCENE 3: THE CRE WASM SANDBOX (The Core Flex)
+# ═══════════════════════════════════════════════════════════════════════
+
+ActIntro -Title "SCENE 3: RAW CRE WASM EXECUTION" -Lines @(
+    "The DON has intercepted the AuditRequested event.",
+    "Now entering the WASM isolation chamber:",
+    "",
+    "  1. Javy-compiled TypeScript → WASM binary",
+    "  2. No filesystem, no network (only ConfidentialHTTP)",
+    "  3. Deterministic execution across all DON nodes",
+    "  4. Per-field median consensus absorbs LLM variance",
+    "",
+    "Watch the raw output stream in real time.",
+    "Color legend:",
+    "  Yellow = GoPlus | DarkCyan = BaseScan",
+    "  Cyan = GPT-4o | Magenta = Llama-3"
+) -Prompt "Execute the CRE WASM sandbox"
+
 Write-Host "`n==========================================================================" -ForegroundColor Cyan
 Write-Host " ⚙️ CHAINLINK RUNTIME ENVIRONMENT (CRE) SECURE EXECUTION" -ForegroundColor Yellow
 Write-Host "==========================================================================" -ForegroundColor Cyan
-Write-Host "The DON has intercepted the event. Orchestrating WASM isolation..." -ForegroundColor Gray
 
 $DockerCommand = "docker exec -e AEGIS_DEMO_MODE=true aegis-oracle-node cre workflow simulate /app --target base-sepolia --evm-tx-hash $TxHash --trigger-index 0 --evm-event-index 0 --non-interactive --verbose"
 
@@ -141,8 +218,8 @@ try {
     Invoke-Expression "$DockerCommand 2>&1" | ForEach-Object {
         $strLine = $_.ToString()
         $Color = "DarkGray"
-        $SleepTime = 15 # Cinematic typing effect
-        
+        $SleepTime = 15
+
         # 1. Colorize the AI Engine & Consensus outputs
         if ($strLine -match "\[USER LOG\]") {
             if ($strLine -match "🟢|✅") { $Color = "Green" }
@@ -165,7 +242,7 @@ try {
             if ($strLine -match "`"level`":`"error`"") { $Color = "DarkRed" }
             else { 
                 $Color = "DarkGray" 
-                $SleepTime = 2 # Speed through the JSON noise extremely fast
+                $SleepTime = 2
             }
         }
         else {
@@ -191,10 +268,30 @@ $ErrorActionPreference = $oldErrAction
 
 Write-Host "`n--- END RAW SECURE WASM EXECUTION ---" -ForegroundColor DarkGray
 
-# ── 4. The Epilogue ────────────────────────────────────────────────────
-Write-Host "`n[Aegis] ✅ CRE Consensus Complete." -ForegroundColor Green
-Write-Host "[Aegis] The Chainlink WASM sandbox successfully:" -ForegroundColor Gray
-Write-Host "        1. Masked API keys via Confidential HTTP." -ForegroundColor White
-Write-Host "        2. Achieved multi-model consensus between GPT-4o and Llama-3." -ForegroundColor White
-Write-Host "        3. Prepared the ABI-encoded payload to route back to the ERC-7579 module." -ForegroundColor White
-Write-Host "`n==========================================================================" -ForegroundColor Cyan
+# ═══════════════════════════════════════════════════════════════════════
+#  EPILOGUE — CRE Summary
+# ═══════════════════════════════════════════════════════════════════════
+
+Write-Host ""
+Write-Host "═══════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host " ✅ CRE CONSENSUS COMPLETE" -ForegroundColor Green
+Write-Host "═══════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "  ┌──────────────────────────────────────────────────────────┐" -ForegroundColor DarkGray
+Write-Host "  │ ✅ WASM Sandbox   — Deterministic execution achieved    │" -ForegroundColor Green
+Write-Host "  │ ✅ GoPlus API     — Static on-chain scam detection      │" -ForegroundColor Green
+Write-Host "  │ ✅ BaseScan       — ConfidentialHTTP source retrieval   │" -ForegroundColor Green
+Write-Host "  │ ✅ GPT-4o         — Deep semantic forensics (Right)     │" -ForegroundColor Green
+Write-Host "  │ ✅ Llama-3        — High-speed consensus (Left)         │" -ForegroundColor Green
+Write-Host "  │ ✅ Union of Fears — Maximally conservative bitmask      │" -ForegroundColor Green
+Write-Host "  │ ✅ ABI Payload    — Ready for on-chain callback         │" -ForegroundColor Green
+Write-Host "  └──────────────────────────────────────────────────────────┘" -ForegroundColor DarkGray
+Write-Host ""
+Write-Host "  The Chainlink WASM sandbox successfully:" -ForegroundColor Gray
+Write-Host "    1. Masked API keys via Confidential HTTP." -ForegroundColor White
+Write-Host "    2. Achieved multi-model consensus between GPT-4o and Llama-3." -ForegroundColor White
+Write-Host "    3. Prepared the ABI-encoded payload for the ERC-7579 module." -ForegroundColor White
+Write-Host ""
+Write-Host "═══════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host "  Next Step: Run .\scripts\demo_v5_master.ps1 -Interactive" -ForegroundColor Yellow
+Write-Host ""

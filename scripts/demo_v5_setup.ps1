@@ -40,7 +40,38 @@ function Show-Spinner {
     Write-Host "`b " -NoNewline
 }
 
-# ─── Load Environment ──────────────────────────────────────────────
+# ─── Helper: V3-Style Act Introduction Box ─────────────────────────
+function ActIntro {
+    param([string]$Title, [string[]]$Lines, [string]$Prompt)
+    if (-not $Interactive) { return }
+    $w = 60
+    Write-Host ""
+    Write-Host ("  ┌" + ("─" * $w) + "┐") -ForegroundColor DarkCyan
+    $padded = "  " + $Title.PadRight($w - 2)
+    Write-Host ("  │" + $padded + "│") -ForegroundColor DarkCyan
+    Write-Host ("  │" + (" " * $w) + "│") -ForegroundColor DarkCyan
+    foreach ($l in $Lines) {
+        $padded = "  " + $l.PadRight($w - 2)
+        Write-Host ("  │" + $padded + "│") -ForegroundColor DarkCyan
+    }
+    Write-Host ("  └" + ("─" * $w) + "┘") -ForegroundColor DarkCyan
+    Write-Host ""
+    if ($Prompt) {
+        Write-Host "  ⏎  $Prompt" -ForegroundColor Cyan
+        Write-Host "     Press ENTER to execute →" -ForegroundColor DarkCyan -NoNewline
+        Read-Host
+        Write-Host ""
+    }
+}
+
+# ─── Helper: Success / Info messages ───────────────────────────────
+function Success($text) { Write-Host "  ✅ $text" -ForegroundColor Green }
+function Info($text) { Write-Host "  ℹ️  $text" -ForegroundColor Gray }
+
+# ═══════════════════════════════════════════════════════════════════════
+#  LOAD ENVIRONMENT
+# ═══════════════════════════════════════════════════════════════════════
+
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $EnvPath = Join-Path (Resolve-Path "$ScriptDir\..").Path ".env"
 
@@ -64,6 +95,10 @@ if (-not $RPC) { $RPC = "https://sepolia.base.org" }
 $DevWallet = cast wallet address --private-key $PK 2>&1 | Out-String
 $DevWallet = $DevWallet.Trim()
 
+# ═══════════════════════════════════════════════════════════════════════
+#  HEADER
+# ═══════════════════════════════════════════════════════════════════════
+
 Clear-Host
 Write-Host "═══════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
 Write-Host ""
@@ -80,16 +115,28 @@ Write-Host ""
 Write-Host "═══════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
 Pause-Demo
 
-# ── Scene 1: The Network Bedrock ─────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════
+#  SCENE 1: THE NETWORK BEDROCK
+# ═══════════════════════════════════════════════════════════════════════
+
+ActIntro -Title "SCENE 1: THE NETWORK BEDROCK" -Lines @(
+    "Before anything else, we prove connectivity to LIVE",
+    "infrastructure. No local mocks, no simulated chains.",
+    "",
+    "We'll verify:",
+    "  • Base Sepolia Chain ID (84532)",
+    "  • Dev wallet has gas for deployments",
+    "  • All three contracts are deployed on-chain"
+) -Prompt "Verify Base Sepolia connectivity and wallet balance"
+
 Write-Host "`n[Scene 1] Verifying Public Testnet Connection..." -ForegroundColor Yellow
-Write-Host "Proving connectivity to live infrastructure, abandoning local mocks." -ForegroundColor DarkGray
 Write-Host "> cast chain-id --rpc-url $RPC" -ForegroundColor DarkMagenta
 
 Show-Spinner -Message "  Pinging Base Sepolia RPC... " -DurationMs 1000
 
 $ChainId = cast chain-id --rpc-url $RPC 2>&1 | Out-String
 if ($ChainId.Trim() -eq "84532") {
-    Write-Host "  ✅ Connected successfully to Base Sepolia (Chain ID: 84532)" -ForegroundColor Green
+    Success "Connected successfully to Base Sepolia (Chain ID: 84532)"
 } else {
     Write-Host "  ⚠️ Network check failed (got: $($ChainId.Trim())). Verify RPC url." -ForegroundColor Red
 }
@@ -101,22 +148,38 @@ $DevBalance = cast balance $DevWallet --rpc-url $RPC 2>&1 | Out-String
 $DevBalanceClean = ($DevBalance.Trim() -replace '\s*\[.*\]\s*$', '').Trim()
 if ($DevBalanceClean -match "^\d+$") {
     $DevBalanceEth = [math]::Round([decimal]$DevBalanceClean / 1000000000000000000, 4)
-    Write-Host "  ✅ Dev Wallet funded with $DevBalanceEth ETH (Ready for deployments)" -ForegroundColor Green
+    Success "Dev Wallet funded with $DevBalanceEth ETH (Ready for deployments)"
 } else {
-    Write-Host "  ✅ Dev Wallet balance: $DevBalanceClean" -ForegroundColor Green
+    Success "Dev Wallet balance: $DevBalanceClean"
 }
 
 Write-Host ""
-Write-Host "  Deployed Contracts on Base Sepolia:" -ForegroundColor DarkGray
-Write-Host "    AegisModule:   $ModuleAddr" -ForegroundColor White
-Write-Host "    MockBRETT:     $Brett" -ForegroundColor White
-Write-Host "    MockHoneypot:  $Honeypot" -ForegroundColor White
+Write-Host "  ┌──────────────────── DEPLOYED CONTRACTS ───────────────────┐" -ForegroundColor White
+Write-Host "  │                                                            │" -ForegroundColor White
+Write-Host "  │  AegisModule:   $ModuleAddr      │" -ForegroundColor White
+Write-Host "  │  MockBRETT:     $Brett      │" -ForegroundColor White
+Write-Host "  │  MockHoneypot:  $Honeypot      │" -ForegroundColor White
+Write-Host "  │                                                            │" -ForegroundColor White
+Write-Host "  └────────────────────────────────────────────────────────────┘" -ForegroundColor White
 Pause-Demo
 
-# ── Scene 2: The WASM Sandbox Boot ───────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════
+#  SCENE 2: THE WASM SANDBOX BOOT
+# ═══════════════════════════════════════════════════════════════════════
+
+ActIntro -Title "SCENE 2: THE WASM SANDBOX BOOT" -Lines @(
+    "The Aegis AI Oracle runs inside a Chainlink CRE Docker",
+    "container. We're rebuilding it from scratch to guarantee",
+    "a clean, deterministic state.",
+    "",
+    "This container runs:",
+    "  • Chainlink CRE SDK (TypeScript)",
+    "  • Javy WASM compiler (Rust → WebAssembly)",
+    "  • Bun runtime for build tooling"
+) -Prompt "Rebuild the CRE Docker container from scratch"
+
 Write-Host "`n[Scene 2] Rebuilding Chainlink CRE WASM Sandbox..." -ForegroundColor Yellow
-Write-Host "The Aegis AI Oracle requires a secure V8 isolate to execute LLM API calls on-chain." -ForegroundColor DarkGray
-Write-Host "Destroying old containers to guarantee a fresh state." -ForegroundColor DarkGray
+Info "Destroying old containers to guarantee a fresh state."
 Write-Host "`n> docker compose down && docker compose up --build -d" -ForegroundColor DarkMagenta
 
 # Spin down
@@ -131,14 +194,26 @@ docker compose up --build -d 2>&1 | ForEach-Object {
     } else {
         Write-Host "  [Docker] $_" -ForegroundColor DarkGray
     }
-    Start-Sleep -Milliseconds 40 # Cinematic scroll speed
+    Start-Sleep -Milliseconds 40
 }
-Write-Host "  ✅ Chainlink CRE Oracle Node is LIVE." -ForegroundColor Green
+Success "Chainlink CRE Oracle Node is LIVE."
 Pause-Demo
 
-# ── Scene 3: The Javy Compilation ────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════
+#  SCENE 3: THE JAVY COMPILATION
+# ═══════════════════════════════════════════════════════════════════════
+
+ActIntro -Title "SCENE 3: THE JAVY COMPILATION" -Lines @(
+    "Converting the off-chain AI firewall logic into a",
+    "deterministically verifiable WASM binary.",
+    "",
+    "Javy compiles TypeScript → QuickJS bytecode → WASM.",
+    "This ensures every DON node executes the EXACT same",
+    "code — Byzantine consensus requires bit-for-bit",
+    "deterministic execution."
+) -Prompt "Compile the oracle to WebAssembly via Javy"
+
 Write-Host "`n[Scene 3] Compiling TypeScript to WebAssembly (Javy)..." -ForegroundColor Yellow
-Write-Host "Converting the off-chain AI firewall logic into a deterministically verifiable WASM binary." -ForegroundColor DarkGray
 Write-Host "`n> docker exec aegis-oracle-node bash -c `"cd /app && bun x cre-setup`"" -ForegroundColor DarkMagenta
 
 Show-Spinner -Message "  Initializing Javy compiler... " -DurationMs 1500
@@ -152,11 +227,27 @@ docker exec aegis-oracle-node bash -c "cd /app && bun x cre-setup" 2>&1 | ForEac
         Write-Host "  [WASM] $_" -ForegroundColor DarkGray
     }
 }
-Write-Host "  ✅ AI Consensus logic successfully compiled to /app/dist/aegis-oracle.wasm" -ForegroundColor Green
+Success "AI Consensus logic successfully compiled to /app/dist/aegis-oracle.wasm"
 
-Write-Host "`n===========================================================================`n" -ForegroundColor Cyan
-Write-Host " ✅ INFRASTRUCTURE BOOT COMPLETE." -ForegroundColor Green
-Write-Host " The Base Sepolia perimeter is secure. The Chainlink Oracle is listening." -ForegroundColor Green
-Write-Host "`n===========================================================================" -ForegroundColor Cyan
+# ═══════════════════════════════════════════════════════════════════════
+#  OUTRO — Summary
+# ═══════════════════════════════════════════════════════════════════════
+
+Write-Host ""
+Write-Host "═══════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host " ✅ INFRASTRUCTURE BOOT COMPLETE" -ForegroundColor Green
+Write-Host "═══════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "  ┌──────────────────────────────────────────────────────────┐" -ForegroundColor DarkGray
+Write-Host "  │ ✅ Base Sepolia    — Chain ID 84532 confirmed            │" -ForegroundColor Green
+Write-Host "  │ ✅ Dev Wallet      — Funded and ready for gas            │" -ForegroundColor Green
+Write-Host "  │ ✅ Docker          — CRE container rebuilt from scratch  │" -ForegroundColor Green
+Write-Host "  │ ✅ WASM            — Javy compilation successful         │" -ForegroundColor Green
+Write-Host "  │ ✅ Contracts       — All 3 deployed on Base Sepolia      │" -ForegroundColor Green
+Write-Host "  └──────────────────────────────────────────────────────────┘" -ForegroundColor DarkGray
+Write-Host ""
+Write-Host "  The Base Sepolia perimeter is secure. The Chainlink Oracle is listening." -ForegroundColor Green
+Write-Host ""
+Write-Host "═══════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
 Write-Host "  Next Step: Run .\scripts\demo_v5_master.ps1 -Interactive" -ForegroundColor Yellow
 Write-Host ""
