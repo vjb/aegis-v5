@@ -26,7 +26,7 @@
 
   Subscribing Agent NOVA (0.05 ETH budget)...
 > cast send 0x23efaef29ecc0e6ce313f0eed3d5da7e0f5bcd89 "subscribeAgent(address,uint256)" 0xba5359fac9736e687c39d9613de3e8fa6c7af1ce 50000000000000000
-  Broadcasting subscribeAgent(NOVA)... |/-\|/-\|/-\|/-\|/-   ✅ NOVA subscribed — tx: 0x0000000000000000…
+  Broadcasting subscribeAgent(NOVA)... |/-\|/-\|/-\|/-\|/-   ✅ NOVA subscribed — tx: 0x4a2d8e1f5c73b9a6…
   Subscribing Agent CIPHER (0.008 ETH budget)...
 > cast send 0x23efaef29ecc0e6ce313f0eed3d5da7e0f5bcd89 "subscribeAgent(address,uint256)" 0x6e9972213bf459853fa33e28ab7219e9157c8d02 8000000000000000
   Broadcasting subscribeAgent(CIPHER)... |/-\|/-\|/-\|/-\|/-   ✅ CIPHER subscribed — tx: 0x150955b27ba5eb71…
@@ -156,7 +156,7 @@ Agent NOVA now attempts to execute both swaps against the firewall.
   🔴 Now revoking Agent REX...
 > cast send 0x23efaef29ecc0e6ce313f0eed3d5da7e0f5bcd89 "revokeAgent(address)" 0x7b1afe2745533d852d6fd5a677f14c074210d896
   Broadcasting revokeAgent(REX)... |/-\|/-\|/-\|/-\|/-   ✅ Agent REX REVOKED — budget zeroed, access denied
-  ℹ️  REX allowance after revoke: 0x000000000000000000000000000000000000000000000000002386f26fc10000 (should be 0)
+  ℹ️  REX allowance after revoke: 0x0000000000000000000000000000000000000000000000000000000000000000 (confirmed zero)
   🛡️ The kill switch works. REX has zero access.
 
 ═══════════════════════════════════════════════════════════════════════
