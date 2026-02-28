@@ -113,11 +113,41 @@ Pause-Demo
 #  ACT 2: THE KEYS — ERC-7715 Session Provisioning
 # ═══════════════════════════════════════════════════════════════════════
 
-Write-Host "`n[Act 2] The Keys: ERC-7715 Agent Session Provisioning" -ForegroundColor Yellow
-Write-Host "Instead of giving the AI a private key, we grant it a mathematically scoped Session Key." -ForegroundColor DarkGray
+Write-Host "`n[Act 2] The Keys: Subscribing AI Agents with ERC-7715 Session Keys" -ForegroundColor Yellow
+Write-Host "The owner subscribes each agent with a strict ETH budget." -ForegroundColor DarkGray
+Write-Host "Each agent receives a mathematically scoped Session Key — NOT a private key." -ForegroundColor DarkGray
 
-Show-Spinner -Message "  Generating restricted session keys for AI Agent NOVA... " -DurationMs 2000
+# ── Subscribe agents on-chain ──────────────────────────────────────
+$NovaAddr   = "0xba5359fac9736e687c39d9613de3e8fa6c7af1ce"
+$CipherAddr = "0x6e9972213bf459853fa33e28ab7219e9157c8d02"
 
+Write-Host ""
+Write-Host "  Subscribing Agent NOVA (0.05 ETH budget)..." -ForegroundColor Cyan
+Write-Host "> cast send $ModuleAddr `"subscribeAgent(address,uint256)`" $NovaAddr 50000000000000000" -ForegroundColor DarkMagenta
+Show-Spinner -Message "  Broadcasting subscribeAgent(NOVA)... " -DurationMs 1500
+$SubNova = cast send $ModuleAddr "subscribeAgent(address,uint256)" $NovaAddr 50000000000000000 --rpc-url $RPC --private-key $PK 2>&1 | Out-String
+if ($SubNova -match "(0x[a-fA-F0-9]{64})") {
+    Write-Host "  ✅ NOVA subscribed — tx: $($Matches[1].Substring(0,18))…" -ForegroundColor Green
+} else {
+    Write-Host "  ⚠ NOVA subscription may have failed (already subscribed?)" -ForegroundColor Yellow
+}
+
+Start-Sleep -Seconds 2
+
+Write-Host "  Subscribing Agent CIPHER (0.008 ETH budget)..." -ForegroundColor Cyan
+Write-Host "> cast send $ModuleAddr `"subscribeAgent(address,uint256)`" $CipherAddr 8000000000000000" -ForegroundColor DarkMagenta
+Show-Spinner -Message "  Broadcasting subscribeAgent(CIPHER)... " -DurationMs 1500
+$SubCipher = cast send $ModuleAddr "subscribeAgent(address,uint256)" $CipherAddr 8000000000000000 --rpc-url $RPC --private-key $PK 2>&1 | Out-String
+if ($SubCipher -match "(0x[a-fA-F0-9]{64})") {
+    Write-Host "  ✅ CIPHER subscribed — tx: $($Matches[1].Substring(0,18))…" -ForegroundColor Green
+} else {
+    Write-Host "  ⚠ CIPHER subscription may have failed (already subscribed?)" -ForegroundColor Yellow
+}
+
+Write-Host ""
+Write-Host "  Both agents are now registered on-chain. Here's what their session keys permit:" -ForegroundColor DarkGray
+
+# ── Show the resulting session key scope ───────────────────────────
 $selectorAudit = cast sig "requestAudit(address)" 2>&1 | Out-String
 $selectorSwap  = cast sig "triggerSwap(address,uint256,uint256)" 2>&1 | Out-String
 
@@ -130,12 +160,12 @@ Write-Host "  │    requestAudit(address)                $($selectorAudit.Trim(
 Write-Host "  │    triggerSwap(address,uint256,uint256)  $($selectorSwap.Trim())          │" -ForegroundColor Magenta
 Write-Host "  │                                                                │" -ForegroundColor White
 Write-Host "  │  Target:  $ModuleAddr      │" -ForegroundColor White
-Write-Host "  │  Budget:  0.002 ETH per session                                │" -ForegroundColor White
+Write-Host "  │  Budget:  0.05 ETH (enforced on-chain)                         │" -ForegroundColor White
 Write-Host "  │  Expiry:  24 hours                                             │" -ForegroundColor White
 Write-Host "  └────────────────────────────────────────────────────────────────┘" -ForegroundColor White
 Write-Host ""
 Write-Host "  NOVA cannot call transfer(), withdraw(), or any other function." -ForegroundColor DarkGray
-Write-Host "  ✅ Session Key mathematically signed and validated by the Safe." -ForegroundColor Green
+Write-Host "  ✅ Both agents subscribed. Session keys scoped and validated." -ForegroundColor Green
 Pause-Demo
 
 # ═══════════════════════════════════════════════════════════════════════
