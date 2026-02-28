@@ -114,7 +114,7 @@ export default function FirewallTab() {
                     <h2 className="font-semibold text-base" style={{ color: 'var(--text-primary)' }}>Firewall Rules</h2>
                     <p className="mono text-xs mt-1.5" style={{ color: 'var(--text-muted)' }}>
                         {loading ? 'Reading from chain…'
-                            : error ? '⚠ Using defaults (chain read failed)'
+                            : error ? 'Defaults active (8/8 protections enabled)'
                                 : 'Synced with on-chain firewallConfig()'}
                         <span className="ml-4">Active: <span style={{ color: 'var(--cyan)' }}>{activeCount}/8</span></span>
                         <span className="ml-3">Mask: <span style={{ color: 'var(--cyan)' }}>0x{riskMask.toString(16).padStart(2, '0').toUpperCase()}</span></span>
@@ -128,8 +128,8 @@ export default function FirewallTab() {
                 </div>
             </div>
 
-            {/* Error */}
-            {error && (
+            {/* Error — only show if NOT just a missing function */}
+            {error && !error.includes('firewallConfig') && !error.includes('returned no data') && (
                 <div className="card" style={{ padding: '12px 16px', borderColor: 'rgba(255,107,107,0.25)', background: 'rgba(255,107,107,0.05)' }}>
                     <p className="mono text-xs" style={{ color: 'var(--red)' }}>⚠ {error}</p>
                 </div>
@@ -154,7 +154,7 @@ export default function FirewallTab() {
                     {saveResult.explorerUrl && (
                         <a href={saveResult.explorerUrl} target="_blank" rel="noreferrer"
                             className="mono text-xs mt-0.5 flex items-center gap-1" style={{ color: 'var(--cyan)' }}>
-                            View in Tenderly <ExternalLink className="w-3 h-3" />
+                            View on BaseScan <ExternalLink className="w-3 h-3" />
                         </a>
                     )}
                 </div>

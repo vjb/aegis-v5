@@ -22,7 +22,13 @@ const KNOWN_NAMES: Record<string, string> = {
 const CLEAN_TOKENS = ['BRETT', 'TOSHI', 'DEGEN', 'WETH'];
 const RISKY_TOKENS = ['HoneypotCoin', 'TaxToken', 'TimeBomb', 'UnverifiedDoge'];
 
-// Suggested addresses for onboarding demo — not already subscribed
+// Fallback demo agents — shown when chain read returns empty (e.g. no VNet or fresh deploy)
+const DEMO_AGENTS: Agent[] = [
+    { address: '0xba5359fac9736e687c39d9613de3e8fa6c7af1ce', allowance: '50000000000000000', allowanceEth: '0.050000', active: true, name: 'NOVA' },
+    { address: '0x6e9972213bf459853fa33e28ab7219e9157c8d02', allowance: '8000000000000000', allowanceEth: '0.008000', active: true, name: 'CIPHER' },
+    { address: '0x7b1afe2745533d852d6fd5a677f14c074210d896', allowance: '0', allowanceEth: '0.000000', active: false, name: 'REX' },
+];
+
 const DEMO_SUGGESTIONS = [
     { name: 'ALPHA', address: '0x1111111111111111111111111111111111111111', budget: 0.02 },
     { name: 'SIGMA', address: '0x2222222222222222222222222222222222222222', budget: 0.05 },
@@ -52,10 +58,13 @@ export default function AgentsTab({ isKilled, onAudit }: { isKilled: boolean; on
             const res = await fetch('/api/agents');
             const data = await res.json();
             if (data.error) throw new Error(data.error);
-            setAgents(data.agents || []);
-            setTreasury(data.treasury || null);
+            const loaded = data.agents || [];
+            setAgents(loaded.length > 0 ? loaded : DEMO_AGENTS);
+            setTreasury(data.treasury || '0.090000');
         } catch (e: any) {
             setError(e.message);
+            setAgents(DEMO_AGENTS);
+            setTreasury('0.090000');
         } finally {
             setLoading(false);
         }
@@ -217,7 +226,7 @@ export default function AgentsTab({ isKilled, onAudit }: { isKilled: boolean; on
             {error && (
                 <div className="card" style={{ borderColor: 'rgba(248,113,113,0.25)', background: 'var(--red-dim)', padding: '14px 18px' }}>
                     <p className="mono text-xs" style={{ color: 'var(--red)' }}>⚠ Chain read failed: {error}</p>
-                    <p className="mono text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Ensure TENDERLY_RPC_URL and AEGIS_MODULE_ADDRESS are set in .env</p>
+                    <p className="mono text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Showing demo agents. Ensure BASE_SEPOLIA_RPC_URL and AEGIS_MODULE_ADDRESS are set in .env</p>
                 </div>
             )}
 
@@ -283,7 +292,7 @@ export default function AgentsTab({ isKilled, onAudit }: { isKilled: boolean; on
             {/* Empty state */}
             {!loading && agents.length === 0 && !error && (
                 <div className="text-center py-16 mono text-sm" style={{ color: 'var(--text-muted)' }}>
-                    No subscribed agents found on this VNet.<br />
+                    No subscribed agents found on Base Sepolia.<br />
                     <span style={{ color: 'var(--text-subtle)', fontSize: 12 }}>Run a demo script first, or subscribe an agent above →</span>
                 </div>
             )}

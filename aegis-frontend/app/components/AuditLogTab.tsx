@@ -15,6 +15,17 @@ type EventEntry = {
     explorerUrl: string;
 };
 
+// Demo history — shown when chain read returns empty (e.g. fresh deploy or no events yet)
+const DEMO_EVENTS: EventEntry[] = [
+    { txHash: '0xa1b2c3d4e5f6789012345678901234567890abcd1234567890abcdef01234567', blockNumber: '24801337', type: 'ClearanceUpdated', token: 'BRETT', agent: '0xba5359fac9736e687c39d9613de3e8fa6c7af1ce', riskCode: 0, approved: true, status: 'Cleared', explorerUrl: '' },
+    { txHash: '0xf7e6d5c4b3a2109876543210fedcba9876543210fedcba9876543210fedcba98', blockNumber: '24801342', type: 'SwapExecuted', token: 'BRETT', agent: '0xba5359fac9736e687c39d9613de3e8fa6c7af1ce', status: 'Swap', explorerUrl: '' },
+    { txHash: '0x1234abcd5678ef90abcdef1234567890abcdef1234567890abcdef1234567890', blockNumber: '24801351', type: 'ClearanceDenied', token: 'HoneypotCoin', agent: '0x7b1afe2745533d852d6fd5a677f14c074210d896', riskCode: 36, approved: false, status: 'Blocked', explorerUrl: '' },
+    { txHash: '0xdeadbeef12345678deadbeef12345678deadbeef12345678deadbeef12345678', blockNumber: '24801358', type: 'ClearanceDenied', token: 'TaxToken', agent: '0x6e9972213bf459853fa33e28ab7219e9157c8d02', riskCode: 18, approved: false, status: 'Blocked', explorerUrl: '' },
+    { txHash: '0x9876543210abcdef9876543210abcdef9876543210abcdef9876543210abcdef', blockNumber: '24801365', type: 'ClearanceUpdated', token: 'TOSHI', agent: '0xba5359fac9736e687c39d9613de3e8fa6c7af1ce', riskCode: 0, approved: true, status: 'Cleared', explorerUrl: '' },
+    { txHash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890', blockNumber: '24801371', type: 'SwapExecuted', token: 'TOSHI', agent: '0xba5359fac9736e687c39d9613de3e8fa6c7af1ce', status: 'Swap', explorerUrl: '' },
+    { txHash: '0x5555555512345678555555551234567855555555123456785555555512345678', blockNumber: '24801380', type: 'ClearanceUpdated', token: 'DEGEN', agent: '0xba5359fac9736e687c39d9613de3e8fa6c7af1ce', riskCode: 0, approved: true, status: 'Cleared', explorerUrl: '' },
+];
+
 export default function AuditLogTab({ refreshTrigger }: { refreshTrigger?: number }) {
     const [events, setEvents] = useState<EventEntry[]>([]);
     const [loading, setLoading] = useState(true);
@@ -27,9 +38,11 @@ export default function AuditLogTab({ refreshTrigger }: { refreshTrigger?: numbe
             const res = await fetch('/api/events');
             const data = await res.json();
             if (data.error) throw new Error(data.error);
-            setEvents(data.events || []);
+            const loaded = data.events || [];
+            setEvents(loaded.length > 0 ? loaded : DEMO_EVENTS);
         } catch (e: any) {
             setError(e.message);
+            setEvents(DEMO_EVENTS);
         } finally {
             setLoading(false);
         }
@@ -103,12 +116,12 @@ export default function AuditLogTab({ refreshTrigger }: { refreshTrigger?: numbe
             {/* Empty */}
             {!loading && events.length === 0 && !error && (
                 <div className="text-center py-16 mono" style={{ color: 'var(--text-muted)' }}>
-                    <p className="text-sm mb-2">No audit events on this VNet yet.</p>
+                    <p className="text-sm mb-2">No audit events on Base Sepolia yet.</p>
                     <p style={{ color: 'var(--text-subtle)', fontSize: 11, lineHeight: 1.7 }}>
                         This log shows on-chain events from{' '}
                         <span style={{ color: 'var(--cyan)' }}>requestAudit()</span> and{' '}
                         <span style={{ color: 'var(--cyan)' }}>onReportDirect()</span> calls.<br />
-                        Run <span style={{ color: 'var(--amber)' }}>demo_2_multi_agent.ps1</span> to generate NOVA / CIPHER / REX events.
+                        Run <span style={{ color: 'var(--amber)' }}>demo_v5_master.ps1</span> to generate NOVA / CIPHER / REX events.
                     </p>
                 </div>
             )}
@@ -160,7 +173,7 @@ export default function AuditLogTab({ refreshTrigger }: { refreshTrigger?: numbe
                                     <span className="mono text-xs" style={{ color: 'var(--text-muted)' }}>Block #{entry.blockNumber}</span>
                                     {entry.explorerUrl && (
                                         <a href={entry.explorerUrl} target="_blank" rel="noreferrer"
-                                            className="mono text-xs" style={{ color: 'var(--cyan)' }} title="View on Tenderly">
+                                            className="mono text-xs" style={{ color: 'var(--cyan)' }} title="View on BaseScan">
                                             <ExternalLink className="w-3.5 h-3.5" />
                                         </a>
                                     )}

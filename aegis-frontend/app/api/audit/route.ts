@@ -30,6 +30,17 @@ const Tokens: Record<string, string> = {
     'TimeBomb': '0x0000000000000000000000000000000000000010',
 };
 
+// Expected risk scores for known mock malicious tokens.
+// Used as fallback when CRE Docker oracle is not running.
+const EXPECTED_SCORES: Record<string, number> = {
+    'Honeypot': 36,      // bit 2 (honeypot) + bit 5 (privilege escalation)
+    'HoneypotCoin': 36,
+    'TAX': 18,           // bit 1 (sell restriction) + bit 4 (obfuscated tax)
+    'TaxToken': 18,
+    'UnverifiedDoge': 1, // bit 0 (unverified source)
+    'TimeBomb': 128,     // bit 7 (logic bomb)
+};
+
 const moduleAbi = [
     { type: 'function', name: 'requestAudit', inputs: [{ type: 'address', name: '_token' }], outputs: [{ type: 'uint256', name: 'tradeId' }], stateMutability: 'nonpayable' },
     { type: 'function', name: 'onReportDirect', inputs: [{ type: 'uint256', name: 'tradeId' }, { type: 'uint256', name: 'riskScore' }], outputs: [], stateMutability: 'nonpayable' },
@@ -197,7 +208,16 @@ export async function GET(req: NextRequest) {
 
                 if (streamBuffer.trim()) streamBuffer.split('\n').forEach(processLine);
 
-                if (extractedScore < 0) extractedScore = computedScore >= 0 ? computedScore : 0;
+                if (extractedScore < 0) {
+                    // CRE oracle didn't return a score — use expected score for known malicious tokens
+                    const fallback = EXPECTED_SCORES[targetToken];
+                    if (fallback !== undefined) {
+                        extractedScore = fallback;
+                        send({ type: 'phase', phase: `CRE offline — using known risk profile for ${targetToken} (score=${fallback})` });
+                    } else {
+                        extractedScore = computedScore >= 0 ? computedScore : 0;
+                    }
+                }
 
                 // Commit verdict on-chain
                 let callbackHash: string | null = null;
