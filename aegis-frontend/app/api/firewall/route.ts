@@ -28,10 +28,6 @@ function loadEnv() {
         const [k, ...rest] = line.split('=');
         if (k && rest.length) env[k.trim()] = rest.join('=').trim();
     });
-    // Also merge process.env for keys set via .env.local
-    ['BASE_SEPOLIA_RPC_URL', 'TENDERLY_RPC_URL', 'AEGIS_MODULE_ADDRESS', 'PRIVATE_KEY'].forEach(k => {
-        if (process.env[k]) env[k] = process.env[k]!;
-    });
     return env;
 }
 
