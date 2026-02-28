@@ -224,7 +224,7 @@ const performStaticAnalysis = (
     const targetTokenHex = bytesToHex(log.topics[3]).replace("0x", "");
     const targetAddress = "0x" + targetTokenHex.slice(-40).toLowerCase();
 
-    nodeRuntime.log(`🛡️ AEGIS MODULE V4 | Auditing: ${targetAddress}`);
+    nodeRuntime.log(`🛡️ AEGIS MODULE V5 | Auditing: ${targetAddress}`);
 
     const mockData = MOCK_REGISTRY[targetAddress];
     if (mockData) {
@@ -495,7 +495,7 @@ ${sourceCode}`;
 // AuditRequested(uint256 indexed tradeId, address indexed user,
 //                address indexed targetToken, string firewallConfig)
 const onAuditTrigger = (runtime: Runtime<Config>, log: EVMLog): string => {
-    runtime.log("🛡️ AegisModule V4 | AuditRequested intercepted");
+    runtime.log("🛡️ AegisModule V5 | AuditRequested intercepted");
 
     // Parse firewallConfig from non-indexed event data
     let firewallConfig = '{"maxTax":5,"blockProxies":true,"strictLogic":true,"blockHoneypots":true}';
