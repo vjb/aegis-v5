@@ -15,6 +15,17 @@ const ABI = [
     { type: 'event', name: 'AgentSubscribed', inputs: [{ type: 'address', name: 'agent', indexed: true }, { type: 'uint256', name: 'budget', indexed: false }] },
 ] as const;
 
+// Agent name registry — matches the frontend AgentsTab.tsx KNOWN_NAMES
+const KNOWN_NAMES: Record<string, string> = {
+    '0xba5359fac9736e687c39d9613de3e8fa6c7af1ce': 'NOVA',
+    '0x6e9972213bf459853fa33e28ab7219e9157c8d02': 'CIPHER',
+    '0x7b1afe2745533d852d6fd5a677f14c074210d896': 'REX',
+    '0xf5a5e415061470a8b9137959180901aea72450a4': 'PHANTOM',
+    '0x1111111111111111111111111111111111111111': 'ALPHA',
+    '0x2222222222222222222222222222222222222222': 'SIGMA',
+    '0x3333333333333333333333333333333333333333': 'OMEGA',
+};
+
 function loadEnv() {
     const envPath = path.resolve(process.cwd(), '../.env');
     if (!fs.existsSync(envPath)) throw new Error('.env not found at ' + envPath);
@@ -88,6 +99,7 @@ export async function GET(req: NextRequest) {
             }).catch(() => BigInt(0));
             return {
                 address: addr,
+                name: KNOWN_NAMES[addr.toLowerCase()] || addr.slice(2, 8).toUpperCase(),
                 allowance: allowance.toString(),
                 allowanceEth: (Number(allowance) / 1e18).toFixed(6),
                 active: allowance > BigInt(0),
