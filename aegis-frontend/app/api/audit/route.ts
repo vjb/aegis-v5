@@ -118,7 +118,7 @@ export async function GET(req: NextRequest) {
 
                 let extractedScore = -1;
                 let computedScore = 0;
-                let currentDashboardModel: string | null = null;
+                let goPlusStarted = false;
 
                 const dockerArgs = [
                     'exec', '-e', 'AEGIS_DEMO_MODE=true', 'aegis-oracle-node',
@@ -138,50 +138,110 @@ export async function GET(req: NextRequest) {
                     if (!str) return;
 
                     let cleaned = str;
+                    // Strip CRE timestamp prefix: 2026-02-28T07:55:16Z [INFO] ...
                     const tm = str.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z\s\[[^\]]+\]\s(.*)/);
                     if (tm) cleaned = tm[1];
 
-                    // Final score
+                    // ── Final score ──────────────────────────────────────
                     for (const pat of [/Final Risk Code: (\d+)/, /⚖️ Final Risk Code: (\d+)/, /\[Internal\] Final Decimal Code: (\d+)/]) {
                         const m = cleaned.match(pat) || str.match(pat);
                         if (m) { extractedScore = parseInt(m[1], 10); activeLlm = null; return; }
                     }
 
-                    // LLM start
-                    const llmMatch = cleaned.match(/↪ \[(OpenAI GPT-4o|Groq Llama-3)\] Risk Analysis:/);
-                    if (llmMatch) { activeLlm = llmMatch[1]; send({ type: 'llm-reasoning-start', model: activeLlm }); return; }
-
-                    // Dashboard model tracker
-                    const dashMatch = cleaned.match(/\[AI Consensus: (OpenAI GPT-4o|Groq Llama-3)\]/);
-                    if (dashMatch) {
-                        if (currentDashboardModel) send({ type: 'llm-score', model: currentDashboardModel, bit: 0 });
-                        currentDashboardModel = dashMatch[1]; return;
-                    }
-
-                    // Bit flags in dashboard
-                    if (currentDashboardModel) {
-                        const bitMatch = cleaned.match(/🔴.*\(Bit (\d+)\)/);
-                        if (bitMatch) {
-                            const bv = 1 << parseInt(bitMatch[1], 10);
-                            computedScore |= bv;
-                            send({ type: 'llm-score', model: currentDashboardModel, bit: bv });
-                        }
-                    }
-
-                    // GoPlus/BaseScan markers
-                    // Use source names that exactly match the labels in OracleFeed.tsx
-                    if (cleaned.includes('__GOPLUS_START__')) { send({ type: 'static-analysis', source: 'GoPlus', status: 'pending' }); return; }
-                    if (cleaned.includes('__BASESCAN_START__')) { send({ type: 'static-analysis', source: 'BaseScan', status: 'pending' }); return; }
-                    if (cleaned.includes('__BASESCAN_END__')) { send({ type: 'static-analysis', source: 'BaseScan', status: 'OK' }); return; }
-                    if (cleaned.includes('__GOPLUS__')) {
-                        try {
-                            const json = JSON.parse(cleaned.substring(cleaned.indexOf('__GOPLUS__') + 10));
-                            send({ type: 'static-analysis', source: 'GoPlus', status: 'OK', ...json });
-                        } catch { }
+                    // ── GoPlus phase (real CRE logs) ─────────────────────
+                    // Matches: [GoPlus] Authenticating..., [GoPlus] MOCK registry hit, [GoPlus] unverified=...
+                    if (cleaned.includes('__GOPLUS_START__') || cleaned.match(/\[GoPlus\] (Authenticating|MOCK registry|Fetching)/)) {
+                        if (!goPlusStarted) { send({ type: 'static-analysis', source: 'GoPlus', status: 'pending' }); goPlusStarted = true; }
                         return;
                     }
+                    if (cleaned.match(/\[GoPlus\] unverified=(\d+) sellRestriction=(\d+) honeypot=(\d+)/)) {
+                        const gm = cleaned.match(/unverified=(\d+) sellRestriction=(\d+) honeypot=(\d+) ?proxy?=?(\d+)?/);
+                        send({
+                            type: 'static-analysis', source: 'GoPlus', status: 'OK',
+                            is_verified: gm?.[1] === '0', has_sell_restriction: gm?.[2] === '1',
+                            is_honeypot: gm?.[3] === '1', is_proxy: gm?.[4] === '1',
+                            flags: [gm?.[1] === '1' ? 'unverified' : null, gm?.[2] === '1' ? 'sell_restriction' : null, gm?.[3] === '1' ? 'honeypot' : null, gm?.[4] === '1' ? 'proxy' : null].filter(Boolean)
+                        });
+                        return;
+                    }
+                    if (cleaned.includes('[GoPlus]')) return; // absorb other GoPlus lines
 
-                    if (activeLlm) { send({ type: 'llm-reasoning-chunk', model: activeLlm, text: cleaned + ' ' }); }
+                    // ── BaseScan phase ────────────────────────────────────
+                    if (cleaned.match(/\[BaseScan\] (ConfidentialHTTPClient|Using MOCK)/)) {
+                        send({ type: 'static-analysis', source: 'BaseScan', status: 'pending' }); return;
+                    }
+                    if (cleaned.match(/\[BaseScan\] (Contract:|Sending \d+ chars)/)) {
+                        send({ type: 'static-analysis', source: 'BaseScan', status: 'OK' }); return;
+                    }
+                    if (cleaned.includes('[BaseScan]')) return; // absorb other BaseScan lines
+
+                    // ── GPT-4o start ──────────────────────────────────────
+                    if (cleaned.match(/\[AI\] → GPT-4o/) || cleaned.match(/↪ \[OpenAI GPT-4o\]/)) {
+                        activeLlm = 'OpenAI GPT-4o'; send({ type: 'llm-reasoning-start', model: activeLlm }); return;
+                    }
+                    // ── Llama-3 start ─────────────────────────────────────
+                    if (cleaned.match(/\[AI\] → Llama-3/) || cleaned.match(/↪ \[Groq Llama-3\]/)) {
+                        activeLlm = 'Groq Llama-3'; send({ type: 'llm-reasoning-start', model: activeLlm }); return;
+                    }
+
+                    // ── GPT-4o reasoning + risk bits ──────────────────────
+                    if (cleaned.match(/\[GPT-4o\] Reasoning:/)) {
+                        const reasoning = cleaned.replace(/.*\[GPT-4o\] Reasoning:\s*/, '');
+                        send({ type: 'llm-reasoning-chunk', model: 'OpenAI GPT-4o', text: reasoning + ' ' }); return;
+                    }
+                    if (cleaned.match(/\[GPT-4o\] Risk bits/)) {
+                        const bits = cleaned;
+                        if (bits.includes('tax=true') || bits.includes('tax=1')) { computedScore |= 16; send({ type: 'llm-score', model: 'OpenAI GPT-4o', bit: 16 }); }
+                        if (bits.includes('priv=true') || bits.includes('priv=1')) { computedScore |= 32; send({ type: 'llm-score', model: 'OpenAI GPT-4o', bit: 32 }); }
+                        if (bits.includes('extCall=true') || bits.includes('extCall=1')) { computedScore |= 64; send({ type: 'llm-score', model: 'OpenAI GPT-4o', bit: 64 }); }
+                        if (bits.includes('bomb=true') || bits.includes('bomb=1')) { computedScore |= 128; send({ type: 'llm-score', model: 'OpenAI GPT-4o', bit: 128 }); }
+                        send({ type: 'llm-score', model: 'OpenAI GPT-4o', bit: 0 }); // marks model done
+                        return;
+                    }
+                    if (cleaned.match(/\[GPT-4o\] Response:/)) {
+                        const resp = cleaned.replace(/.*\[GPT-4o\] Response:\s*/, '').slice(0, 200);
+                        send({ type: 'llm-reasoning-chunk', model: 'OpenAI GPT-4o', text: resp + ' ' }); return;
+                    }
+
+                    // ── Llama-3 reasoning + risk bits ─────────────────────
+                    if (cleaned.match(/\[Llama-3\] Reasoning:/)) {
+                        const reasoning = cleaned.replace(/.*\[Llama-3\] Reasoning:\s*/, '');
+                        send({ type: 'llm-reasoning-chunk', model: 'Groq Llama-3', text: reasoning + ' ' }); return;
+                    }
+                    if (cleaned.match(/\[Llama-3\] Risk bits/)) {
+                        const bits = cleaned;
+                        if (bits.includes('tax=true') || bits.includes('tax=1')) { computedScore |= 16; send({ type: 'llm-score', model: 'Groq Llama-3', bit: 16 }); }
+                        if (bits.includes('priv=true') || bits.includes('priv=1')) { computedScore |= 32; send({ type: 'llm-score', model: 'Groq Llama-3', bit: 32 }); }
+                        if (bits.includes('extCall=true') || bits.includes('extCall=1')) { computedScore |= 64; send({ type: 'llm-score', model: 'Groq Llama-3', bit: 64 }); }
+                        if (bits.includes('bomb=true') || bits.includes('bomb=1')) { computedScore |= 128; send({ type: 'llm-score', model: 'Groq Llama-3', bit: 128 }); }
+                        send({ type: 'llm-score', model: 'Groq Llama-3', bit: 0 }); // marks model done
+                        return;
+                    }
+                    if (cleaned.match(/\[Llama-3\] Response:/)) {
+                        const resp = cleaned.replace(/.*\[Llama-3\] Response:\s*/, '').slice(0, 200);
+                        send({ type: 'llm-reasoning-chunk', model: 'Groq Llama-3', text: resp + ' ' }); return;
+                    }
+
+                    // ── AI union summary ──────────────────────────────────
+                    if (cleaned.match(/\[AI\] Union of Fears/)) {
+                        send({ type: 'phase', phase: 'AI Consensus (GPT-4o + Llama-3)' }); activeLlm = null; return;
+                    }
+                    if (cleaned.match(/\[AI\] SKIPPED/)) {
+                        send({ type: 'phase', phase: 'AI Skipped — no source code (unverified)' }); return;
+                    }
+
+                    // ── Legacy custom markers (kept for backward compat) ─
+                    if (cleaned.includes('__GOPLUS__')) {
+                        try { send({ type: 'static-analysis', source: 'GoPlus', status: 'OK', ...JSON.parse(cleaned.substring(cleaned.indexOf('__GOPLUS__') + 10)) }); } catch { }
+                        return;
+                    }
+                    if (cleaned.includes('__BASESCAN_START__')) { send({ type: 'static-analysis', source: 'BaseScan', status: 'pending' }); return; }
+                    if (cleaned.includes('__BASESCAN_END__')) { send({ type: 'static-analysis', source: 'BaseScan', status: 'OK' }); return; }
+
+                    // ── Catch-all: active LLM streaming ──────────────────
+                    if (activeLlm && !cleaned.startsWith('[')) {
+                        send({ type: 'llm-reasoning-chunk', model: activeLlm, text: cleaned + ' ' });
+                    }
                 };
 
                 const handleData = (data: Buffer) => {
