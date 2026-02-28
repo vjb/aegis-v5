@@ -1,19 +1,4 @@
 {
-    "vaultAddress": "0x46d40e0aBdA0814bb0CB323B2Bb85a129d00B0AC",
-    "chainSelectorName": "ethereum-mainnet-base-1"
+    "vaultAddress": "0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89",
+    "chainSelectorName": "ethereum-testnet-sepolia-base-1"
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

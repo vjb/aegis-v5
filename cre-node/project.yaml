@@ -1,5 +1,5 @@
-# /cre-node/project.yaml — V4 format (matches --target tenderly-fork)
-tenderly-fork:
+# /cre-node/project.yaml — V5 Base Sepolia (Pimlico AA pivot)
+base-sepolia:
   rpcs:
-    - chain-name: "ethereum-mainnet-base-1"
-      url: "https://virtual.base.eu.rpc.tenderly.co/a83fab74-ded2-4c87-b641-4d94bde30563"
+    - chain-name: "ethereum-testnet-sepolia-base-1"
+      url: "https://sepolia.base.org"

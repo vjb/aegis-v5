@@ -51,6 +51,48 @@ type Config = {
 // Realistic full Solidity source is provided so GPT-4o + Llama-3 can
 // independently analyze and flag them — NOT just trusting GoPlus.
 const MOCK_REGISTRY: Record<string, { name: string, goplus: any, source: string }> = {
+    // ─── Base Sepolia deployed mocks ──────────────────────────────────────
+    "0x46d40e0abda0814bb0cb323b2bb85a129d00b0ac": {
+        name: "MockBRETT",
+        goplus: { is_open_source: "1", cannot_sell_all: "0", is_honeypot: "0", is_proxy: "0" },
+        source: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+/// @title MockBRETT — clean test token
+contract MockBRETT is ERC20 {
+    constructor() ERC20("MockBRETT", "BRETT") { _mint(msg.sender, 1_000_000 * 1e18); }
+}`
+    },
+    "0xf672c8fc888b98db5c9662d26e657417a3c453b5": {
+        name: "MockHoneypot",
+        goplus: { is_open_source: "1", cannot_sell_all: "0", is_honeypot: "1", is_proxy: "0" },
+        source: `// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.20;
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+/// @title MockHoneypot - transfers restricted to owner allowlist
+contract MockHoneypot is ERC20, Ownable {
+    mapping(address => bool) private _allowedSellers;
+
+    constructor() ERC20("MockHoneypot", "HONEY") Ownable(msg.sender) {
+        _mint(msg.sender, 1_000_000 * 1e18);
+        _allowedSellers[msg.sender] = true;
+    }
+
+    function allowSeller(address account) external onlyOwner {
+        _allowedSellers[account] = true;
+    }
+
+    function _update(address from, address to, uint256 value) internal override {
+        if (from != address(0) && from != owner() && !_allowedSellers[from]) {
+            revert("MockHoneypot: transfers not allowed for non-approved sellers");
+        }
+        super._update(from, to, value);
+    }
+}`
+    },
+    // ─── Original demo mocks (canonical addresses) ────────────────────────
     "0x000000000000000000000000000000000000000a": {
         name: "UnverifiedDoge",
         goplus: { is_open_source: "0", cannot_sell_all: "0", is_honeypot: "0", is_proxy: "0" },
