@@ -3,17 +3,9 @@ import fs from 'fs';
 import path from 'path';
 import { createPublicClient, createWalletClient, http, getAddress } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { defineChain } from 'viem';
+import { baseSepolia } from 'viem/chains';
 
 export const dynamic = 'force-dynamic';
-
-// Shared chain config — same VNet as /api/audit
-const aegisTenderly = defineChain({
-    id: 73578453,
-    name: 'Aegis Tenderly VNet',
-    nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-    rpcUrls: { default: { http: [] } },
-});
 
 const ABI = [
     { type: 'function', name: 'agentAllowances', inputs: [{ type: 'address' }], outputs: [{ type: 'uint256' }], stateMutability: 'view' },
@@ -37,11 +29,11 @@ function loadEnv() {
 function getClients(env: Record<string, string>) {
     let pk = env.PRIVATE_KEY || '';
     if (!pk.startsWith('0x')) pk = `0x${pk}`;
-    const rpc = env.TENDERLY_RPC_URL;
+    const rpc = env.BASE_SEPOLIA_RPC_URL || env.TENDERLY_RPC_URL || 'https://sepolia.base.org';
     const moduleAddr = env.AEGIS_MODULE_ADDRESS;
     const account = privateKeyToAccount(pk as `0x${string}`);
-    const publicClient = createPublicClient({ chain: aegisTenderly, transport: http(rpc) });
-    const walletClient = createWalletClient({ account, chain: aegisTenderly, transport: http(rpc) });
+    const publicClient = createPublicClient({ chain: baseSepolia, transport: http(rpc) });
+    const walletClient = createWalletClient({ account, chain: baseSepolia, transport: http(rpc) });
     return { publicClient, walletClient, account, moduleAddr: getAddress(moduleAddr) };
 }
 

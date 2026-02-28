@@ -106,7 +106,7 @@ export default function AegisChat({
     const [messages, setMessages] = useState<Message[]>([{
         id: 'welcome',
         role: 'aegis',
-        text: 'AEGIS security firewall online. I\'m synced with the Chainlink CRE DON and your Tenderly Virtual TestNet. Ask me about agents, verdicts, or the firewall — or type "audit BRETT" to kick off a live oracle run.',
+        text: 'AEGIS security firewall online. I\'m synced with the Chainlink CRE DON and your Base Sepolia. Ask me about agents, verdicts, or the firewall — or type "audit BRETT" to kick off a live oracle run.',
     }]);
     const [input, setInput] = useState('');
     const [streaming, setStreaming] = useState(false);
