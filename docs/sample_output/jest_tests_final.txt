@@ -1,0 +1,186 @@
+PASS test/frontend.spec.ts (56.27 s)
+  Phase 8.1 — Wallet Info + Session Key Rendering
+    √ WalletInfo type has all required fields (162 ms)
+    √ truncates owner address to 0x109D…65Cf (4 ms)
+    √ truncates module address correctly (2 ms)
+    √ session key targets only the AegisModule (1 ms)
+    √ session key allows exactly 2 selectors (4 ms)
+    √ session key allows requestAudit (0xe34eac65) (3 ms)
+    √ session key allows triggerSwap (0x684bceb0) (2 ms)
+    √ session key does NOT allow transfer selector (2 ms)
+    √ session key budget is capped at 0.002 ETH (4 ms)
+    √ error field is optional in WalletInfo (4 ms)
+  Phase 8.2 — Oracle Feed: Risk Score & Verdict Logic
+    √ risk score 0 decodes to 8 all-clean checks (2 ms)
+    √ risk score 0 → APPROVED verdict (2 ms)
+    √ risk score 4 (bit 2) → Known Honeypot flagged (3 ms)
+    √ risk score 4 → BLOCKED (2 ms)
+    √ risk score 36 = Honeypot (bit 2) + Privilege Escalation (bit 5) (1 ms)
+    √ risk score 255 flags all 8 bits (1 ms)
+    √ risk score 1 (bit 0) → Unverified Code only (2 ms)
+    √ risk score 16 (bit 4) → Obfuscated Tax only (2 ms)
+    √ risk score 128 (bit 7) → Logic Bomb only (11 ms)
+    √ negative score → ERROR verdict (10 ms)
+  Phase 8.2 — Oracle Feed: SSE Event Parsing
+    √ parses phase event (4 ms)
+    √ parses tx event with hash (3 ms)
+    √ parses final_verdict BLOCKED event (7 ms)
+    √ parses final_verdict APPROVED event (20 ms)
+    √ parses llm-reasoning-start for GPT-4o (1 ms)
+    √ parses static-analysis GoPlus event
+
+PASS test/oracle.spec.ts (59.079 s)
+  Aegis CRE Oracle V4 — ABI encoding
+    √ encodes (tradeId=3, riskScore=0) to 64-byte ABI-encoded hex (130 ms)
+    √ encodes (tradeId=0, riskScore=4) — honeypot flag (56 ms)
+    √ encodes riskScore=255 (all risk bits set) (32 ms)
+    √ oracle config vaultAddress points to AegisModule (1 ms)
+    √ V4 config shape has required CRE fields (444 ms)
+    √ V3 and V4 onReport ABI encoding is identical (same uint256,uint256 schema) (126 ms)
+  Oracle AI JSON → onReportDirect hex payload (5.5.3)
+    √ AI response {"risk": 5} → correct hex payload for onReportDirect (114 ms)
+    √ AI response {"risk": 0} → approved (clean token) (2 ms)
+    √ AI response {"risk": 36} → denied (honeypot + privilege escalation) (2 ms)
+    √ calldata length is always exactly 138 chars (4+32+32 bytes) (2 ms)
+
+PASS test/bot_v5.spec.ts (66.144 s)
+  buildV5RequestAuditCall (unit)
+    √ targets AegisModule (NOT the Safe directly) (90 ms)
+    √ attaches zero ETH value (treasury pays, not the agent) (2 ms)
+    √ encodes requestAudit(address) selector correctly (2 ms)
+    √ encodes the token address as the only argument (2 ms)
+  buildV5TriggerSwapCall (unit)
+    √ targets AegisModule (3 ms)
+    √ attaches zero ETH value (module treasury provides ETH for swaps) (3 ms)
+    √ encodes triggerSwap(address,uint256,uint256) — 3 params (2 ms)
+    √ defaults amountOutMinimum to 1 (contract requires non-zero) (12 ms)
+    √ is distinct from requestAudit calldata (different selector) (6 ms)
+  V4 vs V5 call structure
+    √ V5 triggerSwap has 3 params, V4 'bot.ts' ABI had only 2 (bug fixed) (20 ms)
+  ERC-7715 Session Key Constraints (5.5.2)
+    √ session key targets ONLY the AegisModule address (1 ms)
+    √ session permits exactly 2 selectors: requestAudit + triggerSwap (2 ms)
+    √ session DOES NOT permit arbitrary function selectors (e.g. ETH drain) (1 ms)
+    √ session DOES NOT permit calling a random contract (only AegisModule) (3 ms)
+    √ session uses the SmartSessionsValidator (Rhinestone canonical) (1 ms)
+    √ session key = agent public address (embedded in initData) (1 ms)
+
+PASS test/session_key.spec.ts (66.148 s)
+  getSmartSessionValidatorModule (unit)
+    √ returns type=validator (not executor) (131 ms)
+    √ has the canonical SmartSessions validator address (2 ms)
+  AegisModule function selectors (unit)
+    √ requestAudit(address) selector is 4 bytes (2 ms)
+    √ triggerSwap(address,uint256,uint256) selector is 4 bytes (2 ms)
+    √ selectors are distinct (no collision) (2 ms)
+  buildAgentSession (unit)
+    √ specifies the SmartSessions validator as session validator (26 ms)
+    √ encodes agent address in sessionValidatorInitData (22 ms)
+    √ permits exactly 2 actions (requestAudit + triggerSwap) (3 ms)
+    √ first action targets AegisModule with requestAudit selector (2 ms)
+    √ second action targets AegisModule with triggerSwap selector (2 ms)
+    √ has a 32-byte salt (2 ms)
+  SESSION_MODES (unit)
+    √ USE mode = 0x00 (agent presents existing signed session) (1 ms)
+    √ ENABLE mode = 0x01 (agent enables + uses in same UserOp) (1 ms)
+    √ UNSAFE_ENABLE mode = 0x02 (skip policy checks — dev only) (1 ms)
+
+PASS test/bot.spec.ts (75.342 s)
+  AegisAgent V4 — ERC-4337 Bot
+    √ validates required config fields exist (255 ms)
+    √ requestAudit calldata contains target token address (2 ms)
+    √ triggerSwap calldata contains token address and 1 ETH amount (2 ms)
+    √ agent design: gas wallet is separate from Smart Account (capital custody) (2 ms)
+    √ risk matrix bit decoding identifies correct flags (5 ms)
+    √ polling returns false if no clearance event after timeout (27 ms)
+
+FAIL test/safe_setup.spec.ts
+  ● Test suite failed to run
+
+    [96mtest/safe_setup.spec.ts[0m:[93m88[0m:[93m41[0m - [91merror[0m[90m TS2339: [0mProperty 'deploySafeWithAegisModule' does not exist on type 'typeof import("C:/Users/vjbel/hacks/aegis-v4/scripts/v5_setup_safe")'.
+
+    [7m88[0m         deploySafeWithAegisModule = mod.deploySafeWithAegisModule;
+    [7m  [0m [91m                                        ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+FAIL test/live_e2e.spec.ts
+  ● Test suite failed to run
+
+    [96mtest/live_e2e.spec.ts[0m:[93m44[0m:[93m5[0m - [91merror[0m[90m TS2459: [0mModule '"permissionless/clients/pimlico"' declares 'entryPoint07Address' locally, but it is not exported.
+
+    [7m44[0m     entryPoint07Address,
+    [7m  [0m [91m    ~~~~~~~~~~~~~~~~~~~[0m
+
+      [96mnode_modules/.pnpm/permissionless@0.3.4_viem@2_ca3529062a6ceeefc47c2d83e775e92c/node_modules/permissionless/clients/pimlico.ts[0m:[93m18[0m:[93m5[0m
+        [7m18[0m     entryPoint07Address,
+        [7m  [0m [96m    ~~~~~~~~~~~~~~~~~~~[0m
+        'entryPoint07Address' is declared here.
+    [96mtest/live_e2e.spec.ts[0m:[93m46[0m:[93m8[0m - [91merror[0m[90m TS1192: [0mModule '"C:/Users/vjbel/hacks/aegis-v4/node_modules/.pnpm/dotenv@16.6.1/node_modules/dotenv/lib/main"' has no default export.
+
+    [7m46[0m import dotenv from "dotenv";
+    [7m  [0m [91m       ~~~~~~[0m
+    [96mtest/live_e2e.spec.ts[0m:[93m95[0m:[93m13[0m - [91merror[0m[90m TS2322: [0mType 'any' is not assignable to type 'never'.
+      The intersection 'Client<Transport<string, Record<string, any>, EIP1193RequestFn<undefined, false>>, Chain<ChainFormatters, Record<string, unknown>>, JsonRpcAccount<...> | { ...; }, undefined, { ...; }>' was reduced to 'never' because property 'cacheTime' has conflicting types in some constituents.
+
+    [7m95[0m             client: publicClient,
+    [7m  [0m [91m            ~~~~~~[0m
+
+      [96mnode_modules/.pnpm/permissionless@0.3.4_viem@2_ca3529062a6ceeefc47c2d83e775e92c/node_modules/permissionless/accounts/safe/toSafeSmartAccount.ts[0m:[93m1159[0m:[93m5[0m
+        [7m1159[0m     client: Client<
+        [7m    [0m [96m    ~~~~~~[0m
+        The expected type comes from property 'client' which is declared here on type 'ToSafeSmartAccountParameters<"0.7", `0x${string}`>'
+    [96mtest/live_e2e.spec.ts[0m:[93m112[0m:[93m74[0m - [91merror[0m[90m TS2737: [0mBigInt literals are not available when targeting lower than ES2020.
+
+    [7m112[0m             calls: [{ to: safeAccount.address, data: "0x" as Hex, value: 0n }],
+    [7m   [0m [91m                                                                         ~~[0m
+    [96mtest/live_e2e.spec.ts[0m:[93m157[0m:[93m61[0m - [91merror[0m[90m TS2737: [0mBigInt literals are not available when targeting lower than ES2020.
+
+    [7m157[0m             functionName: "onReportDirect", args: [tradeId, 0n],
+    [7m   [0m [91m                                                            ~~[0m
+    [96mtest/live_e2e.spec.ts[0m:[93m176[0m:[93m45[0m - [91merror[0m[90m TS2554: [0mExpected 0 arguments, but got 1.
+
+    [7m176[0m         const swapData = encodeFunctionData({
+    [7m   [0m [91m                                            ~[0m
+    [7m177[0m             abi: AEGIS_MODULE_ABI,
+    [7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+    [7m...[0m 
+    [7m179[0m             args: [MOCK_BRETT, parseEther("0.001"), 1n],
+    [7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+    [7m180[0m         });
+    [7m   [0m [91m~~~~~~~~~[0m
+    [96mtest/live_e2e.spec.ts[0m:[93m179[0m:[93m53[0m - [91merror[0m[90m TS2737: [0mBigInt literals are not available when targeting lower than ES2020.
+
+    [7m179[0m             args: [MOCK_BRETT, parseEther("0.001"), 1n],
+    [7m   [0m [91m                                                    ~~[0m
+    [96mtest/live_e2e.spec.ts[0m:[93m182[0m:[93m58[0m - [91merror[0m[90m TS2737: [0mBigInt literals are not available when targeting lower than ES2020.
+
+    [7m182[0m             calls: [{ to: MODULE, data: swapData, value: 0n }],
+    [7m   [0m [91m                                                         ~~[0m
+    [96mtest/live_e2e.spec.ts[0m:[93m204[0m:[93m61[0m - [91merror[0m[90m TS2737: [0mBigInt literals are not available when targeting lower than ES2020.
+
+    [7m204[0m             functionName: "onReportDirect", args: [tradeId, 4n],
+    [7m   [0m [91m                                                            ~~[0m
+    [96mtest/live_e2e.spec.ts[0m:[93m219[0m:[93m45[0m - [91merror[0m[90m TS2554: [0mExpected 0 arguments, but got 1.
+
+    [7m219[0m         const swapData = encodeFunctionData({
+    [7m   [0m [91m                                            ~[0m
+    [7m220[0m             abi: AEGIS_MODULE_ABI,
+    [7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+    [7m...[0m 
+    [7m222[0m             args: [MOCK_HONEYPOT, parseEther("0.001"), 1n],
+    [7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+    [7m223[0m         });
+    [7m   [0m [91m~~~~~~~~~[0m
+    [96mtest/live_e2e.spec.ts[0m:[93m222[0m:[93m56[0m - [91merror[0m[90m TS2737: [0mBigInt literals are not available when targeting lower than ES2020.
+
+    [7m222[0m             args: [MOCK_HONEYPOT, parseEther("0.001"), 1n],
+    [7m   [0m [91m                                                       ~~[0m
+    [96mtest/live_e2e.spec.ts[0m:[93m227[0m:[93m62[0m - [91merror[0m[90m TS2737: [0mBigInt literals are not available when targeting lower than ES2020.
+
+    [7m227[0m                 calls: [{ to: MODULE, data: swapData, value: 0n }],
+    [7m   [0m [91m                                                             ~~[0m
+
+Test Suites: 2 failed, 5 passed, 7 total
+Tests:       72 passed, 72 total
+Snapshots:   0 total
+Time:        94.678 s
+Ran all test suites.
