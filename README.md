@@ -188,13 +188,13 @@ if (logicBomb)                         riskMatrix |= 128; // Bit 7
 
 ## 🎬 Demo Scripts
 
-> **Two cinematic PowerShell scripts for the final Loom presentation.**
+> **Three cinematic PowerShell scripts with interactive ActIntro scene introductions.**
 
 ```powershell
 # Act 0: Boot infrastructure (Docker, WASM compile, Base Sepolia connectivity)
 .\scripts\demo_v5_setup.ps1 -Interactive
 
-# Act 1-5: Full live E2E (zero-custody → session keys → audit → CRE → swap/revert)
+# Act 1-7: Full live E2E (treasury → subscribe agents → audit → CRE → swap/revert → budget → kill switch)
 .\scripts\demo_v5_master.ps1 -Interactive
 
 # CRE-only showcase for Chainlink judges
@@ -222,7 +222,7 @@ if (logicBomb)                         riskMatrix |= 128; // Bit 7
 ### `demo_v5_cre.ps1` — CRE Deep Dive (~3 min)
 Raw Chainlink CRE WASM execution for CRE & AI judges. No frontend, no abstraction — just the oracle analyzing a known honeypot with full color-coded log streaming.
 
-**Sample output:** [`docs/sample_output/demo_v5_master_run1.txt`](docs/sample_output/demo_v5_master_run1.txt)
+> **Tip:** All three scripts support `-Interactive` mode with bordered ActIntro scene boxes — perfect for Loom recordings.
 
 ---
 

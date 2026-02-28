@@ -11,15 +11,16 @@
 | [LESSONS_LEARNED.md](LESSONS_LEARNED.md) | Engineering ledger — bugs, root causes, fixes from the full V3→V5 journey |
 | [sample_output/](sample_output/) | Real CRE oracle output from verified demo runs |
 
-## Sample Output Files
+## Demo Script Features
 
-| File | Description |
-|---|---|
-| [demo_v5_setup_run1.txt](sample_output/demo_v5_setup_run1.txt) | Infrastructure boot — Base Sepolia connectivity + Docker + WASM compilation |
-| [demo_v5_master_run1.txt](sample_output/demo_v5_master_run1.txt) | Full E2E: session keys → CRE audit → MockBRETT ✅ Risk 0 → MockHoneypot ❌ Risk 36 |
-| [forge_tests_final.txt](sample_output/forge_tests_final.txt) | 18 Forge tests passing (AegisModuleTest) |
-| [jest_tests_final.txt](sample_output/jest_tests_final.txt) | 83 Jest tests passing across 7 suites |
-| [v5_e2e_mock_basesepolia_run6.txt](sample_output/v5_e2e_mock_basesepolia_run6.txt) | 5-phase E2E mock test on Base Sepolia |
+All three demo scripts (`setup`, `master`, `cre`) feature:
+- **V3-style ActIntro boxes** — bordered explainers before each scene in `-Interactive` mode
+- **Animated spinners** — visual feedback for on-chain transactions
+- **Color-coded output** — GoPlus (Yellow), BaseScan (DarkCyan), GPT-4o (Cyan), Llama-3 (Magenta)
+- **Summary checklists** — phase completion boxes at the end of each script
+- **Success/Info helpers** — consistent formatting across all scripts
+
+The master demo now runs 7 acts: Treasury → Subscribe Agents → Audit Intents → CRE AI → Swap/Revert → Budget Verification → Kill Switch
 
 ## Quick Engineering Notes
 

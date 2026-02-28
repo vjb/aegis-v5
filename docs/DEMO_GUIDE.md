@@ -1,6 +1,6 @@
 # 🎬 Aegis Protocol V5 — Demo Guide
 
-> **Two cinematic scripts + one CRE deep-dive. All live on Base Sepolia.**
+> **Three cinematic scripts with V3-style interactive scene introductions. All live on Base Sepolia.**
 
 ---
 
@@ -74,15 +74,17 @@ The decentralized bedrock is live. Base Sepolia is reachable, the dev wallet is 
 
 ### What It Proves
 
-The complete V5 lifecycle on Base Sepolia: zero-custody treasury, scoped session keys, live CRE AI consensus, and on-chain enforcement (swap success + revert).
+The complete V5 lifecycle on Base Sepolia: zero-custody treasury, agent subscription with budgets, live CRE AI consensus, on-chain enforcement (swap success + revert), budget verification, and kill switch.
 
 | Act | On-chain action | What you see |
 |---|---|---|
 | 1 — The Bank | `cast balance` module | AegisModule holds 0 ETH (zero-custody) |
-| 2 — The Keys | `cast sig` selectors | ERC-7715 session key scoped to 2 selectors |
+| 2 — The Keys | `subscribeAgent()` × 2 | NOVA (0.05 ETH) + CIPHER (0.008 ETH) subscribed on-chain |
 | 3 — The Intents | `requestAudit()` × 2 | Both audits submitted live, tx hashes printed |
 | 4 — The Oracle | `docker exec cre simulate` | **LIVE CRE** — GoPlus → BaseScan → GPT-4o + Llama-3 |
 | 5 — The Execution | `triggerSwap()` × 2 | MockBRETT ✅ SUCCESS, MockHoneypot ❌ REVERT |
+| 6 — Budget Check | `agentAllowances()` | Budget mathematically deducted after swap |
+| 7 — Kill Switch | `revokeAgent(REX)` | Subscribe REX → revoke → prove agent is locked out |
 
 ### CRE Pipeline (Act 4)
 
@@ -110,7 +112,7 @@ Phase 3 — AI Consensus (ConfidentialHTTPClient)
 - MockBRETT gets Risk Code 0 → swap succeeds
 - MockHoneypot gets Risk Code 36 → swap **reverts** with `TokenNotCleared()`
 
-**Sample output:** [`sample_output/demo_v5_master_run1.txt`](sample_output/demo_v5_master_run1.txt)
+> **Tip:** All three scripts support `-Interactive` mode with bordered scene introduction boxes (ActIntro) that explain each step before execution — perfect for Loom recordings and live presentations.
 
 ---
 
