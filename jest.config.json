@@ -19,7 +19,8 @@
             "ts-jest",
             {
                 "tsconfig": {
-                    "module": "commonjs"
+                    "module": "commonjs",
+                    "target": "ES2020"
                 }
             }
         ]

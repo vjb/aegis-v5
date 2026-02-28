@@ -8,7 +8,7 @@
  *
  * Test tiers:
  *   UNIT  — pure encoding / config, no chain required
- *   INTEG — requires TENDERLY_RPC_URL in .env (skipped otherwise)
+ *   INTEG — requires BASE_SEPOLIA_RPC_URL in .env (skipped otherwise)
  */
 
 import { encodeFunctionData, type Address, type Hex, getAddress } from "viem";
@@ -69,13 +69,13 @@ describe("constants (unit)", () => {
 });
 
 // ── INTEGRATION: Live Safe deployment ─────────────────────────────────────
-const RPC = process.env.TENDERLY_RPC_URL;
+const RPC = process.env.BASE_SEPOLIA_RPC_URL || process.env.TENDERLY_RPC_URL;
 const PRIVATE_KEY = process.env.PRIVATE_KEY as Hex | undefined;
 const MODULE_ADDRESS = process.env.AEGIS_MODULE_ADDRESS as Address | undefined;
 
 const describeInteg = RPC && PRIVATE_KEY && MODULE_ADDRESS ? describe : describe.skip;
 
-describeInteg("deploySafeWithAegisModule (integration — requires TENDERLY_RPC_URL)", () => {
+describeInteg("deploySafeWithAegisModule (integration — requires BASE_SEPOLIA_RPC_URL)", () => {
     // Dynamic import to avoid erroring when chain isn't available
     let deploySafeWithAegisModule: (
         ownerPk: Hex,
@@ -85,7 +85,7 @@ describeInteg("deploySafeWithAegisModule (integration — requires TENDERLY_RPC_
 
     beforeAll(async () => {
         const mod = await import("../scripts/v5_setup_safe");
-        deploySafeWithAegisModule = mod.deploySafeWithAegisModule;
+        deploySafeWithAegisModule = (mod as any).deploySafeWithAegisModule;
     });
 
     it(

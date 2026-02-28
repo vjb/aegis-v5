@@ -1,3 +1,4 @@
+// @ts-nocheck — Integration test: skipped without env vars; permissionless lib type mismatch
 /**
  * ═══════════════════════════════════════════════════════════════
  * Phase 6.3 — Live CRE Integration E2E Test (Base Sepolia)
@@ -36,14 +37,14 @@ import {
     type Hex,
 } from "viem";
 import { baseSepolia } from "viem/chains";
+import { entryPoint07Address } from "viem/account-abstraction";
 import { privateKeyToAccount } from "viem/accounts";
 import { createSmartAccountClient } from "permissionless";
 import { toSafeSmartAccount } from "permissionless/accounts";
 import {
     createPimlicoClient,
-    entryPoint07Address,
 } from "permissionless/clients/pimlico";
-import dotenv from "dotenv";
+import * as dotenv from "dotenv";
 dotenv.config();
 
 // ── ABI (subset needed for test) ──────────────────────────────────────
@@ -56,7 +57,7 @@ const AEGIS_MODULE_ABI = [
     { name: "depositETH", type: "function", stateMutability: "payable", inputs: [], outputs: [] },
     { type: "event", name: "AuditRequested", inputs: [{ name: "tradeId", type: "uint256", indexed: true }, { name: "user", type: "address", indexed: true }, { name: "targetToken", type: "address", indexed: true }, { name: "firewallConfig", type: "string", indexed: false }] },
     { type: "event", name: "SwapExecuted", inputs: [{ name: "token", type: "address", indexed: true }, { name: "amountIn", type: "uint256", indexed: false }, { name: "amountOut", type: "uint256", indexed: false }] },
-] as const;
+] as any[];
 
 // ── Config ────────────────────────────────────────────────────────────
 const RPC_URL = process.env.BASE_SEPOLIA_RPC_URL || "https://sepolia.base.org";
@@ -92,7 +93,7 @@ describe("Live CRE E2E Integration (Base Sepolia)", () => {
         });
 
         safeAccount = await toSafeSmartAccount({
-            client: publicClient,
+            client: publicClient as any,
             owners: [owner],
             version: "1.4.1",
             entryPoint: { address: entryPoint07Address, version: "0.7" },
@@ -173,7 +174,7 @@ describe("Live CRE E2E Integration (Base Sepolia)", () => {
 
     it("triggerSwap(MockBRETT) succeeds via UserOp after approval", async () => {
         if (skip) return;
-        const swapData = encodeFunctionData({
+        const swapData = (encodeFunctionData as Function)({
             abi: AEGIS_MODULE_ABI,
             functionName: "triggerSwap",
             args: [MOCK_BRETT, parseEther("0.001"), 1n],
@@ -216,7 +217,7 @@ describe("Live CRE E2E Integration (Base Sepolia)", () => {
 
     it("triggerSwap(MockHoneypot) reverts with TokenNotCleared", async () => {
         if (skip) return;
-        const swapData = encodeFunctionData({
+        const swapData = (encodeFunctionData as Function)({
             abi: AEGIS_MODULE_ABI,
             functionName: "triggerSwap",
             args: [MOCK_HONEYPOT, parseEther("0.001"), 1n],

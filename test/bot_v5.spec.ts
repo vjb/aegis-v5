@@ -91,10 +91,10 @@ describe("buildV5TriggerSwapCall (unit)", () => {
     });
 });
 
-// ── V5 vs V5 calldata shape comparison ────────────────────────────────────
-describe("V5 vs V5 call structure", () => {
-    it("V5 triggerSwap has 3 params, V5 'bot.ts' ABI had only 2 (bug fixed)", () => {
-        // V5 bot.ts had triggerSwap with only _token + _amount (missing _amountOutMinimum)
+// ── Legacy vs Current calldata shape comparison ────────────────────────────────────
+describe("Legacy vs V5 call structure", () => {
+    it("V5 triggerSwap has 3 params, legacy bot.ts ABI had only 2 (bug fixed)", () => {
+        // Legacy bot.ts had triggerSwap with only _token + _amount (missing _amountOutMinimum)
         // V5 correctly has all 3 params as per AegisModule.sol
         const call = buildV5TriggerSwapCall(MOCK_MODULE, MOCK_TOKEN, SWAP_AMOUNT);
         // Full calldata = 4 (selector) + 32*3 (args) = 100 bytes = 200 hex + "0x"
