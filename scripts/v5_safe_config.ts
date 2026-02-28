@@ -24,6 +24,7 @@ export function buildSafeConfig(ownerAddress: Address) {
             address: ENTRYPOINT_V07,
             version: "0.7" as const,
         },
+        safeSingletonAddress: "0x29fcB43b46531BcA003ddC8FCB67FFE91900C762" as Address,
         saltNonce: BigInt(Math.floor(Date.now() / 1000)),
     };
 }

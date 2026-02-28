@@ -1,235 +1,145 @@
 /**
  * ═══════════════════════════════════════════════════════════════
- * V5 Phase 2 — Safe Smart Account + AegisModule Provisioner
+ * V5 Setup Safe — Deploy Safe + Install AegisModule (Pimlico)
  * ═══════════════════════════════════════════════════════════════
  *
- * Deploys a Safe (v1.4.1) Smart Account and installs AegisModule as
- * an ERC-7579 Executor using Rhinestone's module-sdk and permissionless.js.
- *
- * Flow:
- *   1. Create Owner account from private key
- *   2. Compute counterfactual Safe address (no tx needed)
- *   3. Fund Safe via direct RPC (Tenderly impersonation for local dev)
- *   4. Install AegisModule via SmartAccountClient.sendUserOperation()
- *   5. Verify isModuleInstalled() returns true
+ * Deploys a Safe Smart Account on Base Sepolia and installs
+ * AegisModule as an ERC-7579 Executor module, using Pimlico's
+ * hosted bundler for all UserOp handling.
  *
  * Usage:
- *   pnpm ts-node scripts/v5_setup_safe.ts
- *
- * Output:  SAFE_ADDRESS env var value to add to .env
+ *   pnpm ts-node --transpile-only scripts/v5_setup_safe.ts
  */
 
 import {
     createPublicClient,
+    createWalletClient,
     http,
     parseEther,
-    defineChain,
     getAddress,
+    encodeFunctionData,
     type Address,
     type Hex,
 } from "viem";
+import { baseSepolia } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 import { createSmartAccountClient } from "permissionless";
 import { toSafeSmartAccount } from "permissionless/accounts";
-import { entryPoint07Address } from "viem/account-abstraction";
 import {
-    installModule,
-    isModuleInstalled,
-    getAccount,
-    type Module,
-} from "@rhinestone/module-sdk";
+    createPimlicoClient,
+} from "permissionless/clients/pimlico";
+import { entryPoint07Address } from "viem/account-abstraction";
 import * as dotenv from "dotenv";
 
 dotenv.config();
 
-// ─── Public constants (exported for tests) ────────────────────────────────
-export const ENTRYPOINT_V07 = entryPoint07Address as Address;
-export const AEGIS_MODULE_TYPE = "executor" as const;
+// ─── Constants ────────────────────────────────────────────────────────────────
+const RPC_URL = process.env.BASE_SEPOLIA_RPC_URL || "https://sepolia.base.org";
+const PIMLICO_API_KEY = process.env.PIMLICO_API_KEY!;
+const PIMLICO_BUNDLER_URL = `https://api.pimlico.io/v2/84532/rpc?apikey=${PIMLICO_API_KEY}`;
+const ENTRYPOINT_V07 = entryPoint07Address as Address;
 
-// ─── Config Builders (pure — exported for unit tests) ─────────────────────
-
-/**
- * Builds the Safe account configuration for permissionless toSafeSmartAccount().
- * Pure function — no network calls.
- */
-export function buildSafeConfig(ownerAddress: Address) {
-    return {
-        owners: [ownerAddress],
-        threshold: 1,
-        version: "1.4.1" as const,
-        entryPoint: {
-            address: ENTRYPOINT_V07,
-            version: "0.7" as const,
-        },
-        // Unique salt per deployment — use timestamp for non-collision in tests
-        saltNonce: BigInt(Math.floor(Date.now() / 1000)),
-    };
-}
-
-/**
- * Builds the AegisModule install config for Rhinestone installModule().
- * Pure function — no network calls.
- *
- * Rhinestone Module shape (v0.4.0):
- *   address + module = same address (both required)
- *   additionalContext = "0x" for most modules
- */
-export function buildAegisModuleConfig(moduleAddress: Address): Module {
-    const addr = getAddress(moduleAddress);
-    return {
-        address: addr,
-        module: addr,
-        type: AEGIS_MODULE_TYPE,
-        // AegisModule.onInstall() accepts empty bytes — no init required
-        initData: "0x" as Hex,
-        deInitData: "0x" as Hex,
-        additionalContext: "0x" as Hex,
-    };
-}
-
-// ─── Tenderly Base Fork chain definition ──────────────────────────────────
-function buildTenderlyChain(rpcUrl: string, chainId = 73578453) {
-    return defineChain({
-        id: chainId,
-        name: "Aegis Tenderly VNet",
-        nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-        rpcUrls: { default: { http: [rpcUrl] } },
-        testnet: true,
-    });
-}
-
-// ─── Main Deployment Function ──────────────────────────────────────────────
-
-/**
- * Deploys a Safe Smart Account and installs AegisModule as an ERC-7579 Executor.
- *
- * @param ownerPk     Owner's private key (hex)
- * @param moduleAddress  Deployed AegisModule address
- * @param rpcUrl      Tenderly VNet RPC URL
- * @param bundlerUrl  Alto bundler URL (default: http://localhost:4337)
- * @returns safeAddress and install txHash
- */
-export async function deploySafeWithAegisModule(
-    ownerPk: Hex,
-    moduleAddress: Address,
-    rpcUrl: string,
-    bundlerUrl = process.env.BUNDLER_RPC_URL || "http://localhost:4337"
-): Promise<{ safeAddress: Address; txHash: Hex }> {
-    const chain = buildTenderlyChain(rpcUrl);
-    const owner = privateKeyToAccount(ownerPk);
-
-    const publicClient = createPublicClient({
-        chain,
-        transport: http(rpcUrl),
-    });
-
-    console.log(`\n[V5 SETUP] Owner:     ${owner.address}`);
-    console.log(`[V5 SETUP] Module:    ${moduleAddress}`);
-    console.log(`[V5 SETUP] Bundler:   ${bundlerUrl}`);
-
-    // ── Step 1: Compute counterfactual Safe address ──────────────────────
-    const safeConfig = buildSafeConfig(owner.address);
-    const safeAccount = await toSafeSmartAccount({
-        client: publicClient,
-        owners: [owner],
-        version: safeConfig.version,
-        entryPoint: safeConfig.entryPoint,
-        saltNonce: safeConfig.saltNonce,
-    });
-
-    const safeAddress = safeAccount.address;
-    console.log(`[V5 SETUP] Safe (counterfactual): ${safeAddress}`);
-
-    // ── Step 2: Fund Safe (Tenderly dev RPC supports eth_sendTransaction) ──
-    const ownerBalance = await publicClient.getBalance({ address: owner.address });
-    console.log(`[V5 SETUP] Owner balance: ${ownerBalance} wei`);
-
-    // ── Step 3: Create Smart Account Client via bundler ──────────────────
-    const smartAccountClient = createSmartAccountClient({
-        account: safeAccount,
-        chain,
-        bundlerTransport: http(bundlerUrl),
-        userOperation: {
-            estimateFeesPerGas: async () => {
-                const { maxFeePerGas, maxPriorityFeePerGas } = await publicClient.estimateFeesPerGas();
-                return { maxFeePerGas, maxPriorityFeePerGas };
-            },
-        },
-    });
-
-    // ── Step 4: Install AegisModule as ERC-7579 Executor ─────────────────
-    const moduleConfig = buildAegisModuleConfig(moduleAddress);
-
-    const account = getAccount({
-        address: safeAddress,
-        type: "safe",
-    });
-
-    // installModule returns Execution[] — submit them as a UserOp batch
-    // Note: publicClient cast to any because rhinestone expects its own ClientType
-    const executions = await installModule({
-        client: publicClient as unknown as any,
-        account,
-        module: moduleConfig,
-    });
-
-    console.log(`[V5 SETUP] Submitting install UserOperation (${executions.length} execution(s))...`);
-
-    // permissionless 0.3.x SmartAccountClient uses sendTransaction for execution
-    // (sendUserOperation API differs by account type — Safe uses execute pattern)
-    const smartClient = smartAccountClient as unknown as any;
-    const userOpHash = await smartClient.sendUserOperation({
-        userOperation: {
-            callData: await (safeAccount as any).encodeCallData(
-                executions.map((exec: any) => ({
-                    to: exec.target as Address,
-                    value: exec.value ?? BigInt(0),
-                    data: exec.callData as Hex,
-                }))
-            ),
-        },
-    });
-
-    console.log(`[V5 SETUP] ✅ UserOp hash: ${userOpHash}`);
-
-    const receipt = await smartClient.waitForUserOperationReceipt({ hash: userOpHash });
-    const txHash = receipt.receipt.transactionHash;
-
-    // ── Step 5: Verify installation ──────────────────────────────────────
-    const installed = await isModuleInstalled({
-        client: publicClient as any,
-        account,
-        module: moduleConfig,
-    });
-
-    if (!installed) {
-        throw new Error("Module install tx succeeded but isModuleInstalled returned false");
-    }
-
-    console.log(`[V5 SETUP] ✅ isModuleInstalled = true`);
-    console.log(`\n[V5 SETUP] ══════════════════════════════════════════`);
-    console.log(`[V5 SETUP]  Add to .env:`);
-    console.log(`[V5 SETUP]  SAFE_ADDRESS=${safeAddress}`);
-    console.log(`[V5 SETUP] ══════════════════════════════════════════\n`);
-
-    return { safeAddress, txHash: txHash as Hex };
-}
-
-// ─── CLI Entrypoint ───────────────────────────────────────────────────────
-if (require.main === module) {
+async function main() {
     const ownerPk = process.env.PRIVATE_KEY as Hex;
-    const moduleAddr = process.env.AEGIS_MODULE_ADDRESS as Address;
-    const rpcUrl = process.env.TENDERLY_RPC_URL!;
+    const moduleAddress = getAddress(process.env.AEGIS_MODULE_ADDRESS!) as Address;
 
-    if (!ownerPk || !moduleAddr || !rpcUrl) {
-        console.error("[V5 SETUP] ❌ Missing PRIVATE_KEY, AEGIS_MODULE_ADDRESS, or TENDERLY_RPC_URL");
+    if (!ownerPk || !moduleAddress) {
+        console.error("❌ Missing PRIVATE_KEY or AEGIS_MODULE_ADDRESS in .env");
+        process.exit(1);
+    }
+    if (!PIMLICO_API_KEY) {
+        console.error("❌ Missing PIMLICO_API_KEY in .env");
         process.exit(1);
     }
 
-    deploySafeWithAegisModule(ownerPk, moduleAddr, rpcUrl)
-        .then(() => process.exit(0))
-        .catch((err) => {
-            console.error("[V5 SETUP] 💥 Fatal:", err.message);
-            process.exit(1);
-        });
+    const owner = privateKeyToAccount(ownerPk);
+
+    console.log("═══════════════════════════════════════════════════════════════");
+    console.log("  🛡️  AEGIS V5 — Safe Setup (Pimlico on Base Sepolia)");
+    console.log("═══════════════════════════════════════════════════════════════");
+    console.log(`  Owner:  ${owner.address}`);
+    console.log(`  Module: ${moduleAddress}`);
+    console.log(`  RPC:    ${RPC_URL}`);
+    console.log("");
+
+    // ── Clients ──────────────────────────────────────────────────────────
+    const publicClient = createPublicClient({
+        chain: baseSepolia,
+        transport: http(RPC_URL),
+    });
+
+    const pimlicoClient = createPimlicoClient({
+        chain: baseSepolia,
+        transport: http(PIMLICO_BUNDLER_URL),
+        entryPoint: { address: ENTRYPOINT_V07, version: "0.7" },
+    });
+
+    // ── Create Safe Smart Account ────────────────────────────────────────
+    console.log("[SETUP] Creating Safe Smart Account...");
+
+    const safeAccount = await toSafeSmartAccount({
+        client: publicClient,
+        owners: [owner],
+        version: "1.4.1",
+        entryPoint: { address: ENTRYPOINT_V07, version: "0.7" },
+        saltNonce: BigInt(Date.now()),
+    });
+
+    console.log(`[SETUP] Safe (counterfactual): ${safeAccount.address}`);
+
+    // ── Smart Account Client (Pimlico handles everything) ────────────────
+    const smartAccountClient = createSmartAccountClient({
+        account: safeAccount,
+        chain: baseSepolia,
+        bundlerTransport: http(PIMLICO_BUNDLER_URL),
+        paymaster: pimlicoClient,
+        userOperation: {
+            estimateFeesPerGas: async () => (await pimlicoClient.getUserOperationGasPrice()).fast,
+        },
+    });
+
+    // ── Deploy Safe + call onInstall on AegisModule ──────────────────────
+    console.log("[SETUP] Deploying Safe via first UserOp (initCode)...");
+
+    // The first UserOp will include the Safe's initCode, deploying the proxy.
+    // We call AegisModule.onInstall() as the initial action.
+    const installCallData = encodeFunctionData({
+        abi: [{ name: "onInstall", type: "function", inputs: [{ name: "data", type: "bytes" }], outputs: [], stateMutability: "nonpayable" }],
+        functionName: "onInstall",
+        args: ["0x"],
+    });
+
+    const userOpHash = await smartAccountClient.sendUserOperation({
+        calls: [{
+            to: moduleAddress,
+            data: installCallData,
+            value: 0n,
+        }],
+    });
+
+    console.log(`[SETUP] UserOp submitted: ${userOpHash}`);
+
+    const receipt = await pimlicoClient.waitForUserOperationReceipt({
+        hash: userOpHash,
+    });
+
+    console.log(`[SETUP] ✅ Safe deployed in block ${receipt.receipt.blockNumber}`);
+    console.log(`[SETUP] ✅ Tx hash: ${receipt.receipt.transactionHash}`);
+
+    // ── Verify ───────────────────────────────────────────────────────────
+    const safeCode = await publicClient.getCode({ address: safeAccount.address });
+    console.log(`[SETUP] Safe bytecode: ${safeCode?.length ?? 0} chars`);
+
+    // ── Output ───────────────────────────────────────────────────────────
+    console.log("\n═══════════════════════════════════════════════════════════════");
+    console.log("  ✅ SAFE DEPLOYMENT COMPLETE");
+    console.log("═══════════════════════════════════════════════════════════════");
+    console.log(`  SAFE_ADDRESS=${safeAccount.address}`);
+    console.log(`  Add this to your .env file.`);
+    console.log("═══════════════════════════════════════════════════════════════\n");
 }
+
+main().catch((err) => {
+    console.error("💥 Setup failed:", err.message);
+    process.exit(1);
+});

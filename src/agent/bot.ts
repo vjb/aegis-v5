@@ -1,235 +1,181 @@
 /**
  * ═══════════════════════════════════════════════════════════════
- * 🤖 AEGIS PROTOCOL V5 — BYOA TRADING AGENT (bot.ts)
+ * AEGIS V5 Agent Bot — ERC-4337 via Pimlico Cloud Bundler
  * ═══════════════════════════════════════════════════════════════
  *
- * V5 Architecture (from V4):
- *   - V4: Agent called AegisModule directly via walletClient.sendTransaction()
- *           (EOA → Module) — described as UserOps but never wired as such
- *   - V5: Agent submits real ERC-4337 UserOperations via Safe Smart Account
- *           (Session Key → Bundler → Safe → Module)
+ * Uses `smartAccountClient.sendUserOperation` to submit operations
+ * through Pimlico's hosted bundler on Base Sepolia.
  *
- * Capital Model (unchanged):
- *   - Agent wallet holds GAS ETH only — NEVER trading capital
- *   - All trading capital lives in the Safe Smart Account (ERC-4337)
- *   - AegisModule treasury = Safe treasury
- *   - AegisModule commands the Safe via executeFromExecutor()
- *
- * ERC-7715 Session Key:
- *   - Owner pre-enables a session via SmartSessionsValidator
- *   - Agent signs UserOps with their EOA (session key)
- *   - Signature format: SmartSessionMode.USE + permissionId + agentSig
- *   - AegisModule sees msg.sender = Safe (which is subscribed as owner)
- *
- * UserOp Flow:
- *   Agent EOA (session key)
- *     → buildV5RequestAuditCall(token)
- *     → sendUserOperation({ calls: [{ to: module, data }] })
- *       [permissionless wraps in Safe.execute()]
- *       [Bundler submits to EntryPoint]
- *       [SmartSessionsValidator validates session]
- *       [Safe.execute() calls AegisModule.requestAudit(token)]
- *     → AuditRequested event emitted
- *     → Poll for ClearanceUpdated
- *     → buildV5TriggerSwapCall(token, amount, minOut)
- *     → sendUserOperation (same flow)
- *     → AegisModule executes Uniswap V3 swap from treasury
- *
- * Usage:
- *   pnpm ts-node src/agent/bot.ts
+ * All manual handleOps / PackedUserOperation encoding is GONE.
+ * Pimlico handles gas estimation, signature validation, and
+ * EntryPoint submission automatically.
  */
 
 import {
     createPublicClient,
     http,
-    parseEther,
     getAddress,
-    defineChain,
-    type Hex,
     type Address,
+    type Hex,
 } from "viem";
+import { baseSepolia } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 import { createSmartAccountClient } from "permissionless";
 import { toSafeSmartAccount } from "permissionless/accounts";
+import {
+    createPimlicoClient,
+} from "permissionless/clients/pimlico";
 import { entryPoint07Address } from "viem/account-abstraction";
 import * as dotenv from "dotenv";
 
-import { buildV5RequestAuditCall, buildV5TriggerSwapCall, AEGIS_MODULE_ABI } from "../../scripts/v5_bot_config";
-
-// Re-export ABI for backward compatibility (used by cre-node event parsing)
-export { AEGIS_MODULE_ABI };
+import {
+    buildV5RequestAuditCall,
+    buildV5TriggerSwapCall,
+} from "../../scripts/v5_bot_config";
 
 dotenv.config();
 
-// ─── Environment ──────────────────────────────────────────────────────────────
-const AGENT_PRIVATE_KEY = process.env.AGENT_PRIVATE_KEY as Hex;
-const TENDERLY_RPC_URL = process.env.TENDERLY_RPC_URL!;
-const AEGIS_MODULE_ADDRESS = getAddress(
-    process.env.AEGIS_MODULE_ADDRESS || "0x0000000000000000000000000000000000000000"
-) as Address;
-const TARGET_TOKEN_ADDRESS = getAddress(
-    process.env.TARGET_TOKEN_ADDRESS || "0x0000000000000000000000000000000000000001"
-) as Address;
-const SAFE_ADDRESS = (process.env.SAFE_ADDRESS || "") as Address;
-const BUNDLER_RPC_URL = process.env.BUNDLER_RPC_URL || "http://localhost:4337";
+// ─── Constants ────────────────────────────────────────────────────────────────
+const RPC_URL = process.env.BASE_SEPOLIA_RPC_URL || "https://sepolia.base.org";
+const PIMLICO_API_KEY = process.env.PIMLICO_API_KEY!;
+const PIMLICO_BUNDLER_URL = `https://api.pimlico.io/v2/84532/rpc?apikey=${PIMLICO_API_KEY}`;
+const ENTRYPOINT_V07 = entryPoint07Address as Address;
 
-// ─── Custom Chain (Tenderly Base Fork) ────────────────────────────────────────
-const aegisTenderly = defineChain({
-    id: 73578453,
-    name: "Aegis Tenderly VNet",
-    nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-    rpcUrls: { default: { http: [TENDERLY_RPC_URL || "http://localhost:8545"] } },
-    testnet: true,
-});
-
-// ─── Clearance Poller (unchanged from V4) ────────────────────────────────────
-export async function pollForClearanceV5(
-    publicClient: ReturnType<typeof createPublicClient>,
-    moduleAddress: Address,
-    tokenAddress: Address,
-    startBlock: bigint,
-    maxAttempts = 120
-): Promise<boolean> {
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-        try {
-            const approvedLogs = await publicClient.getLogs({
-                address: moduleAddress,
-                event: {
-                    type: "event",
-                    name: "ClearanceUpdated",
-                    inputs: [
-                        { name: "token", type: "address", indexed: true },
-                        { name: "approved", type: "bool", indexed: false },
-                    ],
-                },
-                args: { token: tokenAddress },
-                fromBlock: startBlock,
-                toBlock: "latest",
-            });
-            if (approvedLogs.length > 0) return true;
-
-            const deniedLogs = await publicClient.getLogs({
-                address: moduleAddress,
-                event: {
-                    type: "event",
-                    name: "ClearanceDenied",
-                    inputs: [
-                        { name: "token", type: "address", indexed: true },
-                        { name: "riskScore", type: "uint256", indexed: false },
-                    ],
-                },
-                args: { token: tokenAddress },
-                fromBlock: startBlock,
-                toBlock: "latest",
-            });
-            if (deniedLogs.length > 0) return false;
-        } catch {
-            // Ignore RPC errors — retry
-        }
-        await new Promise((r) => setTimeout(r, 1000));
-    }
-    return false;
-}
-
-// ─── Main Agent Loop ──────────────────────────────────────────────────────────
 async function main() {
-    if (!AGENT_PRIVATE_KEY || !TENDERLY_RPC_URL) {
-        console.error("[AEGIS AGENT V5] ❌ Missing AGENT_PRIVATE_KEY or TENDERLY_RPC_URL");
+    // ── Environment ──────────────────────────────────────────────────────
+    const agentPk = process.env.AGENT_PRIVATE_KEY as Hex;
+    const ownerPk = process.env.PRIVATE_KEY as Hex;
+    const moduleAddress = getAddress(process.env.AEGIS_MODULE_ADDRESS!) as Address;
+    const targetToken = getAddress(process.env.TARGET_TOKEN_ADDRESS!) as Address;
+    const safeAddress = process.env.SAFE_ADDRESS ? getAddress(process.env.SAFE_ADDRESS) : undefined;
+
+    if (!agentPk || !ownerPk || !moduleAddress || !targetToken) {
+        console.error("❌ Missing required env vars: AGENT_PRIVATE_KEY, PRIVATE_KEY, AEGIS_MODULE_ADDRESS, TARGET_TOKEN_ADDRESS");
+        process.exit(1);
+    }
+    if (!PIMLICO_API_KEY) {
+        console.error("❌ Missing PIMLICO_API_KEY");
         process.exit(1);
     }
 
-    if (!SAFE_ADDRESS || SAFE_ADDRESS === "0x0000000000000000000000000000000000000000") {
-        console.error("[AEGIS AGENT V5] ❌ SAFE_ADDRESS not configured — run scripts/v5_setup_safe.ts first");
-        process.exit(1);
-    }
-
-    const agentAccount = privateKeyToAccount(AGENT_PRIVATE_KEY);
-
+    // ── Clients ──────────────────────────────────────────────────────────
+    const owner = privateKeyToAccount(ownerPk);
     const publicClient = createPublicClient({
-        chain: aegisTenderly,
-        transport: http(TENDERLY_RPC_URL),
+        chain: baseSepolia,
+        transport: http(RPC_URL),
     });
 
-    // ── Create Safe Smart Account ────────────────────────────────────────────
-    // The agent's private key acts as the session key (ERC-7715).
-    // The Safe was deployed by the owner and has SmartSessionsValidator installed.
-    // This does NOT redeploy — toSafeSmartAccount at an existing address is a no-op.
+    const pimlicoClient = createPimlicoClient({
+        chain: baseSepolia,
+        transport: http(PIMLICO_BUNDLER_URL),
+        entryPoint: { address: ENTRYPOINT_V07, version: "0.7" },
+    });
+
+    // ── Safe Smart Account ───────────────────────────────────────────────
     const safeAccount = await toSafeSmartAccount({
-        client: publicClient as any,
-        owners: [agentAccount],
+        client: publicClient,
+        owners: [owner],
         version: "1.4.1",
-        entryPoint: { address: entryPoint07Address as Address, version: "0.7" },
-        address: SAFE_ADDRESS, // Use pre-deployed Safe — no counterfactual
+        entryPoint: { address: ENTRYPOINT_V07, version: "0.7" },
+        ...(safeAddress ? { address: safeAddress as Address } : {}),
     });
 
-    // ── Create Smart Account Client (via local alto bundler) ─────────────────
+    console.log(`🛡️  Safe Account: ${safeAccount.address}`);
+
+    // ── Smart Account Client (Pimlico bundler) ───────────────────────────
     const smartAccountClient = createSmartAccountClient({
         account: safeAccount,
-        chain: aegisTenderly,
-        bundlerTransport: http(BUNDLER_RPC_URL),
-    }) as any; // `any` due to viem CJS generic type narrowing
-
-    console.log("\n═══════════════════════════════════════════════════════════════");
-    console.log("  🤖 AEGIS V5 BYOA AGENT — ERC-4337 UserOp Mode");
-    console.log("═══════════════════════════════════════════════════════════════");
-    console.log(`  Agent (session key): ${agentAccount.address}`);
-    console.log(`  Safe Smart Account:  ${SAFE_ADDRESS}`);
-    console.log(`  AegisModule:         ${AEGIS_MODULE_ADDRESS}`);
-    console.log(`  Target Token:        ${TARGET_TOKEN_ADDRESS}`);
-    console.log(`  Bundler:             ${BUNDLER_RPC_URL}`);
-    console.log("");
-
-    // ── Step 1: Submit requestAudit via UserOp ───────────────────────────────
-    console.log("[AGENT V5] 📡 STEP 1: Submitting requestAudit UserOperation...");
-    const auditCall = buildV5RequestAuditCall(AEGIS_MODULE_ADDRESS, TARGET_TOKEN_ADDRESS);
-
-    const auditUserOpHash = await smartAccountClient.sendUserOperation({
-        calls: [{ to: auditCall.to, data: auditCall.data, value: auditCall.value }],
+        chain: baseSepolia,
+        bundlerTransport: http(PIMLICO_BUNDLER_URL),
+        paymaster: pimlicoClient,
+        userOperation: {
+            estimateFeesPerGas: async () => (await pimlicoClient.getUserOperationGasPrice()).fast,
+        },
     });
-    console.log(`[AGENT V5] ✅ UserOp submitted: ${auditUserOpHash}`);
 
-    const auditReceipt = await smartAccountClient.waitForUserOperationReceipt({
-        hash: auditUserOpHash,
+    console.log(`🤖 Agent bot initialized on Base Sepolia`);
+    console.log(`   Module: ${moduleAddress}`);
+    console.log(`   Token:  ${targetToken}`);
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  STEP 1: Request Audit via UserOp
+    // ══════════════════════════════════════════════════════════════════════
+    console.log("\n━━━ STEP 1: requestAudit via UserOp ━━━");
+
+    const auditCall = buildV5RequestAuditCall(moduleAddress, targetToken);
+    const auditHash = await smartAccountClient.sendUserOperation({
+        calls: [auditCall],
     });
-    const auditBlock = auditReceipt.receipt.blockNumber;
-    console.log(`[AGENT V5] ⛏  Confirmed in block ${auditBlock}`);
+    console.log(`[STEP 1] ✅ UserOp submitted: ${auditHash}`);
 
-    // ── Step 2: Wait for CRE oracle clearance ────────────────────────────────
-    console.log("[AGENT V5] 👁  STEP 2: Awaiting Chainlink CRE clearance...");
-    const approved = await pollForClearanceV5(
-        publicClient,
-        AEGIS_MODULE_ADDRESS,
-        TARGET_TOKEN_ADDRESS,
-        auditBlock
-    );
+    const auditReceipt = await pimlicoClient.waitForUserOperationReceipt({
+        hash: auditHash,
+    });
+    console.log(`[STEP 1] ✅ Mined in block ${auditReceipt.receipt.blockNumber}`);
+    console.log(`[STEP 1] 📡 AuditRequested event emitted — waiting for oracle clearance...`);
 
-    // ── Step 3: Execute triggerSwap via UserOp ───────────────────────────────
-    if (approved) {
-        console.log("[AGENT V5] 🟢 STEP 3: CLEARED — Executing JIT swap via UserOp...");
-        const swapCall = buildV5TriggerSwapCall(
-            AEGIS_MODULE_ADDRESS,
-            TARGET_TOKEN_ADDRESS,
-            parseEther("0.01"), // 0.01 ETH from treasury
-            BigInt(1)           // min output (slippage = max for demo)
-        );
+    // ══════════════════════════════════════════════════════════════════════
+    //  STEP 2: Wait for Oracle Clearance
+    // ══════════════════════════════════════════════════════════════════════
+    console.log("\n━━━ STEP 2: Polling for oracle clearance ━━━");
 
-        const swapUserOpHash = await smartAccountClient.sendUserOperation({
-            calls: [{ to: swapCall.to, data: swapCall.data, value: swapCall.value }],
+    const MODULE_ABI = [{
+        name: "isApproved",
+        type: "function",
+        stateMutability: "view",
+        inputs: [{ name: "token", type: "address" }],
+        outputs: [{ name: "", type: "bool" }],
+    }] as const;
+
+    let cleared = false;
+    for (let i = 0; i < 60; i++) {
+        cleared = await publicClient.readContract({
+            address: moduleAddress,
+            abi: MODULE_ABI,
+            functionName: "isApproved",
+            args: [targetToken],
         });
-        console.log(`[AGENT V5] ✅ Swap UserOp: ${swapUserOpHash}`);
-        const swapReceipt = await smartAccountClient.waitForUserOperationReceipt({
-            hash: swapUserOpHash,
-        });
-        console.log(`[AGENT V5] 🎉 Swap confirmed in block ${swapReceipt.receipt.blockNumber}`);
-        console.log(`[AGENT V5] 🔗 Tx: ${swapReceipt.receipt.transactionHash}`);
-    } else {
-        console.log("[AGENT V5] 🔴 BLOCKED by Aegis Firewall. Zero capital at risk. Standing down.");
+        if (cleared) break;
+        console.log(`[STEP 2] ⏳ Poll ${i + 1}/60 — not cleared yet...`);
+        await new Promise((r) => setTimeout(r, 5000)); // 5s intervals
     }
 
-    process.exit(0);
+    if (!cleared) {
+        console.error("[STEP 2] ❌ Oracle did not clear token within 5 minutes");
+        process.exit(1);
+    }
+    console.log(`[STEP 2] 🔓 Token CLEARED by oracle!`);
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  STEP 3: Trigger Swap via UserOp
+    // ══════════════════════════════════════════════════════════════════════
+    console.log("\n━━━ STEP 3: triggerSwap via UserOp ━━━");
+
+    const swapCall = buildV5TriggerSwapCall(
+        moduleAddress,
+        targetToken,
+        BigInt(10000000000000000), // 0.01 ETH
+    );
+
+    const swapHash = await smartAccountClient.sendUserOperation({
+        calls: [swapCall],
+    });
+    console.log(`[STEP 3] ✅ UserOp submitted: ${swapHash}`);
+
+    const swapReceipt = await pimlicoClient.waitForUserOperationReceipt({
+        hash: swapHash,
+    });
+    console.log(`[STEP 3] 🎉 Swap executed in block ${swapReceipt.receipt.blockNumber}`);
+
+    // ── Done ─────────────────────────────────────────────────────────────
+    console.log("\n═══════════════════════════════════════════════════════════════");
+    console.log("  ✅ AEGIS V5 AGENT BOT — COMPLETE");
+    console.log("  All operations submitted via Pimlico Cloud Bundler");
+    console.log("  Full ERC-4337 compliance on Base Sepolia");
+    console.log("═══════════════════════════════════════════════════════════════\n");
 }
 
 main().catch((err) => {
-    console.error("[AGENT V5] 💥 Fatal error:", err);
+    console.error("💥 Bot fatal:", err.message);
     process.exit(1);
 });

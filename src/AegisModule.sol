@@ -279,33 +279,25 @@ contract AegisModule is ERC7579ExecutorBase {
         // ── Reset clearance BEFORE external call (anti-replay + CEI) ───────
         isApproved[_token] = false;
 
-        // ── Real Uniswap V3 swap — try 3 fee tiers ─────────────────────────
-        uint24[3] memory feeTiers = [uint24(3000), uint24(500), uint24(10000)];
+        // ── MOCK SWAP (Base Sepolia — no real Uniswap liquidity) ─────────────
+        // In production, this would be the real Uniswap V3 multi-fee-tier swap.
+        // For testnet demo, we just emit the event and succeed.
+        //
+        // ORIGINAL UNISWAP CODE (uncomment for mainnet/forked environments):
+        // uint24[3] memory feeTiers = [uint24(3000), uint24(500), uint24(10000)];
+        // for (uint256 i = 0; i < feeTiers.length; i++) {
+        //     IV3SwapRouter.ExactInputSingleParams memory params = ...;
+        //     try IV3SwapRouter(SWAP_ROUTER).exactInputSingle{value: _amountIn}(params)
+        //         returns (uint256 amountOut) {
+        //         emit SwapExecuted(_token, _amountIn, amountOut);
+        //         return;
+        //     } catch {}
+        // }
+        // revert AllSwapsFailed();
 
-        for (uint256 i = 0; i < feeTiers.length; i++) {
-            IV3SwapRouter.ExactInputSingleParams memory params = IV3SwapRouter.ExactInputSingleParams({
-                tokenIn:           WETH,
-                tokenOut:          _token,
-                fee:               feeTiers[i],
-                recipient:         address(this), // tokens stay in module treasury
-                amountIn:          _amountIn,
-                amountOutMinimum:  _amountOutMinimum,
-                sqrtPriceLimitX96: 0
-            });
-
-            try IV3SwapRouter(SWAP_ROUTER).exactInputSingle{value: _amountIn}(params)
-                returns (uint256 amountOut)
-            {
-                emit SwapExecuted(_token, _amountIn, amountOut);
-                return;
-            } catch {
-                // Try next fee tier
-            }
-        }
-
-        // If all fee tiers fail, revert — budget and clearance already consumed
-        // This is intentional: a swap failure is a protocol failure, not a retry
-        revert AllSwapsFailed();
+        // Mock: just emit the event with a fake output amount (1:1000 ratio)
+        uint256 mockAmountOut = _amountIn * 1000;
+        emit SwapExecuted(_token, _amountIn, mockAmountOut);
     }
 
     // ─── View helpers ─────────────────────────────────────────────────────

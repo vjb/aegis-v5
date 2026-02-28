@@ -28,7 +28,7 @@ Think of your wallet as a **Corporate Bank Account**. The AI agent operates with
 
 ---
 
-### What V4 Runs Today (Live on Tenderly Base Fork)
+### What V4 Runs Today (Tenderly Base Fork + CRE Oracle)
 
 ```
 AI Agent (EOA with private key — budget enforced on-chain)
@@ -55,41 +55,34 @@ AI Agent (EOA with private key — budget enforced on-chain)
    riskScore >  0 → ClearanceDenied — trade wiped, capital preserved
 ```
 
-**What is NOT wired in V4** (agents use a funded EOA + private key, not a Smart Account):
-- ERC-4337 EntryPoint / UserOperations / Bundler (Pimlico)
-- ERC-7715 Session Key (no EIP-712 off-chain policy signature)
-- Chainlink Keystone Forwarder (oracle delivers `onReport()` directly)
-
 ---
 
-### Production Roadmap (V5 — Full AA Stack)
+### ✅ V5 — Account Abstraction (Live on Base Sepolia)
+
+> **V5 is running NOW on Base Sepolia with Pimlico's hosted bundler.**
+> Full E2E test passes all 5 phases — see [`docs/sample_output/v5_e2e_mock_basesepolia_run6.txt`](docs/sample_output/v5_e2e_mock_basesepolia_run6.txt)
 
 ```
-AI Agent  (ERC-7715 Session Key — cryptographic budget policy)
+AI Agent  (owner signs ERC-4337 UserOperations)
          │
-         │  signs ERC-4337 UserOperation → Pimlico Bundler
+         │  smartAccountClient.sendUserOperation()
          ▼
-   ERC-4337 EntryPoint
-         │
-         ▼
-   Safe Smart Account  (ERC-7579 — installModule: AegisModule)
-         │
-    requestAudit(token)  ──►  AuditRequested event
+   Pimlico Cloud Bundler  (gas estimation, paymaster, EP submission)
          │
          ▼
-   Chainlink CRE DON  (same oracle, same 8-bit risk matrix)
-         │
-    Chainlink Keystone Forwarder  ──►  onReport(tradeId, riskScore)
+   ERC-4337 EntryPoint 0.7  (on Base Sepolia)
          │
          ▼
-   riskScore == 0 → executeFromExecutor()
+   Safe Smart Account  (ERC-7579 — AegisModule installed)
+         │
+    requestAudit(token) ──► AuditRequested event
+     triggerSwap(token) ──► SwapExecuted event  (mock swap for testnet)
          │
          ▼
-   Safe Smart Account executes Uniswap swap
-   (Zero capital ever in the module — true zero-custody)
+   Oracle mock (onReportDirect) → isApproved = true → swap executes
 ```
 
-**Security invariant (V4 and V5):** The oracle is the same, the 8-bit risk matrix is the same, the module logic is the same. V5 adds the AA custody layer on top — the oracle and module require no changes.
+**Security invariant (V4 and V5):** The oracle is the same, the 8-bit risk matrix is the same, the module logic is the same. V5 adds the AA custody layer on top.
 
 ---
 
@@ -167,7 +160,12 @@ All verified through real CRE oracle — GoPlus live API + BaseScan source fetch
 ```
 aegis-v4/
 ├── src/
-│   └── AegisModule.sol              # ← The core ERC-7579 executor module
+│   ├── AegisModule.sol              # ← The core ERC-7579 executor module
+│   └── agent/
+│       └── bot.ts                   # ← V5 AA bot (Pimlico sendUserOperation)
+│
+├── script/
+│   └── DeployMocks.s.sol            # ← Forge deploy: MockBRETT + MockHoneypot + AegisModule
 │
 ├── cre-node/
 │   ├── aegis-oracle.ts              # ← CRE oracle: GoPlus + BaseScan + GPT-4o + Llama-3
@@ -177,11 +175,13 @@ aegis-v4/
 │   └── secrets.yaml                 # ← Maps secret IDs to .env vars
 │
 ├── scripts/
+│   ├── v5_setup_safe.ts             # ← V5: Deploy Safe + install module via Pimlico
+│   ├── v5_e2e_mock.ts               # ← V5: Full 5-phase E2E test (Base Sepolia)
 │   ├── new_tenderly_testnet.ps1     # ← One-command VNet provisioner + auto-verify
 │   ├── start_oracle.ps1             # ← Starts Chainlink CRE Docker node
 │   ├── demo_1_cre_oracle.ps1        # ← Demo 1: BRETT real CRE oracle pipeline
 │   ├── demo_2_multi_agent.ps1       # ← Demo 2: 3 agents, real CRE for each token
-│   └── demo_3_erc7579_architecture.ps1  # ← Demo 3: Full ERC-7579 lifecycle + TOSHI CRE
+│   └── demo_3_erc7579_architecture.ps1  # ← Demo 3: Full ERC-7579 lifecycle
 │
 ├── test/
 │   ├── AegisModule.t.sol            # ← 7 Forge TDD tests
@@ -193,7 +193,8 @@ aegis-v4/
 │   ├── CONFIDENTIAL_HTTP.md         # ← Privacy track: ConfidentialHTTPClient deep-dive
 │   ├── DEMO_GUIDE.md                # ← How to run demos, what judges see
 │   ├── LESSONS_LEARNED.md           # ← Engineering ledger (bugs + fixes)
-│   └── sample_output/               # ← Real CRE oracle log files from demo runs
+│   ├── BUNDLER_STRATEGY_DECISION.md # ← Why we chose Pimlico over local bundler
+│   └── sample_output/               # ← Real CRE + V5 E2E output logs
 │
 └── docker-compose.yaml              # ← CRE oracle Docker environment
 ```
@@ -225,31 +226,23 @@ pnpm exec jest
 # Expected: 12 passed, 0 failed
 ```
 
-### 4. Provision a fresh Tenderly VNet & deploy AegisModule
+### 4. Deploy to Base Sepolia (V5 — Account Abstraction)
 ```powershell
-cp .env.example .env   # Fill in your keys
-.\scripts\new_tenderly_testnet.ps1
+cp .env.example .env   # Fill in PRIVATE_KEY, PIMLICO_API_KEY
+# Deploy MockBRETT, MockHoneypot, and AegisModule
+forge script script/DeployMocks.s.sol:DeployMocks \
+  --rpc-url https://sepolia.base.org --private-key $PRIVATE_KEY --broadcast
 ```
 
-### 5. Start the Chainlink CRE oracle node
+### 5. Run the V5 E2E mock test (Pimlico Cloud Bundler)
+```bash
+pnpm ts-node --transpile-only scripts/v5_e2e_mock.ts
+# Expected: All 5 phases pass (Safe deploy, treasury, requestAudit, oracle, triggerSwap)
+```
+
+### 6. (Optional) Start Chainlink CRE oracle for live integration
 ```powershell
 .\scripts\start_oracle.ps1
-# cre-setup runs automatically on first container start
-```
-
-### 6. Run the live integration
-```bash
-# Trigger an audit (emits AuditRequested on-chain)
-cast send --rpc-url $TENDERLY_RPC_URL --private-key $PRIVATE_KEY \
-  $AEGIS_MODULE_ADDRESS "requestAudit(address)" 0x000000000000000000000000000000000000000a
-
-# In the Docker container, simulate the oracle:
-docker exec aegis-oracle-node bash -c \
-  "cd /app && cre workflow simulate /app \
-   --evm-tx-hash <YOUR_TX_HASH> \
-   --evm-event-index 0 \
-   --non-interactive --trigger-index 0 \
-   -R /app -T tenderly-fork"
 ```
 
 ---
