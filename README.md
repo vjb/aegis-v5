@@ -5,7 +5,7 @@
 > *Aegis is a zero-custody AI security firewall that installs onto your Smart Account and mathematically constrains what an autonomous AI agent can do with your capital.*
 
 [![Forge Tests](https://img.shields.io/badge/forge%20tests-18%20passing-brightgreen)](test/AegisModule.t.sol)
-[![Jest Tests](https://img.shields.io/badge/jest%20tests-72%20passing-brightgreen)](test/)
+[![Jest Tests](https://img.shields.io/badge/jest%20tests-83%20passing-brightgreen)](test/)
 [![CRE Live](https://img.shields.io/badge/chainlink%20CRE-live%20on%20Base%20Sepolia-blue)](cre-node/)
 [![ERC-7579](https://img.shields.io/badge/ERC--7579-executor-orange)](src/AegisModule.sol)
 [![ERC-4337](https://img.shields.io/badge/ERC--4337-Pimlico%20bundler-purple)](scripts/v5_e2e_mock.ts)
@@ -115,7 +115,7 @@ forge test --match-contract AegisModuleTest -vv
 ### 3. Run TypeScript tests
 ```bash
 pnpm exec jest
-# Expected: 72 passed, 0 failed
+# Expected: 83 passed, 1 skipped
 ```
 
 ### 4. Deploy to Base Sepolia
