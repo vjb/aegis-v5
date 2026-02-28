@@ -366,9 +366,8 @@ sequenceDiagram
     Agent->>AM: triggerSwap(BRETT, 0.01 ETH)
     AM->>AM: consume clearance (CEI anti-replay)
     AM->>Safe: executeFromExecutor
-    Safe->>Uni: exactInputSingle WETH → BRETT
-    Uni-->>Safe: BRETT tokens received
-    AM-->>Agent: emit SwapExecuted ✅
+    Safe->>Safe: triggerSwap() — simulated
+    Safe-->>AM: SwapExecuted event emitted
 ```
 
 ---
