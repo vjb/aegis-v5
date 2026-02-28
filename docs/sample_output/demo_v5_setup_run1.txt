@@ -18,7 +18,7 @@ Proving connectivity to live infrastructure, abandoning local mocks.
   Pinging Base Sepolia RPC... |/-\|/-\|/-\   ✅ Connected successfully to Base Sepolia (Chain ID: 84532)
 
 > cast balance 0x109D8072B1762263ed094BC05c5110895Adc65Cf
-  Checking deployer bankroll... |/-\|/-\|/   ✅ Dev Wallet funded with 0.0550 ETH (Ready for deployments)
+  Checking deployer bankroll... |/-\|/-\|/-\|   ✅ Dev Wallet funded with 0.0550 ETH (Ready for deployments)
 
   Deployed Contracts on Base Sepolia:
     AegisModule:   0x23efaef29ecc0e6ce313f0eed3d5da7e0f5bcd89
@@ -36,6 +36,7 @@ Destroying old containers to guarantee a fresh state.
   [Docker]  Container aegis-oracle-node  Removed
   [Docker]  Network aegis-v4_default  Removing
   [Docker]  Network aegis-v4_default  Removed
+  [Docker] 2026/02/28 02:14:51 http2: server: error reading preface from client //./pipe/docker_engine: file has already been closed
   [Docker] #0 building with "default" instance using docker driver
   [Docker] 
   [Docker] #1 [cre-node internal] load build definition from Dockerfile
@@ -54,30 +55,30 @@ Destroying old containers to guarantee a fresh state.
   [Docker] 
   [Docker] #5 [cre-node internal] load build context
   [Docker] #5 transferring context: 35B done
-  [Docker] #5 DONE 0.1s
+  [Docker] #5 DONE 0.0s
   [Docker] 
-  [Docker] #6 [cre-node  6/10] RUN curl -sSL https://cre.chain.link/install.sh | bash &&     mv /root/.cre/bin/cre /usr/local/bin/cre
+  [Docker] #6 [cre-node  8/10] WORKDIR /app
   [Docker] #6 CACHED
   [Docker] 
-  [Docker] #7 [cre-node  8/10] WORKDIR /app
+  [Docker] #7 [cre-node  5/10] RUN curl -L https://foundry.paradigm.xyz | bash &&     foundryup
   [Docker] #7 CACHED
   [Docker] 
-  [Docker] #8 [cre-node  4/10] RUN curl -fsSL https://bun.sh/install | bash
+  [Docker] #8 [cre-node  3/10] RUN mkdir -p /etc/apt/keyrings &&     curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg &&     echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list &&     apt-get update && apt-get install -y nodejs
   [Docker] #8 CACHED
   [Docker] 
-  [Docker] #9 [cre-node  9/10] COPY entrypoint.sh /entrypoint.sh
+  [Docker] #9 [cre-node  7/10] RUN mkdir -p /root/.cache/javy/v5.0.4/linux-x64 &&     curl -L https://github.com/bytecodealliance/javy/releases/download/v5.0.4/javy-x86_64-linux-v5.0.4.gz | gunzip > /root/.cache/javy/v5.0.4/linux-x64/javy &&     chmod +x /root/.cache/javy/v5.0.4/linux-x64/javy
   [Docker] #9 CACHED
   [Docker] 
   [Docker] #10 [cre-node  2/10] RUN apt-get update && apt-get install -y     curl     git     build-essential     unzip     wget     python3     golang-go     ca-certificates     gnupg     xz-utils     && rm -rf /var/lib/apt/lists/*
   [Docker] #10 CACHED
   [Docker] 
-  [Docker] #11 [cre-node  3/10] RUN mkdir -p /etc/apt/keyrings &&     curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg &&     echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list &&     apt-get update && apt-get install -y nodejs
+  [Docker] #11 [cre-node  9/10] COPY entrypoint.sh /entrypoint.sh
   [Docker] #11 CACHED
   [Docker] 
-  [Docker] #12 [cre-node  5/10] RUN curl -L https://foundry.paradigm.xyz | bash &&     foundryup
+  [Docker] #12 [cre-node  4/10] RUN curl -fsSL https://bun.sh/install | bash
   [Docker] #12 CACHED
   [Docker] 
-  [Docker] #13 [cre-node  7/10] RUN mkdir -p /root/.cache/javy/v5.0.4/linux-x64 &&     curl -L https://github.com/bytecodealliance/javy/releases/download/v5.0.4/javy-x86_64-linux-v5.0.4.gz | gunzip > /root/.cache/javy/v5.0.4/linux-x64/javy &&     chmod +x /root/.cache/javy/v5.0.4/linux-x64/javy
+  [Docker] #13 [cre-node  6/10] RUN curl -sSL https://cre.chain.link/install.sh | bash &&     mv /root/.cre/bin/cre /usr/local/bin/cre
   [Docker] #13 CACHED
   [Docker] 
   [Docker] #14 [cre-node 10/10] RUN chmod +x /entrypoint.sh
@@ -100,7 +101,7 @@ Destroying old containers to guarantee a fresh state.
 Converting the off-chain AI firewall logic into a deterministically verifiable WASM binary.
 
 > docker exec aegis-oracle-node bash -c "cd /app && bun x cre-setup"
-  Initializing Javy compiler... |/-\|/-\|/-\|/-\|/   [WASM] [cre-sdk-javy-plugin] Detected platform: linux, arch: x64
+  Initializing Javy compiler... |/-\|/-\|/-\|/-\|/-   [WASM] [cre-sdk-javy-plugin] Detected platform: linux, arch: x64
   [WASM] [cre-sdk-javy-plugin] Using cached binary: /root/.cache/javy/v5.0.4/linux-x64/javy
   [WASM] ✅ CRE TS SDK is ready to use.
   ✅ AI Consensus logic successfully compiled to /app/dist/aegis-oracle.wasm
