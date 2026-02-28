@@ -5,7 +5,14 @@
         "**/test/**/*.spec.ts"
     ],
     "moduleNameMapper": {
-        "^viem$": "<rootDir>/node_modules/viem/index.js"
+        "^viem/account-abstraction$": "<rootDir>/node_modules/viem/_cjs/account-abstraction/index.js",
+        "^viem/accounts$": "<rootDir>/node_modules/viem/_cjs/accounts/index.js",
+        "^viem/chains$": "<rootDir>/node_modules/viem/_cjs/chains/index.js",
+        "^viem$": "<rootDir>/node_modules/viem/_cjs/index.js",
+        "^permissionless/accounts$": "<rootDir>/node_modules/permissionless/_cjs/accounts/index.js",
+        "^permissionless/actions$": "<rootDir>/node_modules/permissionless/_cjs/actions/index.js",
+        "^permissionless$": "<rootDir>/node_modules/permissionless/_cjs/index.js",
+        "^@rhinestone/module-sdk$": "<rootDir>/node_modules/@rhinestone/module-sdk/_cjs/index.js"
     },
     "transform": {
         "^.+\\.tsx?$": [
