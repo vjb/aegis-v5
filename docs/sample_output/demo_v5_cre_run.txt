@@ -21,7 +21,7 @@
   ℹ️  Simulating Agent NOVA routing ERC-4337 intent through Pimlico...
 
 > cast send 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89 "requestAudit(address)" 0xf672c8fc888b98db5c9662d26e657417a3c453b5 --rpc-url https://sepolia.base.org --private-key <PRIVATE_KEY>
-  Awaiting Base Sepolia Block Confirmation... |/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-   ✅ UserOperation Confirmed. AuditRequested Event Emitted.
+  Awaiting Base Sepolia Block Confirmation... |/-\|/-\|/-\|/-\|/-\|/-\|/-\|   ✅ UserOperation Confirmed. AuditRequested Event Emitted.
   ➤ TxHash: 0x0000000000000000000000000000000000000000000000000000000000000000
 
 ==========================================================================
@@ -32,48 +32,7 @@
 
 --- BEGIN RAW SECURE WASM EXECUTION ---
 
-Initializing...
-{"level":"debug","time":"2026-03-01T18:44:13Z","message":"token expired or approaching expiration, refreshing"}
-{"level":"debug","time":"2026-03-01T18:44:13Z","message":"refreshing tokens"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"token refreshed"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"refreshed tokens saved to disk"}
-{"level":"debug","client":"GraphQL","time":"2026-03-01T18:44:14Z","message":">> variables: map[]"}
-{"level":"debug","client":"GraphQL","time":"2026-03-01T18:44:14Z","message":">> query: \nquery GetOrganizationDetails  {\n\tgetOrganization {\n\t\torganizationId\n\t}\n}"}
-{"level":"debug","client":"GraphQL","time":"2026-03-01T18:44:14Z","message":">> headers: map[Accept:[application/json; charset=utf-8] Authorization:[[REDACTED]] Content-Type:[application/json; charset=utf-8] User-Agent:[cre-cli]]"}
-{"level":"debug","client":"GraphQL","time":"2026-03-01T18:44:14Z","message":"<< {\"data\":{\"getOrganization\":{\"organizationId\":\"org_tz3JbGlqTtkTRfLm\"}}}"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"Target:  base-sepolia"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"setting \"logging.seth-config-path\" not found in target \"base-sepolia\""}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-testnet-sepolia; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-mainnet; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-mainnet-base-1; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for avalanche-testnet-fuji; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for avalanche-mainnet; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for polygon-testnet-amoy; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for polygon-mainnet; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for binance_smart_chain-testnet; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for binance_smart_chain-mainnet; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-testnet-sepolia-arbitrum-1; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-mainnet-arbitrum-1; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-testnet-sepolia-optimism-1; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-mainnet-optimism-1; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for private-testnet-andesite; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-mainnet-zksync-1; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-testnet-sepolia-zksync-1; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for jovay-testnet; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-testnet-sepolia-worldchain-1; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-mainnet-worldchain-1; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for plasma-testnet; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-testnet-sepolia-linea-1; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ink-testnet-sepolia; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for hyperliquid-testnet; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for apechain-testnet-curtis; skipping"}
-{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for arc-testnet; skipping"}
-Checking RPC connectivity...
-Compiling workflow...
-{"level":"debug","time":"2026-03-01T18:44:20Z","message":"Workflow compiled"}
-✓ Workflow compiled
-Fetching transaction receipt for 0x0000000000000000000000000000000000000000000000000000000000000000...
-✗ Failed to build EVM trigger log: failed to fetch transaction receipt: not found
+Error response from daemon: container 55f9e32e84d7b13b0828ed90ebf2117bd38c4a19c090f5fd228cc26bc45b43de is not running
 
 --- END RAW SECURE WASM EXECUTION ---
 

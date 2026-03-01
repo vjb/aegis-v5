@@ -21,29 +21,6 @@ Ran 18 tests for test/AegisModule.t.sol:AegisModuleTest
 [PASS] test_triggerSwap_mockEmitsEvent() (gas: 103608)
 [PASS] test_triggerSwap_onlyOwnerOrAgent() (gas: 83052)
 [PASS] test_triggerSwap_requiresClearance() (gas: 18533)
-Suite result: ok. 18 passed; 0 failed; 0 skipped; finished in 3.18ms (6.53ms CPU time)
+Suite result: ok. 18 passed; 0 failed; 0 skipped; finished in 3.02ms (9.18ms CPU time)
 
-Ran 1 test for test/HookTemplate.t.sol:HookTemplateTest
-[PASS] testExec() (gas: 288565)
-Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 30.45ms (2.06ms CPU time)
-
-Ran 1 test for test/ExecutorTemplate.t.sol:ExecutorTemplateTest
-[PASS] testExec() (gas: 300433)
-Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 45.59ms (15.92ms CPU time)
-
-Ran 1 test for test/ValidatorTemplate.t.sol:ValidatorTemplateTest
-[PASS] testExec() (gas: 298721)
-Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 47.25ms (17.75ms CPU time)
-
-╭-----------------------+--------+--------+---------╮
-| Test Suite            | Passed | Failed | Skipped |
-+===================================================+
-| AegisModuleTest       | 18     | 0      | 0       |
-|-----------------------+--------+--------+---------|
-| ExecutorTemplateTest  | 1      | 0      | 0       |
-|-----------------------+--------+--------+---------|
-| HookTemplateTest      | 1      | 0      | 0       |
-|-----------------------+--------+--------+---------|
-| ValidatorTemplateTest | 1      | 0      | 0       |
-╰-----------------------+--------+--------+---------╯
-
+Ran 1 test suite in 11.78ms (3.02ms CPU time): 18 tests passed, 0 failed, 0 skipped (18 total tests)

@@ -1,15 +1,16 @@
-PASS test/frontend.spec.ts (44.344 s)
-PASS test/bot.spec.ts (44.414 s)
-PASS test/oracle.spec.ts (45.141 s)
+PASS test/frontend.spec.ts (34.597 s)
+PASS test/bot.spec.ts (34.907 s)
+PASS test/oracle.spec.ts
+PASS test/bot_v5.spec.ts (36.516 s)
 PASS test/safe_setup.spec.ts
-PASS test/session_key.spec.ts (46.822 s)
-PASS test/bot_v5.spec.ts (46.936 s)
-PASS test/session_install.spec.ts (50.267 s)
-PASS test/cre/HeimdallLive.spec.ts (57.935 s)
+PASS test/session_key.spec.ts (36.585 s)
+PASS test/visualizer/ConsensusVisualizer.spec.tsx (36.269 s)
+PASS test/session_install.spec.ts (38.715 s)
+PASS test/cre/HeimdallLive.spec.ts (46.375 s)
   ● Console
 
     console.log
-      [TEST] Decompiled 19666 hex chars → 15000 chars in 4481ms
+      [TEST] Decompiled 19666 hex chars → 15000 chars in 4063ms
 
       at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:89:17)
 
@@ -54,7 +55,7 @@ PASS test/cre/HeimdallLive.spec.ts (57.935 s)
         "externalCallRisk": false,
         "logicBomb": false,
         "is_malicious": true,
-        "reasoning": "The contract contains privilege escalation where only the owner can perform certain actions, potentially leading to malicious behavior."
+        "reasoning": "The contract contains privilege escalation where only the owner can subscribe agents, indicating potential centralization and control risks."
       }
 
       at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:236:17)
@@ -90,14 +91,14 @@ PASS test/cre/HeimdallLive.spec.ts (57.935 s)
       at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:263:17)
 
     console.log
-      [TEST]   reasoning: The contract contains privilege escalation where only the owner can perform certain actions, potentially leading to malicious behavior.
+      [TEST]   reasoning: The contract contains privilege escalation where only the owner can subscribe agents, indicating potential centralization and control risks.
 
       at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:264:17)
 
 
-Test Suites: 8 passed, 8 total
-Tests:       1 skipped, 92 passed, 93 total
+Test Suites: 9 passed, 9 total
+Tests:       1 skipped, 97 passed, 98 total
 Snapshots:   0 total
-Time:        61.06 s, estimated 69 s
+Time:        48.676 s
 Ran all test suites.
 Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?
