@@ -107,6 +107,8 @@ export default function AgentsTab({ isKilled, onAudit }: { isKilled: boolean; on
             setSubmitMsg(`✅ subscribeAgent() confirmed — tx: ${data.hash?.slice(0, 12)}…`);
             setTimeout(() => setSubmitMsg(null), 4000);
             setNewAddr(''); setNewBudget(0.05); setShowForm(false);
+            // Small delay to let RPC index the AgentSubscribed event before we re-query
+            await new Promise(r => setTimeout(r, 1500));
             await load();
         } catch (e: any) {
             setSubmitMsg(`❌ ${e.message}`);

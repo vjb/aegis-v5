@@ -144,10 +144,11 @@ async function buildSystemContext(): Promise<string> {
             if (!seen.has(addr)) { seen.add(addr); agentAddresses.push(addr); }
         }
 
-        // Fallback: also check known agent addresses directly on-chain
+        // Fallback: also check env-configured agent addresses directly on-chain
         // (events may be outside the block range on Base Sepolia ~28h)
+        // NOTE: Do NOT use KNOWN_NAMES here — those are legacy names and may have
+        // stale on-chain allowances. Only show agents from events or env config.
         const knownAddrs = [
-            ...Object.keys(KNOWN_NAMES),
             env.AGENT_WALLET_ADDRESS?.toLowerCase() || '',
             env.DEV_WALLET_ADDRESS?.toLowerCase() || '',
         ].filter(Boolean);
