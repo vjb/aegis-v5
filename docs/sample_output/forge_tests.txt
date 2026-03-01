@@ -19,18 +19,29 @@ Ran 18 tests for test/AegisModule.t.sol:AegisModuleTest
 [PASS] test_triggerSwap_mockEmitsEvent() (gas: 103608)
 [PASS] test_triggerSwap_onlyOwnerOrAgent() (gas: 83052)
 [PASS] test_triggerSwap_requiresClearance() (gas: 18533)
-Suite result: ok. 18 passed; 0 failed; 0 skipped; finished in 10.53ms (19.58ms CPU time)
-
-Ran 1 test for test/ValidatorTemplate.t.sol:ValidatorTemplateTest
-[PASS] testExec() (gas: 298721)
-Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 41.58ms (2.57ms CPU time)
-
-Ran 1 test for test/HookTemplate.t.sol:HookTemplateTest
-[PASS] testExec() (gas: 288565)
-Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 42.25ms (2.50ms CPU time)
+Suite result: ok. 18 passed; 0 failed; 0 skipped; finished in 29.77ms (26.48ms CPU time)
 
 Ran 1 test for test/ExecutorTemplate.t.sol:ExecutorTemplateTest
 [PASS] testExec() (gas: 300433)
-Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 36.69ms (2.31ms CPU time)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 62.21ms (4.58ms CPU time)
 
-Ran 4 test suites in 65.21ms (131.05ms CPU time): 21 tests passed, 0 failed, 0 skipped (21 total tests)
+Ran 1 test for test/ValidatorTemplate.t.sol:ValidatorTemplateTest
+[PASS] testExec() (gas: 298721)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 63.64ms (5.75ms CPU time)
+
+Ran 1 test for test/HookTemplate.t.sol:HookTemplateTest
+[PASS] testExec() (gas: 288565)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 65.69ms (7.87ms CPU time)
+
+╭-----------------------+--------+--------+---------╮
+| Test Suite            | Passed | Failed | Skipped |
++===================================================+
+| AegisModuleTest       | 18     | 0      | 0       |
+|-----------------------+--------+--------+---------|
+| ExecutorTemplateTest  | 1      | 0      | 0       |
+|-----------------------+--------+--------+---------|
+| HookTemplateTest      | 1      | 0      | 0       |
+|-----------------------+--------+--------+---------|
+| ValidatorTemplateTest | 1      | 0      | 0       |
+╰-----------------------+--------+--------+---------╯
+

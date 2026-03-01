@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Aegis Protocol V5 - The Institutional AI Firewall (Master Demo - LIVE ORACLE)
+Aegis Protocol V5 - The Institutional AI Firewall (End-to-End Showcase - LIVE ORACLE)
 
 .DESCRIPTION
 The DEFINITIVE presentation script for the Aegis Protocol V5 Account Abstraction migration.

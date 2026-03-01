@@ -225,7 +225,7 @@ RISK BIT MATRIX (8-bit, each bit is a specific risk vector):
 - Bit 2: Honeypot — cannot sell after buying (GoPlus simulation)
 - Bit 3: Upgradeable proxy — owner can change code post-deployment (GoPlus)
 - Bit 4: Hidden tax in transfer() source code (AI consensus)
-- Bit 5: Transfer allowlist — only whitelisted wallets can sell (AI consensus)
+- Bit 5: Transfer allowlist — only approved wallets can sell (AI consensus)
 - Bit 6: Arbitrary external call / reentrancy risk (AI consensus)
 - Bit 7: Logic bomb — time-gated or condition-gated malicious code (AI consensus)
 
@@ -280,7 +280,7 @@ RISK BIT MATRIX (8-bit, each bit is a specific risk vector):
 - Bit 2: Honeypot — cannot sell after buying (GoPlus simulation)
 - Bit 3: Upgradeable proxy — owner can change code post-deployment (GoPlus)
 - Bit 4: Hidden tax in transfer() source code (AI consensus)
-- Bit 5: Transfer allowlist — only whitelisted wallets can sell (AI consensus)
+- Bit 5: Transfer allowlist — only approved wallets can sell (AI consensus)
 - Bit 6: Arbitrary external call / reentrancy risk (AI consensus)
 - Bit 7: Logic bomb — time-gated or condition-gated malicious code (AI consensus)
 

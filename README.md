@@ -12,7 +12,7 @@
 [![ERC-7579](https://img.shields.io/badge/ERC--7579-executor-orange)](src/AegisModule.sol)
 [![ERC-4337](https://img.shields.io/badge/ERC--4337-Pimlico%20bundler-purple)](scripts/v5_e2e_mock.ts)
 
-🎬 **[Watch the Demo Video](#)** · 📖 **[Architecture (13 Mermaid Diagrams)](docs/ARCHITECTURE.md)** · 🔐 **[Confidential HTTP Deep-Dive](docs/CONFIDENTIAL_HTTP.md)** · 🏗️ **[ERC Standards (4337 + 7579 + 7715)](docs/ERC_STANDARDS.md)**
+🎬 **[Watch the Demo Video](#)** · 📖 **[Architecture (12 Mermaid Diagrams)](docs/ARCHITECTURE.md)** · 🔐 **[Confidential HTTP Deep-Dive](docs/CONFIDENTIAL_HTTP.md)** · 🏗️ **[ERC Standards (4337 + 7579 + 7715)](docs/ERC_STANDARDS.md)**
 
 ### Verified on Base Sepolia (Chain ID 84532)
 
@@ -120,36 +120,9 @@ sequenceDiagram
 
 ---
 
-## 🔬 Heimdall Bytecode Decompilation Pipeline
+## 🔬 Experimental: Bytecode Decompilation
 
-> **What happens when BaseScan returns no verified source code?**
-
-Traditional security tools go blind when a contract is unverified. Aegis doesn't stop — it deploys the **Heimdall Pipeline**, a local EVM bytecode decompiler that reverse-engineers any deployed contract into readable Solidity.
-
-**Pipeline:** `eth_getCode` → **Heimdall Docker** → GPT-4o → 8-bit Risk Code
-
-| Stage | Technology | What It Does |
-|---|---|---|
-| **Bytecode Extraction** | `eth_getCode` via JSON-RPC | Fetches raw EVM bytecode from any deployed contract |
-| **Decompilation** | [Heimdall-rs v0.9.2](https://heimdall.rs) (Docker) | Symbolic execution → reconstructed Solidity with function signatures, storage patterns, control flow |
-| **AI Analysis** | GPT-4o (temperature=0) | Analyzes decompiled code for obfuscated taxes, privilege escalation, external call risks, logic bombs |
-| **Risk Encoding** | 8-bit bitmask | Same risk code format as verified contract analysis — seamless fallback |
-
-**Key advantages over third-party decompilation APIs:**
-- 🐳 **Runs locally** — zero external dependencies, no API keys for decompilation
-- 🚫 **No Cloudflare blocks** — pure Docker container, no rate limits
-- ⚡ **Fast** — 2-second decompilation for typical contracts
-- 🔒 **Confidential** — bytecode never leaves the local network
-
-```powershell
-# Start the Heimdall microservice
-docker run -d -p 8080:8080 --name aegis-heimdall aegis-heimdall
-
-# Run the interactive demo
-.\scripts\demo_v5_heimdall.ps1 -Interactive
-```
-
-> **Sample output:** [`docs/sample_output/demo_v5_heimdall_run.txt`](docs/sample_output/demo_v5_heimdall_run.txt)
+> Aegis also ships with a standalone **Heimdall bytecode decompilation pipeline** that can analyze contracts with no verified source code. This is a proof-of-concept demo — not yet wired into the live CRE oracle. See **[Heimdall Pipeline (full docs)](docs/HEIMDALL_PIPELINE.md)** for details, demo scripts, and live test results.
 
 ---
 
@@ -161,13 +134,12 @@ Aegis ships with a **Next.js 3-panel command center** that lets you manage agent
 |---|---|
 | **Left — Agents / Firewall / Marketplace** | Manage subscribed agents (subscribe, revoke, trade), toggle 8-bit firewall risk toggles, browse pre-built trading strategies |
 | **Center — AI Chat** | Natural language interface to query treasury balance, list agents, or trigger audits ("audit BRETT") |
-| **Right — Oracle Feed** | Real-time SSE stream showing GoPlus → BaseScan → Heimdall → GPT-4o → Llama-3 → Verdict with on-chain explorer links |
+| **Right — Oracle Feed** | Real-time SSE stream showing GoPlus → BaseScan → GPT-4o → Llama-3 → Verdict with on-chain explorer links |
 
 **Key Features:**
 - 🔴 **Kill Switch** — one-click protocol lock that halts all agentic outflow and severs Smart Account connections
-- 🟣 **Heimdall Status** — live Docker decompiler indicator in the header alongside CRE DON status
 - 🎯 **Drag-to-Resize** — adjustable panel widths for any screen size
-- 🏪 **Agent Marketplace** — 4 pre-built strategies (BLUECHIP, YIELD, DEGEN, SAFE) with color-coded risk badges
+- 🏪 **Agent Marketplace** — 5 pre-built strategies (BLUECHIP, YIELD, DEGEN, SAFE, HEIMDALL) with color-coded risk badges
 
 > **UI Test Matrix:** [`docs/UI_TEST_MATRIX.md`](docs/UI_TEST_MATRIX.md) — 50 automated test cases across 10 categories
 
@@ -212,7 +184,6 @@ The AI agent (holding only an ERC-7715 session key) sends a UserOp calling `Aegi
 The Chainlink CRE DON catches the event and runs a multi-phase audit:
 - **GoPlus** — static on-chain analysis (honeypot, sell restriction, proxy)
 - **BaseScan** — source code retrieval (via ConfidentialHTTPClient)
-- **Heimdall** — fallback bytecode decompilation for unverified contracts (local Docker, no external APIs)
 - **GPT-4o + Llama-3** — dual-model AI consensus (obfuscated tax, privilege escalation, logic bombs)
 
 The result is an **8-bit risk matrix** delivered to `AegisModule.onReport(tradeId, riskScore)`.
@@ -244,7 +215,7 @@ Aegis operates on a strict zero-trust basis: **any interaction with an unverifie
 
 This means shady coins — tokens deployed without verified source, proxy-hidden logic, or freshly deployed honeypots — are stopped before the AI pipeline even runs. The AI models (GPT-4o + Llama-3) only analyze contracts that have passed the initial GoPlus gate.
 
-> **Roadmap:** In upcoming versions, Aegis will handle unverified contracts by routing their raw EVM bytecode through advanced decompilers (such as [Dedaub](https://dedaub.com/) or [Heimdall](https://github.com/Jon-Becker/heimdall-rs)) to reconstruct the contract logic before feeding it into the parallel LLM pipeline. This will extend coverage to contracts that are intentionally deployed unverified to evade source-level analysis.
+> **Experimental:** A standalone [Heimdall bytecode decompilation pipeline](docs/HEIMDALL_PIPELINE.md) demonstrates how Aegis could extend coverage to unverified contracts by decompiling raw EVM bytecode before feeding it to the AI consensus layer.
 
 ---
 
