@@ -24,6 +24,7 @@ const DEMO_EVENTS: EventEntry[] = [
     { txHash: '0x9876543210abcdef9876543210abcdef9876543210abcdef9876543210abcdef', blockNumber: '24801365', type: 'ClearanceUpdated', token: 'TOSHI', agent: '0xba5359fac9736e687c39d9613de3e8fa6c7af1ce', riskCode: 0, approved: true, status: 'Cleared', explorerUrl: '' },
     { txHash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890', blockNumber: '24801371', type: 'SwapExecuted', token: 'TOSHI', agent: '0xba5359fac9736e687c39d9613de3e8fa6c7af1ce', status: 'Swap', explorerUrl: '' },
     { txHash: '0x5555555512345678555555551234567855555555123456785555555512345678', blockNumber: '24801380', type: 'ClearanceUpdated', token: 'DEGEN', agent: '0xba5359fac9736e687c39d9613de3e8fa6c7af1ce', riskCode: 0, approved: true, status: 'Cleared', explorerUrl: '' },
+    { txHash: '0x7777777712345678777777771234567877777777123456787777777712345678', blockNumber: '24801395', type: 'ClearanceDenied', token: 'UnverifiedDoge', agent: '0xf5a5e415061470a8b9137959180901aea72450a4', riskCode: 129, approved: false, status: 'Blocked', explorerUrl: '' },
 ];
 
 export default function AuditLogTab({ refreshTrigger }: { refreshTrigger?: number }) {
