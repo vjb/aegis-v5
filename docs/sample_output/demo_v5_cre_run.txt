@@ -14,79 +14,66 @@
 
 [Scene 1] Booting Decentralized Firewall Infrastructure...
   ➤ Network:      Base Sepolia (Public Testnet)
-  ➤ Module:       0x23efaef29ecc0e6ce313f0eed3d5da7e0f5bcd89 (ERC-7579)
+  ➤ Module:       0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89 (ERC-7579)
   ➤ Target:       0xf672c8fc888b98db5c9662d26e657417a3c453b5 (Known Honeypot)
 
 [Scene 2] Generating live 'AuditRequested' event...
   ℹ️  Simulating Agent NOVA routing ERC-4337 intent through Pimlico...
 
-> cast send 0x23efaef29ecc0e6ce313f0eed3d5da7e0f5bcd89 "requestAudit(address)" 0xf672c8fc888b98db5c9662d26e657417a3c453b5 --rpc-url https://sepolia.base.org --private-key <PRIVATE_KEY>
-  Awaiting Base Sepolia Block Confirmation...    ✅ UserOperation Confirmed. AuditRequested Event Emitted.
-  ➤ TxHash: 0x8f7bc0910553101521fe5aaffa9bdcae5b628a1f006f459402dd05fcd07df062
+> cast send 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89 "requestAudit(address)" 0xf672c8fc888b98db5c9662d26e657417a3c453b5 --rpc-url https://sepolia.base.org --private-key <PRIVATE_KEY>
+  Awaiting Base Sepolia Block Confirmation... |/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-   ✅ UserOperation Confirmed. AuditRequested Event Emitted.
+  ➤ TxHash: 0x0000000000000000000000000000000000000000000000000000000000000000
 
 ==========================================================================
  ⚙️ CHAINLINK RUNTIME ENVIRONMENT (CRE) SECURE EXECUTION
 ==========================================================================
 
-> docker exec -e AEGIS_DEMO_MODE=true aegis-oracle-node cre workflow simulate /app --target base-sepolia --evm-tx-hash 0x8f7bc0910553101521fe5aaffa9bdcae5b628a1f006f459402dd05fcd07df062 --trigger-index 0 --evm-event-index 0 --non-interactive
+> docker exec -e AEGIS_DEMO_MODE=true aegis-oracle-node cre workflow simulate /app --target base-sepolia --evm-tx-hash 0x0000000000000000000000000000000000000000000000000000000000000000 --trigger-index 0 --evm-event-index 0 --non-interactive --verbose
 
 --- BEGIN RAW SECURE WASM EXECUTION ---
 
 Initializing...
+{"level":"debug","time":"2026-03-01T18:44:13Z","message":"token expired or approaching expiration, refreshing"}
+{"level":"debug","time":"2026-03-01T18:44:13Z","message":"refreshing tokens"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"token refreshed"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"refreshed tokens saved to disk"}
+{"level":"debug","client":"GraphQL","time":"2026-03-01T18:44:14Z","message":">> variables: map[]"}
+{"level":"debug","client":"GraphQL","time":"2026-03-01T18:44:14Z","message":">> query: \nquery GetOrganizationDetails  {\n\tgetOrganization {\n\t\torganizationId\n\t}\n}"}
+{"level":"debug","client":"GraphQL","time":"2026-03-01T18:44:14Z","message":">> headers: map[Accept:[application/json; charset=utf-8] Authorization:[[REDACTED]] Content-Type:[application/json; charset=utf-8] User-Agent:[cre-cli]]"}
+{"level":"debug","client":"GraphQL","time":"2026-03-01T18:44:14Z","message":"<< {\"data\":{\"getOrganization\":{\"organizationId\":\"org_tz3JbGlqTtkTRfLm\"}}}"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"Target:  base-sepolia"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"setting \"logging.seth-config-path\" not found in target \"base-sepolia\""}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-testnet-sepolia; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-mainnet; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-mainnet-base-1; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for avalanche-testnet-fuji; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for avalanche-mainnet; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for polygon-testnet-amoy; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for polygon-mainnet; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for binance_smart_chain-testnet; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for binance_smart_chain-mainnet; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-testnet-sepolia-arbitrum-1; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-mainnet-arbitrum-1; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-testnet-sepolia-optimism-1; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-mainnet-optimism-1; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for private-testnet-andesite; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-mainnet-zksync-1; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-testnet-sepolia-zksync-1; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for jovay-testnet; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-testnet-sepolia-worldchain-1; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-mainnet-worldchain-1; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for plasma-testnet; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ethereum-testnet-sepolia-linea-1; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for ink-testnet-sepolia; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for hyperliquid-testnet; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for apechain-testnet-curtis; skipping"}
+{"level":"debug","time":"2026-03-01T18:44:14Z","message":"RPC not provided for arc-testnet; skipping"}
 Checking RPC connectivity...
 Compiling workflow...
+{"level":"debug","time":"2026-03-01T18:44:20Z","message":"Workflow compiled"}
 ✓ Workflow compiled
-Fetching transaction receipt for 0x8f7bc0910553101521fe5aaffa9bdcae5b628a1f006f459402dd05fcd07df062...
-2026-02-28T19:51:35Z [SIMULATION] Simulator Initialized
-
-2026-02-28T19:51:35Z [SIMULATION] Running trigger trigger=evm:ChainSelector:10344971235874465080@1.0.0
-2026-02-28T19:51:35Z [USER LOG] 🛡️ AegisModule V5 | AuditRequested intercepted
-2026-02-28T19:51:36Z [USER LOG] 🛡️ AEGIS MODULE V5 | Auditing: 0xf672c8fc888b98db5c9662d26e657417a3c453b5
-2026-02-28T19:51:36Z [USER LOG] [GoPlus] MOCK registry hit: MockHoneypot
-2026-02-28T19:51:36Z [USER LOG] [GoPlus] unverified=0 sellRestriction=0 honeypot=1
-2026-02-28T19:51:36Z [USER LOG] [BaseScan] Using MOCK source for MockHoneypot (917 chars)
-2026-02-28T19:51:36Z [USER LOG] [AI] Contract under audit: MockHoneypot
-2026-02-28T19:51:36Z [USER LOG] [AI] Prompt sent to AI (first 400 chars): You are the Aegis Protocol Lead Security Auditor for a DeFi firewall. Analyze this ERC-20 token contract for MALICIOUS patterns ONLY.
-
-Return ONLY a valid JSON object with these exact boolean keys plus a reasoning string:
-  obfuscatedTax: TRUE only if there is a hidden fee >  5% deducted inside _transfer/_update that is NOT clearly named 'tax' or 'fee'. Standard Ownable, renounceOwnership, or roya
-2026-02-28T19:51:36Z [USER LOG] [AI] → GPT-4o via ConfidentialHTTPClient | AEGIS_OPENAI_SECRET stays in DON
-2026-02-28T19:51:37Z [USER LOG] [GPT-4o] HTTP 200
-2026-02-28T19:51:37Z [USER LOG] [GPT-4o] Response: {
-  "obfuscatedTax": false,
-  "privilegeEscalation": true,
-  "externalCallRisk": false,
-  "logicBomb": false,
-  "reasoning": "The contract restricts transfers to an owner-controlled allowlist, preventing non-approved users from selling their tokens."
-}
-2026-02-28T19:51:37Z [USER LOG] [GPT-4o] Risk bits → tax=false priv=true extCall=false bomb=false
-2026-02-28T19:51:37Z [USER LOG] [GPT-4o] Reasoning: The contract restricts transfers to an owner-controlled allowlist, preventing non-approved users from selling their tokens.
-2026-02-28T19:51:37Z [USER LOG] [AI] → Llama-3 via Groq ConfidentialHTTPClient | AEGIS_GROQ_SECRET stays in DON
-2026-02-28T19:51:38Z [USER LOG] [Llama-3] HTTP 200
-2026-02-28T19:51:38Z [USER LOG] [Llama-3] Response: {
-  "obfuscatedTax": false,
-   "privilegeEscalation": true,
-   "externalCallRisk": false,
-   "logicBomb": false,
-   "reasoning": "MockHoneypot contract restricts transfers to an owner-controlled allowlist, allowing the owner to control who can sell their tokens."
-}
-2026-02-28T19:51:38Z [USER LOG] [Llama-3] Risk bits → tax=false priv=true extCall=false bomb=false
-2026-02-28T19:51:38Z [USER LOG] [Llama-3] Reasoning: MockHoneypot contract restricts transfers to an owner-controlled allowlist, allowing the owner to control who can sell their tokens.
-2026-02-28T19:51:38Z [USER LOG] [AI] Union of Fears → obfuscatedTax=0 privilegeEscalation=1 externalCallRisk=0 logicBomb=0
-2026-02-28T19:51:38Z [USER LOG] ⚖️ Final Risk Code: 36
-2026-02-28T19:51:39Z [USER LOG] ✅ onReport delivered to AegisModule at 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89
-
-✓ Workflow Simulation Result:
-"Audit Complete"
-
-2026-02-28T19:51:39Z [SIMULATION] Execution finished signal received
-2026-02-28T19:51:39Z [SIMULATION] Skipping WorkflowEngineV2
-
-╭──────────────────────────────────────────────────────╮
-│ Simulation complete! Ready to deploy your workflow?  │
-│                                                      │
-│ Run cre account access to request deployment access. │
-╰──────────────────────────────────────────────────────╯
+Fetching transaction receipt for 0x0000000000000000000000000000000000000000000000000000000000000000...
+✗ Failed to build EVM trigger log: failed to fetch transaction receipt: not found
 
 --- END RAW SECURE WASM EXECUTION ---
 
