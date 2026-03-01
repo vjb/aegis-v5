@@ -12,7 +12,7 @@
 [![ERC-7579](https://img.shields.io/badge/ERC--7579-executor-orange)](src/AegisModule.sol)
 [![ERC-4337](https://img.shields.io/badge/ERC--4337-Pimlico%20bundler-purple)](scripts/v5_e2e_mock.ts)
 
-🎬 **[Watch the Demo Video](#)** · 📖 **[Architecture (12 Mermaid Diagrams)](docs/ARCHITECTURE.md)** · 🔐 **[Confidential HTTP Deep-Dive](docs/CONFIDENTIAL_HTTP.md)** · 🏗️ **[ERC Standards (4337 + 7579 + 7715)](docs/ERC_STANDARDS.md)**
+🎬 **[Watch the Demo Video](#)** · 📖 **[Architecture (12 Mermaid Diagrams)](docs/ARCHITECTURE.md)** · 🔐 **[Confidential HTTP Deep-Dive](docs/CONFIDENTIAL_HTTP.md)** · 🏗️ **[ERC Standards (4337 + 7579 + 7715)](docs/ERC_STANDARDS.md)** · 💰 **[x402 Oracle Monetization](docs/X402_MONETIZATION.md)**
 
 ### Verified on Base Sepolia (Chain ID 84532)
 
