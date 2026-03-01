@@ -202,6 +202,9 @@ export default function OracleFeed({ isKilled, externalTrigger, onTriggerConsume
                 </div>
                 <div className="flex items-center gap-2">
                     <span className="mono text-xs" style={{ color: 'var(--text-subtle)' }}>GoPlus · AI · Heimdall</span>
+                    <a href="/visualizer" target="_blank" rel="noreferrer"
+                        className="mono text-xs" style={{ color: 'var(--cyan)', textDecoration: 'none', opacity: 0.8 }}
+                        title="Open CRE Pipeline Visualizer">⛨ Visualizer ↗</a>
                     {runs.length > 0 && (
                         <button onClick={() => setRuns([])} className="btn btn-ghost" style={{ padding: '5px 10px', fontSize: 11 }} title="Clear feed">
                             <Trash2 className="w-3.5 h-3.5" /> Clear
