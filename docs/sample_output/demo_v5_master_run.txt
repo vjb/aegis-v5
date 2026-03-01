@@ -19,17 +19,17 @@
     4. LIVE Chainlink CRE AI Consensus
 
 [Act 1] The Bank: Verifying Zero-Custody Treasury
-  Checking AegisModule treasury (0x23efaef29ecc0e6ce313f0eed3d5da7e0f5bcd89)... |/-\|/-\|/-\|/-\|/   ✅ AegisModule treasury: 0.06 ETH
+  Checking AegisModule treasury (0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89)... |/-\|/-\|/-\|/-\|/-   ✅ AegisModule treasury: 0.085 ETH
   ℹ️  The module has execution rights but the owner controls all funds.
 
 [Act 2] The Keys: Subscribing AI Agents
 
   Subscribing Agent NOVA (0.05 ETH budget)...
-> cast send 0x23efaef29ecc0e6ce313f0eed3d5da7e0f5bcd89 "subscribeAgent(address,uint256)" 0xba5359fac9736e687c39d9613de3e8fa6c7af1ce 50000000000000000
-  Broadcasting subscribeAgent(NOVA)... |/-\|/-\|/-\|/-\|/-   ✅ NOVA subscribed — tx: 0x4a2d8e1f5c73b9a6…
+> cast send 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89 "subscribeAgent(address,uint256)" 0xba5359fac9736e687c39d9613de3e8fa6c7af1ce 50000000000000000
+  Broadcasting subscribeAgent(NOVA)... |/-\|/-\|/-\|/-\|/   ✅ NOVA subscribed — tx: 0x1d0491b2a8ab82c0…
   Subscribing Agent CIPHER (0.008 ETH budget)...
-> cast send 0x23efaef29ecc0e6ce313f0eed3d5da7e0f5bcd89 "subscribeAgent(address,uint256)" 0x6e9972213bf459853fa33e28ab7219e9157c8d02 8000000000000000
-  Broadcasting subscribeAgent(CIPHER)... |/-\|/-\|/-\|/-\|/-   ✅ CIPHER subscribed — tx: 0x150955b27ba5eb71…
+> cast send 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89 "subscribeAgent(address,uint256)" 0x6e9972213bf459853fa33e28ab7219e9157c8d02 8000000000000000
+  Broadcasting subscribeAgent(CIPHER)... |/-\|/-\|/-\|/-\|/-   ✅ CIPHER subscribed — tx: 0x8f793d390305c8a3…
 
   Both agents are now registered on-chain. Here's what their session keys permit:
 
@@ -40,7 +40,7 @@
   │    requestAudit(address)                0xe34eac65          │
   │    triggerSwap(address,uint256,uint256)  0x684bceb0          │
   │                                                                │
-  │  Target:  0x23efaef29ecc0e6ce313f0eed3d5da7e0f5bcd89      │
+  │  Target:  0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89      │
   │  Budget:  0.05 ETH (enforced on-chain)                         │
   │  Expiry:  24 hours                                             │
   └────────────────────────────────────────────────────────────────┘
@@ -50,17 +50,17 @@
 
 [Act 3] The Intents: Agent NOVA Requesting Audits
 
-> cast send 0x23efaef29ecc0e6ce313f0eed3d5da7e0f5bcd89 "requestAudit(address)" 0x46d40e0abda0814bb0cb323b2bb85a129d00b0ac
-  Routing audit intent to Base Sepolia... |/-\|/-\|/-\|/-\|/-   ✅ MockBRETT audit requested: 0x3e6bf381dcf80e50b9d68bae7e2d100b7dd269ceeea69202f3859a690dfd6dbb
+> cast send 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89 "requestAudit(address)" 0x46d40e0aBdA0814bb0CB323B2Bb85a129d00B0AC
+  Routing audit intent to Base Sepolia... |/-\|/-\|/-\|/-\|/-   ✅ MockBRETT audit requested: 
 
-> cast send 0x23efaef29ecc0e6ce313f0eed3d5da7e0f5bcd89 "requestAudit(address)" 0xf672c8fc888b98db5c9662d26e657417a3c453b5
-  Routing audit intent to Base Sepolia... |/-\|/-\|/-\|/-\|/-   ✅ MockHoneypot audit requested: 0x030d103bf4508bd2063c3240d98b42693ded481d0f38e2bd6628a9dafdacec14
+> cast send 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89 "requestAudit(address)" 0xf672c8fc888b98db5c9662d26e657417a3c453b5
+  Routing audit intent to Base Sepolia... |/-\|/-\|/-\|/-\|/-   ✅ MockHoneypot audit requested: 0xa12828d674ba4f3be7179bf65ee8a557156ecc8173512fb3f651daef61fa0b39
 
   Both AuditRequested events are now on-chain on Base Sepolia.
 
 [Act 4] The AI Firewall: LIVE Chainlink CRE Intercept
 
-> docker exec -e AEGIS_DEMO_MODE=true aegis-oracle-node cre workflow simulate /app --target base-sepolia --evm-tx-hash 0x030d103bf4508bd2063c3240d98b42693ded481d0f38e2bd6628a9dafdacec14 --trigger-index 0 --evm-event-index 0 --non-interactive
+> docker exec -e AEGIS_DEMO_MODE=true aegis-oracle-node cre workflow simulate /app --target base-sepolia --evm-tx-hash 0xa12828d674ba4f3be7179bf65ee8a557156ecc8173512fb3f651daef61fa0b39 --trigger-index 0 --evm-event-index 0 --non-interactive
 
 --- BEGIN RAW SECURE WASM EXECUTION ---
 
@@ -68,51 +68,51 @@ Initializing...
 Checking RPC connectivity...
 Compiling workflow...
 ✓ Workflow compiled
-Fetching transaction receipt for 0x030d103bf4508bd2063c3240d98b42693ded481d0f38e2bd6628a9dafdacec14...
-2026-02-28T17:44:04Z [SIMULATION] Simulator Initialized
+Fetching transaction receipt for 0xa12828d674ba4f3be7179bf65ee8a557156ecc8173512fb3f651daef61fa0b39...
+2026-03-01T19:41:29Z [SIMULATION] Simulator Initialized
 
-2026-02-28T17:44:04Z [SIMULATION] Running trigger trigger=evm:ChainSelector:10344971235874465080@1.0.0
-2026-02-28T17:44:04Z [USER LOG] 🛡️ AegisModule V5 | AuditRequested intercepted
-2026-02-28T17:44:04Z [USER LOG] 🛡️ AEGIS MODULE V5 | Auditing: 0xf672c8fc888b98db5c9662d26e657417a3c453b5
-2026-02-28T17:44:04Z [USER LOG] [GoPlus] MOCK registry hit: MockHoneypot
-2026-02-28T17:44:04Z [USER LOG] [GoPlus] unverified=0 sellRestriction=0 honeypot=1
-2026-02-28T17:44:04Z [USER LOG] [BaseScan] Using MOCK source for MockHoneypot (917 chars)
-2026-02-28T17:44:04Z [USER LOG] [AI] Contract under audit: MockHoneypot
-2026-02-28T17:44:04Z [USER LOG] [AI] Prompt sent to AI (first 400 chars): You are the Aegis Protocol Lead Security Auditor for a DeFi firewall. Analyze this ERC-20 token contract for MALICIOUS patterns ONLY.
+2026-03-01T19:41:29Z [SIMULATION] Running trigger trigger=evm:ChainSelector:10344971235874465080@1.0.0
+2026-03-01T19:41:29Z [USER LOG] 🛡️ AegisModule V5 | AuditRequested intercepted
+2026-03-01T19:41:29Z [USER LOG] 🛡️ AEGIS MODULE V5 | Auditing: 0xf672c8fc888b98db5c9662d26e657417a3c453b5
+2026-03-01T19:41:29Z [USER LOG] [GoPlus] MOCK registry hit: MockHoneypot
+2026-03-01T19:41:29Z [USER LOG] [GoPlus] unverified=0 sellRestriction=0 honeypot=1
+2026-03-01T19:41:29Z [USER LOG] [BaseScan] Using MOCK source for MockHoneypot (917 chars)
+2026-03-01T19:41:29Z [USER LOG] [AI] Contract under audit: MockHoneypot
+2026-03-01T19:41:29Z [USER LOG] [AI] Prompt sent to AI (first 400 chars): You are the Aegis Protocol Lead Security Auditor for a DeFi firewall. Analyze this ERC-20 token contract for MALICIOUS patterns ONLY.
 
 Return ONLY a valid JSON object with these exact boolean keys plus a reasoning string:
   obfuscatedTax: TRUE only if there is a hidden fee >  5% deducted inside _transfer/_update that is NOT clearly named 'tax' or 'fee'. Standard Ownable, renounceOwnership, or roya
-2026-02-28T17:44:04Z [USER LOG] [AI] → GPT-4o via ConfidentialHTTPClient | AEGIS_OPENAI_SECRET stays in DON
-2026-02-28T17:44:06Z [USER LOG] [GPT-4o] HTTP 200
-2026-02-28T17:44:06Z [USER LOG] [GPT-4o] Response: {
+2026-03-01T19:41:29Z [USER LOG] [AI] → GPT-4o via ConfidentialHTTPClient | AEGIS_OPENAI_SECRET stays in DON
+2026-03-01T19:41:31Z [USER LOG] [GPT-4o] HTTP 200
+2026-03-01T19:41:31Z [USER LOG] [GPT-4o] Response: {
   "obfuscatedTax": false,
   "privilegeEscalation": true,
   "externalCallRisk": false,
   "logicBomb": false,
   "reasoning": "The contract restricts transfers to an owner-controlled allowlist, preventing non-approved users from selling their tokens."
 }
-2026-02-28T17:44:06Z [USER LOG] [GPT-4o] Risk bits → tax=false priv=true extCall=false bomb=false
-2026-02-28T17:44:06Z [USER LOG] [GPT-4o] Reasoning: The contract restricts transfers to an owner-controlled allowlist, preventing non-approved users from selling their tokens.
-2026-02-28T17:44:06Z [USER LOG] [AI] → Llama-3 via Groq ConfidentialHTTPClient | AEGIS_GROQ_SECRET stays in DON
-2026-02-28T17:44:06Z [USER LOG] [Llama-3] HTTP 200
-2026-02-28T17:44:06Z [USER LOG] [Llama-3] Response: {
+2026-03-01T19:41:31Z [USER LOG] [GPT-4o] Risk bits → tax=false priv=true extCall=false bomb=false
+2026-03-01T19:41:31Z [USER LOG] [GPT-4o] Reasoning: The contract restricts transfers to an owner-controlled allowlist, preventing non-approved users from selling their tokens.
+2026-03-01T19:41:31Z [USER LOG] [AI] → Llama-3 via Groq ConfidentialHTTPClient | AEGIS_GROQ_SECRET stays in DON
+2026-03-01T19:41:31Z [USER LOG] [Llama-3] HTTP 200
+2026-03-01T19:41:31Z [USER LOG] [Llama-3] Response: {
   "obfuscatedTax": false,
    "privilegeEscalation": true,
    "externalCallRisk": false,
    "logicBomb": false,
    "reasoning": "MockHoneypot contract restricts transfers to an owner-controlled allowlist, allowing the owner to control who can sell their tokens."
 }
-2026-02-28T17:44:06Z [USER LOG] [Llama-3] Risk bits → tax=false priv=true extCall=false bomb=false
-2026-02-28T17:44:06Z [USER LOG] [Llama-3] Reasoning: MockHoneypot contract restricts transfers to an owner-controlled allowlist, allowing the owner to control who can sell their tokens.
-2026-02-28T17:44:06Z [USER LOG] [AI] Union of Fears → obfuscatedTax=0 privilegeEscalation=1 externalCallRisk=0 logicBomb=0
-2026-02-28T17:44:06Z [USER LOG] ⚖️ Final Risk Code: 36
-2026-02-28T17:44:06Z [USER LOG] ✅ onReport delivered to AegisModule at 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89
+2026-03-01T19:41:31Z [USER LOG] [Llama-3] Risk bits → tax=false priv=true extCall=false bomb=false
+2026-03-01T19:41:31Z [USER LOG] [Llama-3] Reasoning: MockHoneypot contract restricts transfers to an owner-controlled allowlist, allowing the owner to control who can sell their tokens.
+2026-03-01T19:41:31Z [USER LOG] [AI] Union of Fears → obfuscatedTax=0 privilegeEscalation=1 externalCallRisk=0 logicBomb=0
+2026-03-01T19:41:31Z [USER LOG] ⚖️ Final Risk Code: 0
+2026-03-01T19:41:32Z [USER LOG] ✅ onReport delivered to AegisModule at 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89
 
 ✓ Workflow Simulation Result:
 "Audit Complete"
 
-2026-02-28T17:44:06Z [SIMULATION] Execution finished signal received
-2026-02-28T17:44:06Z [SIMULATION] Skipping WorkflowEngineV2
+2026-03-01T19:41:32Z [SIMULATION] Execution finished signal received
+2026-03-01T19:41:32Z [SIMULATION] Skipping WorkflowEngineV2
 
 ╭──────────────────────────────────────────────────────╮
 │ Simulation complete! Ready to deploy your workflow?  │
@@ -130,10 +130,10 @@ Return ONLY a valid JSON object with these exact boolean keys plus a reasoning s
 Agent NOVA now attempts to execute both swaps against the firewall.
 
 > triggerSwap(MockBRETT, 0.001 ETH)
-  Submitting swap transaction... |/-\|/-\|/-\|/-\|/-\|/-   ✅ SWAP EXECUTED. MockBRETT cleared by AI. Tx: 0x135a62d1c0ae69203c74dedb8f8ae64e177245d0bf49966fb74fea9dda21f083
+  Submitting swap transaction... |/-\|/-\|/-\|/-\|/-\|/-\|/   ⚠️ Swap result: Error: Failed to estimate gas: server returned an error response: error code 3: execution reverted, data: "0xd7dcf7f2": TokenNotCleared
 
 > triggerSwap(MockHoneypot, 0.001 ETH)
-  Submitting swap transaction... |/-\|/-\|/-\|/-\|/-\|/-\| 
+  Submitting swap transaction... |/-\|/-\|/-\|/-\|/-\|/-\|/ 
   ╔════════════════════════════════════════════════════════════╗
   ║  EXECUTION REVERTED: TokenNotCleared()                    ║
   ║                                                            ║
@@ -144,19 +144,19 @@ Agent NOVA now attempts to execute both swaps against the firewall.
   🛡️ The AegisModule successfully blocked the malicious transaction on-chain.
 
 [Act 6] Budget Verification
-> cast call 0x23efaef29ecc0e6ce313f0eed3d5da7e0f5bcd89 "agentAllowances(address)" 0xba5359fac9736e687c39d9613de3e8fa6c7af1ce
+> cast call 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89 "agentAllowances(address)" 0xba5359fac9736e687c39d9613de3e8fa6c7af1ce
   📊 NOVA remaining budget: 0x00000000000000000000000000000000000000000000000000b1a2bc2ec50000
   ℹ️  Budget is mathematically enforced — NOVA cannot exceed its allowance.
-> cast call 0x23efaef29ecc0e6ce313f0eed3d5da7e0f5bcd89 "agentAllowances(address)" 0x6e9972213bf459853fa33e28ab7219e9157c8d02
+> cast call 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89 "agentAllowances(address)" 0x6e9972213bf459853fa33e28ab7219e9157c8d02
   📊 CIPHER remaining budget: 0x000000000000000000000000000000000000000000000000001c6bf526340000
 
 [Act 7] The Kill Switch
   First, subscribing Agent REX (0.01 ETH budget)...
   ✅ REX subscribed — budget: 0.01 ETH
   🔴 Now revoking Agent REX...
-> cast send 0x23efaef29ecc0e6ce313f0eed3d5da7e0f5bcd89 "revokeAgent(address)" 0x7b1afe2745533d852d6fd5a677f14c074210d896
+> cast send 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89 "revokeAgent(address)" 0x7b1afe2745533d852d6fd5a677f14c074210d896
   Broadcasting revokeAgent(REX)... |/-\|/-\|/-\|/-\|/-   ✅ Agent REX REVOKED — budget zeroed, access denied
-  ℹ️  REX allowance after revoke: 0x0000000000000000000000000000000000000000000000000000000000000000 (confirmed zero)
+  ℹ️  REX allowance after revoke: 0x0000000000000000000000000000000000000000000000000000000000000000 (should be 0)
   🛡️ The kill switch works. REX has zero access.
 
 ═══════════════════════════════════════════════════════════════════════

@@ -1,222 +1,103 @@
-PASS test/bot.spec.ts (55.47 s)
-  AegisAgent V5 — ERC-4337 Bot
-    √ validates required config fields exist (26 ms)
-    √ requestAudit calldata contains target token address (3 ms)
-    √ triggerSwap calldata contains token address and 1 ETH amount (2 ms)
-    √ agent design: gas wallet is separate from Smart Account (capital custody) (5 ms)
-    √ risk matrix bit decoding identifies correct flags (6 ms)
-    √ polling returns false if no clearance event after timeout (78 ms)
-
-PASS test/oracle.spec.ts (56.269 s)
-  Aegis CRE Oracle V5 — ABI encoding
-    √ encodes (tradeId=3, riskScore=0) to 64-byte ABI-encoded hex (150 ms)
-    √ encodes (tradeId=0, riskScore=4) — honeypot flag (1 ms)
-    √ encodes riskScore=255 (all risk bits set) (1 ms)
-    √ oracle config vaultAddress points to AegisModule (2 ms)
-    √ V5 config shape has required CRE fields (3 ms)
-    √ V3 and V5 onReport ABI encoding is identical (same uint256,uint256 schema) (4 ms)
-  Oracle AI JSON → onReportDirect hex payload (5.5.3)
-    √ AI response {"risk": 5} → correct hex payload for onReportDirect (3 ms)
-    √ AI response {"risk": 0} → approved (clean token) (2 ms)
-    √ AI response {"risk": 36} → denied (honeypot + privilege escalation) (5 ms)
-    √ calldata length is always exactly 138 chars (4+32+32 bytes) (8 ms)
-
-PASS test/frontend.spec.ts (56.707 s)
-  Phase 8.1 — Wallet Info + Session Key Rendering
-    √ WalletInfo type has all required fields (16 ms)
-    √ truncates owner address to 0x109D…65Cf (2 ms)
-    √ truncates module address correctly (8 ms)
-    √ session key targets only the AegisModule (2 ms)
-    √ session key allows exactly 2 selectors (10 ms)
-    √ session key allows requestAudit (0xe34eac65) (3 ms)
-    √ session key allows triggerSwap (0x684bceb0) (3 ms)
-    √ session key does NOT allow transfer selector (4 ms)
-    √ session key budget is capped at 0.002 ETH (4 ms)
-    √ error field is optional in WalletInfo (2 ms)
-  Phase 8.2 — Oracle Feed: Risk Score & Verdict Logic
-    √ risk score 0 decodes to 8 all-clean checks (2 ms)
-    √ risk score 0 → APPROVED verdict (2 ms)
-    √ risk score 4 (bit 2) → Known Honeypot flagged (5 ms)
-    √ risk score 4 → BLOCKED
-    √ risk score 36 = Honeypot (bit 2) + Privilege Escalation (bit 5) (1 ms)
-    √ risk score 255 flags all 8 bits (2 ms)
-    √ risk score 1 (bit 0) → Unverified Code only (2 ms)
-    √ risk score 16 (bit 4) → Obfuscated Tax only (2 ms)
-    √ risk score 128 (bit 7) → Logic Bomb only (15 ms)
-    √ negative score → ERROR verdict (1 ms)
-  Phase 8.2 — Oracle Feed: SSE Event Parsing
-    √ parses phase event (1 ms)
-    √ parses tx event with hash (1 ms)
-    √ parses final_verdict BLOCKED event (1 ms)
-    √ parses final_verdict APPROVED event (2 ms)
-    √ parses llm-reasoning-start for GPT-4o (1 ms)
-    √ parses static-analysis GoPlus event (1 ms)
-
+PASS test/frontend.spec.ts (44.344 s)
+PASS test/bot.spec.ts (44.414 s)
+PASS test/oracle.spec.ts (45.141 s)
 PASS test/safe_setup.spec.ts
-  buildSafeConfig (unit)
-    √ returns a config with the correct owner and entry point (7 ms)
-    √ starts with threshold 1 (single-owner Safe) (2 ms)
-  buildAegisModuleConfig (unit)
-    √ returns type='executor' (ERC-7579 TYPE_EXECUTOR = 2) (6 ms)
-    √ sets module address correctly (2 ms)
-    √ has zero initData for AegisModule (onInstall is a no-op) (2 ms)
-  constants (unit)
-    √ ENTRYPOINT_V07 matches canonical ERC-4337 v0.7 address (7 ms)
-  deploySafeWithAegisModule (integration — requires BASE_SEPOLIA_RPC_URL)
-    ○ skipped deploys a Safe and installs AegisModule as ERC-7579 Executor
+PASS test/session_key.spec.ts (46.822 s)
+PASS test/bot_v5.spec.ts (46.936 s)
+PASS test/session_install.spec.ts (50.267 s)
+PASS test/cre/HeimdallLive.spec.ts (57.935 s)
+  ● Console
 
-PASS test/session_key.spec.ts (59.733 s)
-  getSmartSessionValidatorModule (unit)
-    √ returns type=validator (not executor) (30 ms)
-    √ has the canonical SmartSessions validator address (2 ms)
-  AegisModule function selectors (unit)
-    √ requestAudit(address) selector is 4 bytes (2 ms)
-    √ triggerSwap(address,uint256,uint256) selector is 4 bytes (1 ms)
-    √ selectors are distinct (no collision) (2 ms)
-  buildAgentSession (unit)
-    √ specifies the SmartSessions validator as session validator (12 ms)
-    √ encodes agent address in sessionValidatorInitData (5 ms)
-    √ permits exactly 2 actions (requestAudit + triggerSwap) (4 ms)
-    √ first action targets AegisModule with requestAudit selector (7 ms)
-    √ second action targets AegisModule with triggerSwap selector (6 ms)
-    √ has a 32-byte salt (3 ms)
-  SESSION_MODES (unit)
-    √ USE mode = 0x00 (agent presents existing signed session) (2 ms)
-    √ ENABLE mode = 0x01 (agent enables + uses in same UserOp) (1 ms)
-    √ UNSAFE_ENABLE mode = 0x02 (skip policy checks — dev only) (1 ms)
-
-PASS test/bot_v5.spec.ts (59.848 s)
-  buildV5RequestAuditCall (unit)
-    √ targets AegisModule (NOT the Safe directly) (19 ms)
-    √ attaches zero ETH value (treasury pays, not the agent) (2 ms)
-    √ encodes requestAudit(address) selector correctly (3 ms)
-    √ encodes the token address as the only argument (4 ms)
-  buildV5TriggerSwapCall (unit)
-    √ targets AegisModule (4 ms)
-    √ attaches zero ETH value (module treasury provides ETH for swaps) (3 ms)
-    √ encodes triggerSwap(address,uint256,uint256) — 3 params (2 ms)
-    √ defaults amountOutMinimum to 1 (contract requires non-zero) (2 ms)
-    √ is distinct from requestAudit calldata (different selector) (6 ms)
-  Legacy vs V5 call structure
-    √ V5 triggerSwap has 3 params, legacy bot.ts ABI had only 2 (bug fixed) (2 ms)
-  ERC-7715 Session Key Constraints (5.5.2)
-    √ session key targets ONLY the AegisModule address (21 ms)
-    √ session permits exactly 2 selectors: requestAudit + triggerSwap (2 ms)
-    √ session DOES NOT permit arbitrary function selectors (e.g. ETH drain) (2 ms)
-    √ session DOES NOT permit calling a random contract (only AegisModule) (3 ms)
-    √ session uses the SmartSessionsValidator (Rhinestone canonical) (1 ms)
-    √ session key = agent public address (embedded in initData) (1 ms)
-
-  console.log
-    [TEST] Decompiled 19666 hex chars → 15000 chars in 4478ms
+    console.log
+      [TEST] Decompiled 19666 hex chars → 15000 chars in 4481ms
 
       at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:89:17)
 
-  console.log
-    [TEST] First 300 chars:
-    // SPDX-License-Identifier: MIT
-    pragma solidity >=0.8.0;
-    
-    /// @title            Decompiled Contract
-    /// @author           Jonathan Becker <jonathan@jbecker.dev>
-    /// @custom:version   heimdall-rs v0.9.2
-    ///
-    /// @notice           This contract was decompiled using the heimdall-rs decompiler.
-    ///
+    console.log
+      [TEST] First 300 chars:
+      // SPDX-License-Identifier: MIT
+      pragma solidity >=0.8.0;
+      
+      /// @title            Decompiled Contract
+      /// @author           Jonathan Becker <jonathan@jbecker.dev>
+      /// @custom:version   heimdall-rs v0.9.2
+      ///
+      /// @notice           This contract was decompiled using the heimdall-rs decompiler.
+      ///
 
       at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:90:17)
 
-  console.log
-    [TEST] Live bytecode for AegisModule: 19666 hex chars
+    console.log
+      [TEST] Live bytecode for AegisModule: 19666 hex chars
 
       at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:120:17)
 
-PASS test/session_install.spec.ts (63.553 s)
-  SmartSessionValidator Integration (Base Sepolia)
-    √ SmartSessionValidator is installed on Safe as validator module (16 ms)
-    √ AegisModule is still installed as executor module (4 ms)
-    √ Agent wallet is subscribed with non-zero budget (1 ms)
-    √ Agent can requestAudit via UserOp (session key scoped) (2 ms)
-    √ Agent can triggerSwap via UserOp after clearance (2 ms)
-    √ Agent cannot call withdrawETH (not in session scope) (1 ms)
-    √ Agent cannot call revokeAgent (not in session scope) (2 ms)
-    √ buildAgentSession produces valid session for agent (1 ms)
-
-  console.log
-    [TEST] Full pipeline: Base Sepolia → Heimdall → 15000 chars of decompiled code
+    console.log
+      [TEST] Full pipeline: Base Sepolia → Heimdall → 15000 chars of decompiled code
 
       at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:147:17)
 
-  console.log
-    [TEST] Step 1: Fetched 19666 hex chars from Base Sepolia
+    console.log
+      [TEST] Step 1: Fetched 19666 hex chars from Base Sepolia
 
       at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:169:17)
 
-  console.log
-    [TEST] Step 2: Heimdall decompiled → 8000 chars
+    console.log
+      [TEST] Step 2: Heimdall decompiled → 8000 chars
 
       at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:180:17)
 
-  console.log
-    [TEST] Step 3: GPT-4o raw response: {
-      "obfuscatedTax": false,
-      "privilegeEscalation": true,
-      "externalCallRisk": false,
-      "logicBomb": false,
-      "is_malicious": true,
-      "reasoning": "The contract contains privilege escalation where only the owner can subscribe agents, indicating potential centralization and misuse."
-    }
+    console.log
+      [TEST] Step 3: GPT-4o raw response: {
+        "obfuscatedTax": false,
+        "privilegeEscalation": true,
+        "externalCallRisk": false,
+        "logicBomb": false,
+        "is_malicious": true,
+        "reasoning": "The contract contains privilege escalation where only the owner can perform certain actions, potentially leading to malicious behavior."
+      }
 
       at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:236:17)
 
-  console.log
-    [TEST] ✅ LLM Risk Assessment from decompiled code:
+    console.log
+      [TEST] ✅ LLM Risk Assessment from decompiled code:
 
       at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:258:17)
 
-  console.log
-    [TEST]   obfuscatedTax: false
+    console.log
+      [TEST]   obfuscatedTax: false
 
       at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:259:17)
 
-  console.log
-    [TEST]   privilegeEscalation: true
+    console.log
+      [TEST]   privilegeEscalation: true
 
       at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:260:17)
 
-  console.log
-    [TEST]   externalCallRisk: false
+    console.log
+      [TEST]   externalCallRisk: false
 
       at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:261:17)
 
-  console.log
-    [TEST]   logicBomb: false
+    console.log
+      [TEST]   logicBomb: false
 
       at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:262:17)
 
-  console.log
-    [TEST]   8-bit risk mask: 2 (0b00000010)
+    console.log
+      [TEST]   8-bit risk mask: 2 (0b00000010)
 
       at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:263:17)
 
-  console.log
-    [TEST]   reasoning: The contract contains privilege escalation where only the owner can subscribe agents, indicating potential centralization and misuse.
+    console.log
+      [TEST]   reasoning: The contract contains privilege escalation where only the owner can perform certain actions, potentially leading to malicious behavior.
 
       at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:264:17)
 
-PASS test/cre/HeimdallLive.spec.ts (68.856 s)
-  Phase 2: Live Heimdall Microservice
-    √ GET /health should return ok with Heimdall version (945 ms)
-    √ POST /decompile should return decompiled logic for known bytecode (5002 ms)
-    √ POST /decompile should reject empty bytecode (22 ms)
-  Phase 3: Live Base Sepolia Pipeline
-    √ should fetch live bytecode from Base Sepolia via eth_getCode (122 ms)
-    √ should fetch bytecode AND decompile via full pipeline (3171 ms)
-  Phase 4: Live LLM Consensus Integration
-    √ should send Heimdall-decompiled code to live GPT-4o and get valid risk JSON (4010 ms)
 
 Test Suites: 8 passed, 8 total
 Tests:       1 skipped, 92 passed, 93 total
 Snapshots:   0 total
-Time:        72.926 s, estimated 76 s
+Time:        61.06 s, estimated 69 s
 Ran all test suites.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?

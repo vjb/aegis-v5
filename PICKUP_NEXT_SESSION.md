@@ -1,71 +1,70 @@
-# 🔄 PICKUP — Final QA Pass (Resume From Here)
+# 🔄 PICKUP — Session Status
 
-> **Updated:** 2026-03-01 12:55 EST
+> **Updated:** 2026-03-01 14:36 EST
 > **Branch:** `main`
-> **Last session ID:** `46caa88a-43d8-4a19-8a86-2c1070970961`
+> **Session ID:** `46caa88a-43d8-4a19-8a86-2c1070970961`
 
 ---
 
 ## ✅ COMPLETED THIS SESSION
 
-### Tenderly Removal (committed + pushed as `b495c24`)
-- [x] Deleted `test/live_e2e.spec.ts` (5 failing Tenderly-dependent tests)
-- [x] Removed `TENDERLY_RPC_URL` from 8 source files (test files, frontend routes, docker-compose, foundry.toml, .env)
-- [x] Updated README to remove `live_e2e.spec.ts` from Chainlink files table
+### Bug Fixes
+- [x] **Honeypot audit returning riskCode=0** — reset on-chain firewall config to all 8 rules ON. HoneypotCoin now returns **BLOCKED riskCode=36**
+- [x] **Chat listing NOVA/CIPHER** — removed hardcoded agent names from system prompt AND fixed `buildSystemContext()` to stop iterating `KNOWN_NAMES`. Chat now shows only agents from events + env config
+- [x] **Agent subscribe auto-refresh** — added 1.5s delay after tx confirmation before reload
 
-### Heimdall LLM Prompt Upgrade
-- [x] Replaced generic auditor prompt with specialized EVM reverse-engineering prompt in:
-  - `scripts/demo_v5_heimdall.ps1`
-  - `test/cre/HeimdallLive.spec.ts`
-- [x] New prompt includes: vulnerability patterns (honeypot, hidden mint, fee manipulation, blocklisting, self-destruct), chain-of-thought analysis protocol, `is_malicious` field
-- [x] `aegis-frontend/app/api/decompile/route.ts` has NO LLM call (just proxies to Docker) — no change needed
-- [x] Updated `docs/HEIMDALL_PIPELINE.md` AI description
+### Heimdall Malicious Detection
+- [x] Created `src/MaliciousRugToken.sol` — 5 blatant vulnerabilities (95% tax, selfdestruct, unlimited mint, blocklist, seller allowlist)
+- [x] Deployed to Base Sepolia: `0x99900d61f42bA57A8C3DA5b4d763f0F2Dc51E2B3`
+- [x] Demo now targets MaliciousRugToken → GPT-4o returns `is_malicious: true`, `obfuscatedTax: true`
+- [x] Updated `docs/HEIMDALL_PIPELINE.md` with real detection results
 
-### Test Results (captured to `docs/sample_output/`)
+### Demo Scripts Captured (all with Docker up)
+- [x] `demo_v5_heimdall.ps1` → `demo_v5_heimdall_run.txt` (MaliciousRugToken detection)
+- [x] `demo_v5_cre.ps1` → `demo_v5_cre_run.txt` (CRE WASM sandbox)
+
+### Tests (Docker up)
+- [x] **Jest:** 8/8 suites, 92 passed, 1 skipped → `jest_tests.txt`
 - [x] **Forge:** 21/21 passing → `forge_tests.txt`
-- [x] **Jest:** 87 passed, 5 failed (Heimdall Docker not running), 1 skipped → `jest_tests.txt`
-  - 8 suites: bot, bot_v5, oracle, session_key, session_install, safe_setup, frontend, HeimdallLive
-  - HeimdallLive failures are expected — Docker container must be running
+- [x] **UI:** 42/50 passing → `docs/UI_TEST_MATRIX.md`
+- [x] **Total:** 113 passing tests + 42 UI tests
 
-### README Badge Updates
-- [x] Jest badge: 83 → 87 passing
-- [x] Sample output table: 7 → 8 suites
-- [x] Quickstart expected: 83 → 87
-- [x] Project structure: 104 → 108 total tests
+### Documentation
+- [x] `docs/AI_PROMPT_CATALOG.md` — all 3 AI prompts (CRE oracle, Heimdall, chat)
+- [x] `docs/HEIMDALL_PIPELINE.md` — rewritten with MaliciousRugToken detection demo
+- [x] `docs/UI_TEST_MATRIX.md` — 42/50 tests documented
 
-### Frontend UI Tests (27 of 50 passing)
-- [x] 12 new tests passed this session (navigation, agents, firewall, audit log, marketplace, kill switch, layout)
-- [x] Updated `docs/UI_TEST_MATRIX.md`
-
----
-
-## 🔲 WHAT REMAINS
-
-### 4. Demo Scripts (need Docker)
-- `demo_v5_heimdall.ps1` — REQUIRES Docker container `aegis-heimdall` on port 8080
-- `demo_v5_master.ps1` — REQUIRES Docker + Base Sepolia
-- `demo_v5_setup.ps1` — REQUIRES Docker for CRE container rebuild
-- `demo_v5_cre.ps1` — REQUIRES Docker for CRE workflow simulation
-
-### 7. Hackathon Proof Points
-- Consider creating comprehensive proof point doc for judges
-
-### 8. Final Commit
-- Bundle all remaining changes into a clean commit
-- Push when ready
+### Commits Pushed
+| Commit | Message |
+|---|---|
+| `ab7071b` | fix: dynamic chat agents, reset firewall to all-ON |
+| `772127f` | docs: fresh demo script output, heimdall + CRE runs |
+| `cdb75c3` | feat: MaliciousRugToken deployed, Heimdall demo detects real malicious bytecode |
+| `ca7e3a0` | test: 42/50 UI tests passing, edge-case matrix updated |
+| `1c91cc6` | fix: remove NOVA/CIPHER from chat context, add subscribe refresh delay |
+| `d35e5d9` | docs: AI prompt catalog covering CRE oracle, Heimdall, and chat prompts |
 
 ---
 
-## 🏗️ PROJECT STRUCTURE QUICK REF
+## 🔲 REMAINING (optional)
+
+- [ ] 6 UI tests remaining (destructive error-state tests: stop Docker, API unreachable, kill switch + marketplace)
+- [ ] `demo_v5_master.ps1` fresh capture (existing output from previous session)
+- [ ] `demo_v5_setup.ps1` fresh capture (existing output from previous session)
+
+---
+
+## 🏗️ PROJECT STRUCTURE
 
 ```
 aegis-v4/
 ├── src/AegisModule.sol          # Main ERC-7579 Executor contract
-├── test/                        # 8 test files (21 forge + 87 jest = 108 tests)
+├── src/MaliciousRugToken.sol    # Deployed malicious ERC20 for Heimdall demo
+├── test/                        # 8 suites (21 forge + 92 jest = 113 tests)
 ├── scripts/                     # 4 demo scripts
 ├── services/decompiler/         # Heimdall Docker microservice
 ├── aegis-frontend/              # Next.js 3-panel dashboard
 ├── cre-node/                    # Chainlink CRE oracle
-├── docs/                        # Architecture, guides, sample output
+├── docs/                        # Architecture, guides, prompts, sample output
 └── .env                         # API keys
 ```
