@@ -97,7 +97,12 @@ async function main() {
     const salt = BigInt(Date.now());
     console.log(`[PHASE 1] Using salt: ${salt}`);
 
-    // Pre-install both modules during Safe creation — one atomic UserOp
+    // Pre-install SmartSessionValidator during Safe creation
+    // NOTE: Only SmartSessionValidator is pre-installed (it's Rhinestone-attested).
+    // AegisModule is an external contract the Safe interacts with — it doesn't need
+    // to be installed as a 7579 module on the Safe itself.
+    const RHINESTONE_ATTESTER = "0x000000333034E9f539ce08819E12c1b8Cb29084d" as Address;
+
     const safeAccount = await toSafeSmartAccount({
         client: publicClient,
         owners: [owner],
@@ -105,21 +110,14 @@ async function main() {
         entryPoint: { address: ENTRYPOINT_V07, version: "0.7" },
         safe4337ModuleAddress: SAFE_4337_MODULE,
         erc7579LaunchpadAddress: ERC7579_LAUNCHPAD,
-        // No Rhinestone attesters — our custom AegisModule isn't in their registry
-        attesters: [],
-        attestersThreshold: 0,
+        attesters: [RHINESTONE_ATTESTER],
+        attestersThreshold: 1,
         saltNonce: salt,
-        // Pre-install modules during deployment (single UserOp)
+        // Pre-install only the SmartSessionValidator (Rhinestone-attested)
         validators: [
             {
                 address: SMART_SESSIONS_VALIDATOR_ADDRESS,
                 context: validatorModule.initData || ("0x" as Hex),
-            },
-        ],
-        executors: [
-            {
-                address: moduleAddress,
-                context: "0x" as Hex,
             },
         ],
     });
@@ -173,17 +171,17 @@ async function main() {
     console.log("\n━━━ PHASE 3: Fund Treasury + Subscribe Agent ━━━");
 
     const depositHash = await walletClient.sendTransaction({
-        to: moduleAddress, value: parseEther("0.01"),
+        to: moduleAddress, value: parseEther("0.005"),
     });
     await publicClient.waitForTransactionReceipt({ hash: depositHash });
-    console.log(`[PHASE 3] ✅ Deposited 0.01 ETH to module treasury`);
+    console.log(`[PHASE 3] ✅ Deposited 0.005 ETH to module treasury`);
 
     const subHash = await walletClient.writeContract({
         address: moduleAddress, abi: AEGIS_MODULE_ABI,
-        functionName: "subscribeAgent", args: [agent.address, parseEther("0.005")],
+        functionName: "subscribeAgent", args: [agent.address, parseEther("0.002")],
     });
     await publicClient.waitForTransactionReceipt({ hash: subHash });
-    console.log(`[PHASE 3] ✅ Agent subscribed (0.005 ETH budget)`);
+    console.log(`[PHASE 3] ✅ Agent subscribed (0.002 ETH budget)`);
 
     const allowance = await publicClient.readContract({
         address: moduleAddress, abi: AEGIS_MODULE_ABI,
@@ -199,7 +197,7 @@ async function main() {
     console.log(`  AegisModule:        ${isExecInstalled ? "✅" : "❌"} Executor`);
     console.log(`  SessionValidator:   ${isValInstalled ? "✅" : "❌"} Validator`);
     console.log(`  Agent:              ✅ ${agent.address}`);
-    console.log(`  Treasury:           ✅ 0.01 ETH`);
+    console.log(`  Treasury:           ✅ 0.005 ETH`);
     console.log("");
     console.log(`  👉 Update .env: SAFE_ADDRESS=${safeAddr}`);
     console.log("═══════════════════════════════════════════════════════════════\n");

@@ -173,7 +173,7 @@ Slide 2 — The Five Layers: Show 5 concentric rings (outermost to innermost): R
 
 Slide 3 — Attack Scenarios: Three cards showing blocked attacks. Card 1: Robot tries to call withdrawETH → "BLOCKED: Not in session key scope." Card 2: Robot tries to swap a flagged token → "BLOCKED: TokenNotCleared()." Card 3: Robot tries to overspend → "BLOCKED: InsufficientBudget()." Each card has a red ❌ and the robot looking disappointed. Light gray background.
 
-Slide 4 — The Result: Large centered statement: "Zero capital at risk. The AI agent can only do exactly what it's permitted to do — nothing more." Below: three stats in colored badges: "18 Solidity tests" "83 TypeScript tests" "7-Act live demo." Teal/green background.
+Slide 4 — The Result: Large centered statement: "Zero capital at risk. The AI agent can only do exactly what it's permitted to do — nothing more." Below: three stats in colored badges: "21 Solidity tests" "91 TypeScript tests" "7-Act live demo." Teal/green background.
 
 Global: Lighter colors for middle slides. Use distinct colors per security layer. Robots should look identical — the security system is what changes around them. Minimal text.
 ```

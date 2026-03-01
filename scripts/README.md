@@ -71,21 +71,4 @@ pnpm ts-node --transpile-only scripts/v5_e2e_mock.ts
 
 ## Environment Setup
 
-```bash
-cp .env.example .env
-
-# Required
-PRIVATE_KEY=...
-BASE_SEPOLIA_RPC_URL=https://sepolia.base.org
-PIMLICO_API_KEY=...
-AEGIS_MODULE_ADDRESS=...
-TARGET_TOKEN_ADDRESS=...      # MockBRETT on Base Sepolia
-MOCK_HONEYPOT_ADDRESS=...     # MockHoneypot on Base Sepolia
-
-# AI APIs (for CRE oracle)
-OPENAI_API_KEY=...
-GROQ_API_KEY=...
-BASESCAN_API_KEY=...
-GOPLUS_APP_KEY=...     # optional
-GOPLUS_APP_SECRET=...  # optional
-```
+See the [Configure Environment](../README.md#3-configure-environment) section in the root README for the full list of required API keys and deployed addresses.

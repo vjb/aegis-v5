@@ -9,8 +9,8 @@ forge test --match-contract AegisModuleTest
   ✅ 21 passed, 0 failed  (18 AegisModule + 3 template tests)
 
 pnpm exec jest
-  ✅ 7 suites — 83 passed, 1 skipped
-  ⏱  ~80s
+  ✅ 8 suites — 91 passed, 1 skipped
+  ⏱  ~300s
 ```
 
 > 📊 See [`docs/sample_output/forge_tests.txt`](../docs/sample_output/forge_tests.txt) and [`docs/sample_output/jest_tests.txt`](../docs/sample_output/jest_tests.txt) for full output.
