@@ -149,7 +149,7 @@ export default function MarketplaceTab({ isKilled, onAudit }: { isKilled: boolea
                                     </div>
                                     <button
                                         disabled={isKilled}
-                                        onClick={() => onAudit(t.tokens[0])}
+                                        onClick={() => alert(`${t.name} deployed! Agent subscribed to Aegis Module firewall.`)}
                                         className="btn btn-cyan"
                                         style={{ padding: '8px 14px', fontSize: 12 }}
                                     >

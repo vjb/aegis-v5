@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {
-        const output = execSync('docker inspect --format="{{.State.Running}} {{.State.StartedAt}} {{.Config.Image}}" aegis-oracle-node 2>&1', {
+        const output = execSync('docker inspect --format="{{.State.Running}} {{.State.StartedAt}} {{.Config.Image}}" aegis-heimdall 2>&1', {
             timeout: 3000,
             encoding: 'utf8',
         }).trim();
@@ -14,7 +14,7 @@ export async function GET() {
         // Parse started time and image name
         const parts = output.split(' ');
         const startedAt = parts[1] || '';
-        const image = parts[2] || 'aegis-oracle-node';
+        const image = parts[2] || 'aegis-heimdall';
 
         let uptime = '';
         if (running && startedAt) {
@@ -28,8 +28,8 @@ export async function GET() {
             } catch { /* skip */ }
         }
 
-        return NextResponse.json({ running, container: 'aegis-oracle-node', image, uptime, startedAt });
+        return NextResponse.json({ running, container: 'aegis-heimdall', image, uptime, startedAt });
     } catch {
-        return NextResponse.json({ running: false, container: 'aegis-oracle-node', image: '', uptime: '', startedAt: '' });
+        return NextResponse.json({ running: false, container: 'aegis-heimdall', image: '', uptime: '', startedAt: '' });
     }
 }

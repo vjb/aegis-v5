@@ -121,7 +121,7 @@ export async function GET(req: NextRequest) {
                 let goPlusStarted = false;
 
                 const dockerArgs = [
-                    'exec', '-e', 'AEGIS_DEMO_MODE=true', 'aegis-oracle-node',
+                    'exec', '-e', 'AEGIS_DEMO_MODE=true', 'aegis-heimdall',
                     'cre', 'workflow', 'simulate', '.',
                     '--target', 'base-sepolia',
                     '--evm-tx-hash', hash,
