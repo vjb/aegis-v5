@@ -260,10 +260,11 @@ FIREWALL CONFIG (defaults — all 8 risk vectors enabled, mask=0xFF):
   • strictLogic = true — requires BOTH AI models to flag for AI bits 4-7
   • allowUnverified = false — BLOCKS tokens with no verified source on BaseScan
 
-SUBSCRIBED AGENTS (3 demo agents):
+SUBSCRIBED AGENTS (4 demo agents):
 - NOVA (0xba5359fa…): ACTIVE, budget=0.050 ETH, remaining=0.050 ETH
 - CIPHER (0x6e997221…): ACTIVE, budget=0.008 ETH, remaining=0.008 ETH
 - REX (0x7b1afe27…): REVOKED (allowance exhausted), budget=0.020 ETH, remaining=0.000 ETH
+- PHANTOM (0xf5a5e415…): ACTIVE, budget=0.015 ETH, remaining=0.015 ETH
 
 RECENT AUDIT VERDICTS:
 - BRETT: ✅ CLEARED (riskCode=0)
@@ -271,6 +272,7 @@ RECENT AUDIT VERDICTS:
 - DEGEN: ✅ CLEARED (riskCode=0)
 - HoneypotCoin: ⛔ BLOCKED (riskCode=36 — honeypot + privilege escalation)
 - TaxToken: ⛔ BLOCKED (riskCode=18 — sell restriction + obfuscated tax)
+- UnverifiedDoge: ⛔ BLOCKED (riskCode=129 — unverified + logic bomb, audited via Heimdall bytecode decompilation)
 
 RISK BIT MATRIX (8-bit, each bit is a specific risk vector):
 - Bit 0: No verified source code on BaseScan (GoPlus)
