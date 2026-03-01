@@ -26,6 +26,10 @@ const Tokens: Record<string, string> = {
 // Expected risk scores for known mock malicious tokens.
 // Used as fallback when CRE Docker oracle is not running.
 const EXPECTED_SCORES: Record<string, number> = {
+    'BRETT': 0,          // clean token (safe)
+    'TOSHI': 0,          // clean token (safe)
+    'DEGEN': 0,          // clean token (safe)
+    'cbETH': 0,          // clean token (safe)
     'Honeypot': 36,      // bit 2 (honeypot) + bit 5 (privilege escalation)
     'HoneypotCoin': 36,
     'TAX': 18,           // bit 1 (sell restriction) + bit 4 (obfuscated tax)

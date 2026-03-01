@@ -190,6 +190,8 @@ function buildInitialEdges(): Edge[] {
         { id: 'e-don-goplus', source: NODE_IDS.DON, target: NODE_IDS.GOPLUS, animated: false, style: EDGE_STYLE, markerEnd: EDGE_MARKER },
         { id: 'e-don-basescan', source: NODE_IDS.DON, target: NODE_IDS.BASESCAN, animated: false, style: EDGE_STYLE, markerEnd: EDGE_MARKER },
         { id: 'e-goplus-gpt4o', source: NODE_IDS.GOPLUS, target: NODE_IDS.GPT4O, animated: false, style: EDGE_STYLE, markerEnd: EDGE_MARKER },
+        { id: 'e-goplus-llama3', source: NODE_IDS.GOPLUS, target: NODE_IDS.LLAMA3, animated: false, style: EDGE_STYLE, markerEnd: EDGE_MARKER },
+        { id: 'e-basescan-gpt4o', source: NODE_IDS.BASESCAN, target: NODE_IDS.GPT4O, animated: false, style: EDGE_STYLE, markerEnd: EDGE_MARKER },
         { id: 'e-basescan-llama3', source: NODE_IDS.BASESCAN, target: NODE_IDS.LLAMA3, animated: false, style: EDGE_STYLE, markerEnd: EDGE_MARKER },
         { id: 'e-gpt4o-module', source: NODE_IDS.GPT4O, target: NODE_IDS.MODULE, animated: false, style: EDGE_STYLE, markerEnd: EDGE_MARKER },
         { id: 'e-llama3-module', source: NODE_IDS.LLAMA3, target: NODE_IDS.MODULE, animated: false, style: EDGE_STYLE, markerEnd: EDGE_MARKER },
