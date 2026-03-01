@@ -120,6 +120,8 @@ const NODE_IDS = {
     SAFE: 'safe',
     BUNDLER: 'bundler',
     DON: 'don',
+    GOPLUS: 'goplus',
+    BASESCAN: 'basescan',
     GPT4O: 'gpt4o',
     LLAMA3: 'llama3',
     MODULE: 'module',
@@ -136,86 +138,61 @@ function buildInitialNodes(): Node[] {
         {
             id: NODE_IDS.BUNDLER,
             type: 'pipeline',
-            position: { x: 260, y: 150 },
+            position: { x: 210, y: 150 },
             data: { label: 'Pimlico Bundler', subtitle: 'UserOp Relay', icon: '📡', status: 'idle' },
         },
         {
             id: NODE_IDS.DON,
             type: 'pipeline',
-            position: { x: 520, y: 150 },
+            position: { x: 420, y: 150 },
             data: { label: 'Chainlink DON', subtitle: 'WASM Enclave', icon: '🔗', status: 'idle' },
+        },
+        {
+            id: NODE_IDS.GOPLUS,
+            type: 'pipeline',
+            position: { x: 630, y: 60 },
+            data: { label: 'GoPlus', subtitle: 'Static Analysis', icon: '🔍', status: 'idle' },
+        },
+        {
+            id: NODE_IDS.BASESCAN,
+            type: 'pipeline',
+            position: { x: 630, y: 240 },
+            data: { label: 'BaseScan', subtitle: 'Source Retrieval', icon: '📄', status: 'idle' },
         },
         {
             id: NODE_IDS.GPT4O,
             type: 'pipeline',
-            position: { x: 780, y: 60 },
+            position: { x: 840, y: 60 },
             data: { label: 'GPT-4o', subtitle: 'OpenAI', icon: '🧠', status: 'idle' },
         },
         {
             id: NODE_IDS.LLAMA3,
             type: 'pipeline',
-            position: { x: 780, y: 240 },
+            position: { x: 840, y: 240 },
             data: { label: 'Llama-3', subtitle: 'Groq', icon: '🦙', status: 'idle' },
         },
         {
             id: NODE_IDS.MODULE,
             type: 'pipeline',
-            position: { x: 1040, y: 150 },
+            position: { x: 1050, y: 150 },
             data: { label: 'AegisModule', subtitle: 'ERC-7579 Firewall', icon: '🛡️', status: 'idle' },
         },
     ];
 }
 
+const EDGE_STYLE = { stroke: '#334155', strokeWidth: 2 };
+const EDGE_MARKER = { type: MarkerType.ArrowClosed as const, color: '#334155' };
+
 function buildInitialEdges(): Edge[] {
     return [
-        {
-            id: 'e-safe-bundler',
-            source: NODE_IDS.SAFE,
-            target: NODE_IDS.BUNDLER,
-            animated: false,
-            style: { stroke: '#334155', strokeWidth: 2 },
-            markerEnd: { type: MarkerType.ArrowClosed, color: '#334155' },
-        },
-        {
-            id: 'e-bundler-don',
-            source: NODE_IDS.BUNDLER,
-            target: NODE_IDS.DON,
-            animated: false,
-            style: { stroke: '#334155', strokeWidth: 2 },
-            markerEnd: { type: MarkerType.ArrowClosed, color: '#334155' },
-        },
-        {
-            id: 'e-don-gpt4o',
-            source: NODE_IDS.DON,
-            target: NODE_IDS.GPT4O,
-            animated: false,
-            style: { stroke: '#334155', strokeWidth: 2 },
-            markerEnd: { type: MarkerType.ArrowClosed, color: '#334155' },
-        },
-        {
-            id: 'e-don-llama3',
-            source: NODE_IDS.DON,
-            target: NODE_IDS.LLAMA3,
-            animated: false,
-            style: { stroke: '#334155', strokeWidth: 2 },
-            markerEnd: { type: MarkerType.ArrowClosed, color: '#334155' },
-        },
-        {
-            id: 'e-gpt4o-module',
-            source: NODE_IDS.GPT4O,
-            target: NODE_IDS.MODULE,
-            animated: false,
-            style: { stroke: '#334155', strokeWidth: 2 },
-            markerEnd: { type: MarkerType.ArrowClosed, color: '#334155' },
-        },
-        {
-            id: 'e-llama3-module',
-            source: NODE_IDS.LLAMA3,
-            target: NODE_IDS.MODULE,
-            animated: false,
-            style: { stroke: '#334155', strokeWidth: 2 },
-            markerEnd: { type: MarkerType.ArrowClosed, color: '#334155' },
-        },
+        { id: 'e-safe-bundler', source: NODE_IDS.SAFE, target: NODE_IDS.BUNDLER, animated: false, style: EDGE_STYLE, markerEnd: EDGE_MARKER },
+        { id: 'e-bundler-don', source: NODE_IDS.BUNDLER, target: NODE_IDS.DON, animated: false, style: EDGE_STYLE, markerEnd: EDGE_MARKER },
+        { id: 'e-don-goplus', source: NODE_IDS.DON, target: NODE_IDS.GOPLUS, animated: false, style: EDGE_STYLE, markerEnd: EDGE_MARKER },
+        { id: 'e-don-basescan', source: NODE_IDS.DON, target: NODE_IDS.BASESCAN, animated: false, style: EDGE_STYLE, markerEnd: EDGE_MARKER },
+        { id: 'e-goplus-gpt4o', source: NODE_IDS.GOPLUS, target: NODE_IDS.GPT4O, animated: false, style: EDGE_STYLE, markerEnd: EDGE_MARKER },
+        { id: 'e-basescan-llama3', source: NODE_IDS.BASESCAN, target: NODE_IDS.LLAMA3, animated: false, style: EDGE_STYLE, markerEnd: EDGE_MARKER },
+        { id: 'e-gpt4o-module', source: NODE_IDS.GPT4O, target: NODE_IDS.MODULE, animated: false, style: EDGE_STYLE, markerEnd: EDGE_MARKER },
+        { id: 'e-llama3-module', source: NODE_IDS.LLAMA3, target: NODE_IDS.MODULE, animated: false, style: EDGE_STYLE, markerEnd: EDGE_MARKER },
     ];
 }
 
@@ -276,23 +253,28 @@ const ConsensusVisualizer = forwardRef<ConsensusVisualizerHandle, ConsensusVisua
             case 'don_started':
                 updateNode(NODE_IDS.BUNDLER, 'complete');
                 updateNode(NODE_IDS.DON, 'active', 'Spinning up Oracle Brain…');
+                activateEdge('e-don-goplus');
+                activateEdge('e-don-basescan');
+                updateNode(NODE_IDS.GOPLUS, 'active', 'Scanning…');
+                updateNode(NODE_IDS.BASESCAN, 'active', 'Fetching source…');
                 break;
 
             case 'goplus_complete':
-                updateNode(NODE_IDS.DON, 'active', `GoPlus: ${event.result}`);
+                updateNode(NODE_IDS.DON, 'complete');
+                updateNode(NODE_IDS.GOPLUS, 'complete', event.result);
+                activateEdge('e-goplus-gpt4o', '#22c55e');
                 break;
 
             case 'basescan_complete':
-                updateNode(NODE_IDS.DON, 'active', `BaseScan: ${event.result}`);
+                updateNode(NODE_IDS.BASESCAN, 'complete', event.result);
+                activateEdge('e-basescan-llama3', '#22c55e');
                 break;
 
             case 'gpt4o_started':
-                activateEdge('e-don-gpt4o');
                 updateNode(NODE_IDS.GPT4O, 'active', 'Analyzing…');
                 break;
 
             case 'llama3_started':
-                activateEdge('e-don-llama3');
                 updateNode(NODE_IDS.LLAMA3, 'active', 'Analyzing…');
                 break;
 
