@@ -14,6 +14,7 @@
 | [demo_v5_master_run.txt](demo_v5_master_run.txt) | `demo_v5_master.ps1` | Full 7-act lifecycle: subscribe → audit → CRE AI → swap/revert → budget → kill switch |
 | [demo_v5_cre_run.txt](demo_v5_cre_run.txt) | `demo_v5_cre.ps1` | Raw CRE WASM execution with GPT-4o + Llama-3 consensus |
 | [erc4337_userop_run.txt](erc4337_userop_run.txt) | `v5_e2e_mock.ts` | **ERC-4337 proof:** Safe deploy → Pimlico UserOp → triggerSwap via Account Abstraction |
+| [session_validator_install.txt](session_validator_install.txt) | `v5_install_session_validator.ts` | **ERC-7715 proof:** Safe 7579 deploy → SmartSessionValidator installed → agent subscribed |
 
 ## Key Highlights in `demo_v5_master_run.txt`
 

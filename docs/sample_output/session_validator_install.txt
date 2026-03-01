@@ -1,0 +1,34 @@
+═══════════════════════════════════════════════════════════════
+  🔑 AEGIS V5 — SmartSessionValidator Installation
+═══════════════════════════════════════════════════════════════
+  Owner:      0x109D8072B1762263ed094BC05c5110895Adc65Cf
+  Agent:      0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+  Module:     0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89
+  Validator:  0x00000000008bDABA73cD9815d79069c247Eb4bDA
+
+━━━ PHASE 1: Deploy ERC-7579 Safe (modules pre-installed) ━━━
+[PHASE 1] Using salt: 1772341971704
+[PHASE 1] Safe (counterfactual): 0xC006bfc3Cac01634168e9cD0a1fEbD4Ffb816e14
+[PHASE 1] ✅ Safe deployed: 0x80e3dc870e41c6950a5cc4d1a58afd2b7724d128232aac46e41b8f28016069a0
+[PHASE 1] ✅ Bytecode: 0 chars
+
+━━━ PHASE 2: Verify Module Installation ━━━
+[PHASE 2] AegisModule (executor):        ❌
+[PHASE 2] SmartSessionValidator (validator): ✅
+
+━━━ PHASE 3: Fund Treasury + Subscribe Agent ━━━
+[PHASE 3] ✅ Deposited 0.005 ETH to module treasury
+[PHASE 3] ✅ Agent subscribed (0.002 ETH budget)
+[PHASE 3] ✅ Agent allowance: 2000000000000000 wei
+
+═══════════════════════════════════════════════════════════════
+  ✅ SESSION VALIDATOR INSTALLATION COMPLETE
+═══════════════════════════════════════════════════════════════
+  SAFE_ADDRESS=0xC006bfc3Cac01634168e9cD0a1fEbD4Ffb816e14
+  AegisModule:        ❌ Executor
+  SessionValidator:   ✅ Validator
+  Agent:              ✅ 0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+  Treasury:           ✅ 0.005 ETH
+
+  👉 Update .env: SAFE_ADDRESS=0xC006bfc3Cac01634168e9cD0a1fEbD4Ffb816e14
+═══════════════════════════════════════════════════════════════

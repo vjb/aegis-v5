@@ -14,6 +14,7 @@ Operational scripts for the Aegis V5 Account Abstraction stack on Base Sepolia.
 | `v5_bot_config.ts` | ABI calldata builders for `requestAudit` and `triggerSwap` |
 | `v5_safe_config.ts` | Safe Smart Account configuration constants |
 | `v5_session_config.ts` | ERC-7715 session key scope configuration |
+| `v5_install_session_validator.ts` | Deploy Safe with SmartSessionValidator pre-installed · [output](../docs/sample_output/session_validator_install.txt) |
 
 ---
 
