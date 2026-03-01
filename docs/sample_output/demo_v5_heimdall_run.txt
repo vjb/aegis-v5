@@ -13,38 +13,40 @@
 ═══════════════════════════════════════════════════════════════════════
 
 [Scene 1] Verifying Heimdall Decompiler Status...
-  Connecting to local Docker container... |/-\|/-\|/-\|/-\|/ 
+  Connecting to local Docker container... |/-\|/-\|/-\|/-\| 
   ✅ Heimdall Online: heimdall 0.9.2
   ➤ Endpoint:    http://localhost:8080/decompile
   ➤ Engine:      heimdall 0.9.2
   ➤ Status:      ok
 
 [Scene 2] Probing BaseScan for Verified Source Code...
-  ➤ Target:    0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89
-  Querying BaseScan API (Base Sepolia, chainid=84532)... |/-\|/-\|/-\|/-\|/-\|/-\| 
-  ⚠️  BaseScan returned VERIFIED source: AegisModule
-  ℹ️  Heimdall decompilation is a FALLBACK — normally we'd use the verified source.
-  ℹ️  For this demo, we'll decompile anyway to show the pipeline.
+  ➤ Target:    0x99900d61f42bA57A8C3DA5b4d763f0F2Dc51E2B3
+  Querying BaseScan API (Base Sepolia, chainid=84532)... |/-\|/-\|/-\|/-\|/-\|/-\ 
+  ┌──────────────────────────────────────────────────────────┐
+  │  🔴 BaseScan: NO VERIFIED SOURCE CODE                   │
+  │     Traditional firewalls would STOP HERE.               │
+  │     Aegis + Heimdall continues the analysis.             │
+  └──────────────────────────────────────────────────────────┘
 
 [Scene 3] Extracting Raw Bytecode from Base Sepolia...
   ➤ RPC:       https://sepolia.base.org
-  ➤ Method:    eth_getCode(0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89, 'latest')
-  Fetching contract bytecode via JSON-RPC... |/-\|/-\|/-\|/-\|/-\|/-\| 
+  ➤ Method:    eth_getCode(0x99900d61f42bA57A8C3DA5b4d763f0F2Dc51E2B3, 'latest')
+  Fetching contract bytecode via JSON-RPC... |/-\|/-\|/-\|/-\|/-\|/- 
   ┌──────────────────────────────────────────────────────────┐
   │  ✅ BYTECODE EXTRACTED                                   │
-  │     Size: 19666      hex characters           │
-  │     Prefix: 0x60806040526004361061019f575f3560e01c8063...   │
+  │     Size: 13326      hex characters           │
+  │     Prefix: 0x6080604052600436106100f6575f3560e01c8063...   │
   └──────────────────────────────────────────────────────────┘
 
 [Scene 4] Heimdall Decompilation In Progress...
-  ➤ Input:     19666 hex chars of raw EVM bytecode
+  ➤ Input:     13326 hex chars of raw EVM bytecode
   ➤ Engine:    heimdall-rs v0.9.2 (symbolic execution)
   ➤ Output:    Solidity-like source code
-  Heimdall symbolic execution in progress... |/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\ 
+  Heimdall symbolic execution in progress... |/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/ 
   ┌──────────────────────────────────────────────────────────┐
   │  ✅ DECOMPILATION COMPLETE                               │
-  │     Output: 15000    chars of Solidity-like code  │
-  │     Time:   2450     ms                              │
+  │     Output: 14002    chars of Solidity-like code  │
+  │     Time:   1027     ms                              │
   └──────────────────────────────────────────────────────────┘
 
   ─── Decompiled Output (preview) ────────────────────────────
@@ -68,25 +70,27 @@
   GPT-4o analyzing decompiled bytecode patterns... |/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/- 
   ─── GPT-4o Raw Response ────────────────────────────────────
   {
-    "obfuscatedTax": false,
+    "obfuscatedTax": true,
     "privilegeEscalation": false,
     "externalCallRisk": false,
     "logicBomb": false,
-    "is_malicious": false,
-    "reasoning": "The decompiled contract does not contain any obvious malicious patterns such as honeypots, hidden minting, fee manipulation, blocklisting, or unauthorized self-destruct/delegatecall operations."
+    "is_malicious": true,
+    "reasoning": "The contract contains a honeypot pattern where normal users are blocked from selling tokens, while the owner is not restricted."
   }
   ─────────────────────────────────────────────────────────────
 
   ┌──────────────────────────────────────────────────────────┐
   │  🧠 AI RISK ASSESSMENT FROM DECOMPILED CODE              │
   │  ─────────────────────────────────────────────────────── │
-  │  🟢 obfuscatedTax:       FALSE                          │
+  │  ⛔ VERDICT:           MALICIOUS                         │
+  │  ─────────────────────────────────────────────────────── │
+  │  🔴 obfuscatedTax:       TRUE                           │
   │  🟢 privilegeEscalation: FALSE                          │
   │  🟢 externalCallRisk:    FALSE                          │
   │  🟢 logicBomb:           FALSE                          │
   │  ─────────────────────────────────────────────────────── │
-  │  📊 8-Bit Risk Code: 0 (0b00000000)                  │
-  │  💬 The decompiled contract does not contain any obvio... │
+  │  📊 8-Bit Risk Code: 1 (0b00000001)                  │
+  │  💬 The contract contains a honeypot pattern where nor... │
   └──────────────────────────────────────────────────────────┘
 
 ═══════════════════════════════════════════════════════════════════════
@@ -95,8 +99,8 @@
 
   ┌────────────────────────────────────────────────────────────────┐
   │ ✅ BaseScan Probe   — Confirmed: no verified source           │
-  │ ✅ eth_getCode      — Raw bytecode: 19666 hex chars        │
-  │ ✅ Heimdall Docker  — Decompiled: 15000 chars Solidity     │
+  │ ✅ eth_getCode      — Raw bytecode: 13326 hex chars        │
+  │ ✅ Heimdall Docker  — Decompiled: 14002 chars Solidity     │
   │ ✅ GPT-4o Analysis  — Risk mask computed from decompiled code │
   │ ✅ Zero Dependencies— No external APIs, no Cloudflare blocks  │
   └────────────────────────────────────────────────────────────────┘

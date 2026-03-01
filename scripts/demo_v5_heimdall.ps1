@@ -121,9 +121,11 @@ Get-Content $EnvPath | ForEach-Object {
 
 if (-not $RPC) { $RPC = "https://sepolia.base.org" }
 
-# Use AegisModule itself if no target — it's deployed but can demo decompilation
+# Default to MaliciousRugToken — a deployed contract with 5 blatant vulnerabilities:
+# 95% hidden tax, owner selfdestruct, unlimited mint, blocklist, seller allowlist.
+# GPT-4o reliably detects these patterns from Heimdall-decompiled bytecode.
 if (-not $TargetAddress) {
-    $TargetAddress = $ModuleAddr
+    $TargetAddress = "0x99900d61f42bA57A8C3DA5b4d763f0F2Dc51E2B3"
 }
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -394,17 +396,28 @@ $SourceForAI
         $JsonStr = $JsonStr.Trim()
         $RiskResult = $JsonStr | ConvertFrom-Json
 
-        # Compute risk mask
+        # Compute risk mask — is_malicious serves as catch-all when individual categories miss
         $RiskMask = 0
         if ($RiskResult.obfuscatedTax) { $RiskMask = $RiskMask -bor 1 }
         if ($RiskResult.privilegeEscalation) { $RiskMask = $RiskMask -bor 2 }
         if ($RiskResult.externalCallRisk) { $RiskMask = $RiskMask -bor 4 }
         if ($RiskResult.logicBomb) { $RiskMask = $RiskMask -bor 8 }
+        # If is_malicious but no specific bits set, set privilegeEscalation as default flag
+        if ($RiskResult.is_malicious -and $RiskMask -eq 0) { $RiskMask = $RiskMask -bor 2 }
         $RiskBinary = [Convert]::ToString($RiskMask, 2).PadLeft(8, '0')
+
+        $IsMalicious = $RiskResult.is_malicious
+        $ReasoningTrunc = $RiskResult.reasoning.Substring(0, [Math]::Min(50, $RiskResult.reasoning.Length))
 
         Write-Host ""
         Write-Host "  ┌──────────────────────────────────────────────────────────┐" -ForegroundColor Yellow
         Write-Host "  │  🧠 AI RISK ASSESSMENT FROM DECOMPILED CODE              │" -ForegroundColor Yellow
+        Write-Host "  │  ─────────────────────────────────────────────────────── │" -ForegroundColor DarkGray
+        if ($IsMalicious) {
+            Write-Host "  │  ⛔ VERDICT:           MALICIOUS                         │" -ForegroundColor Red
+        } else {
+            Write-Host "  │  ✅ VERDICT:           CLEAN                             │" -ForegroundColor Green
+        }
         Write-Host "  │  ─────────────────────────────────────────────────────── │" -ForegroundColor DarkGray
         if ($RiskResult.obfuscatedTax) {
             Write-Host "  │  🔴 obfuscatedTax:       TRUE                           │" -ForegroundColor Red
@@ -428,7 +441,7 @@ $SourceForAI
         }
         Write-Host "  │  ─────────────────────────────────────────────────────── │" -ForegroundColor DarkGray
         Write-Host "  │  📊 8-Bit Risk Code: $RiskMask (0b$RiskBinary)                  │" -ForegroundColor Yellow
-        Write-Host "  │  💬 $($RiskResult.reasoning.Substring(0, [Math]::Min(50, $RiskResult.reasoning.Length)))... │" -ForegroundColor DarkGray
+        Write-Host "  │  💬 $ReasoningTrunc... │" -ForegroundColor DarkGray
         Write-Host "  └──────────────────────────────────────────────────────────┘" -ForegroundColor Yellow
 
     } catch {
