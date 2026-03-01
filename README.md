@@ -266,20 +266,48 @@ pnpm exec jest
 # Expected: 83 passed, 1 skipped
 ```
 
-### 4. Deploy to Base Sepolia
+### 4. Configure Environment
 ```bash
-cp .env.example .env   # Fill in PRIVATE_KEY, PIMLICO_API_KEY, BASE_SEPOLIA_RPC_URL
+cp .env.example .env   # Fill in all values below
+```
+
+#### Required API Keys
+
+| # | Variable | Where to Get | Used By |
+|---|---|---|---|
+| 1 | `PRIVATE_KEY` | Your wallet (MetaMask → Account Details → Private Key) | All scripts |
+| 2 | `PIMLICO_API_KEY` | [dashboard.pimlico.io](https://dashboard.pimlico.io) (free) | ERC-4337 UserOps |
+| 3 | `BASESCAN_API_KEY` | [basescan.org/myapikey](https://basescan.org/myapikey) | CRE oracle (source fetch) |
+| 4 | `OPENAI_API_KEY` | [platform.openai.com](https://platform.openai.com) | CRE oracle (GPT-4o) |
+| 5 | `GROQ_API_KEY` | [console.groq.com](https://console.groq.com) (free) | CRE oracle (Llama-3) |
+| 6 | `GOPLUS_APP_KEY` | [developer.gopluslabs.io](https://developer.gopluslabs.io) | CRE oracle (optional) |
+
+#### Deployed Addresses (Base Sepolia)
+
+| Contract | Address | BaseScan |
+|---|---|---|
+| **AegisModule** | `0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89` | [✅ Verified](https://sepolia.basescan.org/address/0x23efaef29ecc0e6ce313f0eed3d5da7e0f5bcd89#code) |
+| **MockBRETT** | `0x46d40e0aBdA0814bb0CB323B2Bb85a129d00B0AC` | [View](https://sepolia.basescan.org/address/0x46d40e0aBdA0814bb0CB323B2Bb85a129d00B0AC) |
+| **MockHoneypot** | `0xf672c8fc888b98db5c9662d26e657417a3c453b5` | [View](https://sepolia.basescan.org/address/0xf672c8fc888b98db5c9662d26e657417a3c453b5) |
+| **Owner** | `0x109D8072B1762263ed094BC05c5110895Adc65Cf` | [View](https://sepolia.basescan.org/address/0x109D8072B1762263ed094BC05c5110895Adc65Cf) |
+
+> **MetaMask:** Add Base Sepolia as a custom network (Chain ID `84532`, RPC `https://sepolia.base.org`). Import the owner wallet with your private key.
+>
+> **app.safe.global:** Connect your MetaMask wallet on Base Sepolia. The Safe Smart Account is deployed via `v5_setup_safe.ts` and the AegisModule is installed as an Executor module.
+
+### 5. Deploy to Base Sepolia (if redeploying)
+```bash
 forge script script/DeployMocks.s.sol:DeployMocks \
   --rpc-url https://sepolia.base.org --private-key $PRIVATE_KEY --broadcast
 ```
 
-### 5. Launch the CRE Oracle Node
+### 6. Launch the CRE Oracle Node
 ```bash
 docker compose up --build -d
 # Watch for: ✅ CRE TS SDK is ready to use.
 ```
 
-### 6. Run the cinematic demo
+### 7. Run the cinematic demo
 ```powershell
 .\scripts\demo_v5_setup.ps1 -Interactive
 .\scripts\demo_v5_master.ps1 -Interactive
