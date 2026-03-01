@@ -180,7 +180,28 @@ describe("Phase 4: Live LLM Consensus Integration", () => {
         console.log(`[TEST] Step 2: Heimdall decompiled → ${decompiledSource.length} chars`);
 
         // Step 3: Live GPT-4o call with decompiled code
-        const prompt = `You are a smart contract security auditor. This code was DECOMPILED by Heimdall from raw EVM bytecode (it is NOT original source code). Variable names are generic (var_a, var_b), function selectors may be unresolved. Focus on EVM-level patterns.
+        const prompt = `You are an elite Web3 Smart Contract Auditor and Reverse Engineer specializing in EVM bytecode analysis.
+You will be provided with decompiled smart contract logic (generated via Heimdall or Dedaub).
+
+Your objective is to determine if this contract is safe for an AI Agent to interact with, or if it contains malicious logic (Honeypot, Rug Pull, Trapped Liquidity, Hidden Mints).
+
+CRITICAL CONSTRAINTS:
+1. The code is decompiled. You will not see standard variable names (like \`balanceOf\` or \`owner\`). You will see raw storage slots (e.g., \`storage[0x0]\`), \`CALL\`, \`DELEGATECALL\`, and \`REVERT\` patterns. Do not complain about the lack of readability.
+2. Focus strictly on control flow and state restrictions.
+3. You must output your final analysis in STRICT JSON format. Do not include markdown formatting like \`\`\`json in your final output.
+
+VULNERABILITY PATTERNS TO HUNT:
+- Honeypot (Sell Block): Look for conditional \`REVERT\`s inside the \`transfer\` or \`transferFrom\` logic. Specifically, look for logic that allows transfers FROM a specific address (the deployer) but reverts transfers from normal users.
+- Hidden Minting: Look for logic that increases the total supply or arbitrary user balances without a corresponding deposit, restricted only to a specific storage slot (the owner).
+- Fee Manipulation: Look for math operations that deduct an extreme percentage (e.g., >90%) of a transfer amount and route it to a hardcoded address.
+- Blocklisting: Look for mappings (nested storage slots) checked against \`msg.sender\` that trigger a \`REVERT\`.
+- Unauthorized Self-Destruct / DelegateCall: Look for \`SELFDESTRUCT\` or \`DELEGATECALL\` operations controlled by a single restricted address.
+
+ANALYSIS PROTOCOL (Chain of Thought):
+1. Identify the likely \`transfer\` and \`transferFrom\` function equivalents.
+2. Trace the conditional requirements (\`if / revert\` or \`require\` equivalents) within those functions.
+3. Determine if a normal user (not the deployer) can successfully execute a transfer out after buying.
+4. Assign a strict boolean verdict: \`is_malicious\`.
 
 Analyze for malicious patterns and return ONLY valid JSON:
 {
@@ -188,6 +209,7 @@ Analyze for malicious patterns and return ONLY valid JSON:
   "privilegeEscalation": boolean,
   "externalCallRisk": boolean,
   "logicBomb": boolean,
+  "is_malicious": boolean,
   "reasoning": "one sentence"
 }
 
@@ -204,7 +226,7 @@ ${decompiledSource}`;
                 model: "gpt-4o",
                 messages: [{ role: "user", content: prompt }],
                 temperature: 0,
-                max_tokens: 300,
+                max_tokens: 500,
             }),
         }, 60000);
 
@@ -222,6 +244,7 @@ ${decompiledSource}`;
         expect(typeof riskResult.privilegeEscalation).toBe("boolean");
         expect(typeof riskResult.externalCallRisk).toBe("boolean");
         expect(typeof riskResult.logicBomb).toBe("boolean");
+        expect(typeof riskResult.is_malicious).toBe("boolean");
         expect(typeof riskResult.reasoning).toBe("string");
         expect(riskResult.reasoning.length).toBeGreaterThan(0);
 

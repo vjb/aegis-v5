@@ -7,7 +7,7 @@
 **Convergence Hackathon Tracks:** Risk & Compliance · CRE & AI · DeFi & Tokenization · Privacy · Autonomous Agents
 
 [![Forge Tests](https://img.shields.io/badge/forge%20tests-21%20passing-brightgreen)](test/AegisModule.t.sol)
-[![Jest Tests](https://img.shields.io/badge/jest%20tests-83%20passing-brightgreen)](test/)
+[![Jest Tests](https://img.shields.io/badge/jest%20tests-87%20passing-brightgreen)](test/)
 [![CRE Live](https://img.shields.io/badge/chainlink%20CRE-live%20on%20Base%20Sepolia-blue)](cre-node/)
 [![ERC-7579](https://img.shields.io/badge/ERC--7579-executor-orange)](src/AegisModule.sol)
 [![ERC-4337](https://img.shields.io/badge/ERC--4337-Pimlico%20bundler-purple)](scripts/v5_e2e_mock.ts)
@@ -312,7 +312,7 @@ Raw Chainlink CRE WASM execution for CRE & AI judges. No frontend, no abstractio
 | File | What It Shows |
 |---|---|
 | [`forge_tests.txt`](docs/sample_output/forge_tests.txt) | 21 Solidity tests passing |
-| [`jest_tests.txt`](docs/sample_output/jest_tests.txt) | 83 TypeScript tests passing across 7 suites |
+| [`jest_tests.txt`](docs/sample_output/jest_tests.txt) | 87 TypeScript tests passing across 8 suites |
 | [`demo_v5_setup_run.txt`](docs/sample_output/demo_v5_setup_run.txt) | Infrastructure boot |
 | [`demo_v5_master_run.txt`](docs/sample_output/demo_v5_master_run.txt) | Full 7-act lifecycle with live CRE AI |
 | [`demo_v5_cre_run.txt`](docs/sample_output/demo_v5_cre_run.txt) | Raw CRE WASM execution |
@@ -342,7 +342,7 @@ forge test --match-contract AegisModuleTest -vv
 ### 3. Run TypeScript tests
 ```bash
 pnpm exec jest
-# Expected: 83 passed, 1 skipped
+# Expected: 87 passed, 1 skipped
 ```
 
 ### 4. Configure Environment
@@ -482,7 +482,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full deep-dive with 12 
 | `/src` | Solidity source — [`AegisModule.sol`](src/AegisModule.sol) (ERC-7579 Executor) |
 | `/cre-node` | Chainlink CRE workflow — [`aegis-oracle.ts`](cre-node/aegis-oracle.ts), `workflow.yaml` |
 | `/scripts` | Demo scripts, AA config modules, E2E mock test |
-| `/test` | Forge + Jest test suites (21 + 83 = 104 tests) |
+| `/test` | Forge + Jest test suites (21 + 87 = 108 tests) |
 | `/aegis-frontend` | Next.js Agentic Command Center — chat, oracle feed, firewall UI |
 | `/docs` | Architecture, Confidential HTTP, Demo Guide, sample outputs |
 | `/script` | Foundry deployment scripts (`DeployMocks.s.sol`) |

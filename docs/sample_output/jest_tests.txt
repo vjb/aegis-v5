@@ -1,85 +1,56 @@
-jest-haste-map: Haste module naming collision: aegis-oracle-workflow
-  The following files share their name; please adjust your hasteImpl:
-    * <rootDir>\cre-node\package.json
-    * <rootDir>\v3-reference\cre-node\package.json
-
-jest-haste-map: Haste module naming collision: aegis-frontend
-  The following files share their name; please adjust your hasteImpl:
-    * <rootDir>\v3-reference\aegis-frontend\package.json
-    * <rootDir>\aegis-frontend\package.json
-
-PASS test/frontend.spec.ts (261.001 s)
-  Phase 8.1 — Wallet Info + Session Key Rendering
-    √ WalletInfo type has all required fields (733 ms)
-    √ truncates owner address to 0x109D…65Cf (4 ms)
-    √ truncates module address correctly (3 ms)
-    √ session key targets only the AegisModule (58 ms)
-    √ session key allows exactly 2 selectors (8 ms)
-    √ session key allows requestAudit (0xe34eac65) (33 ms)
-    √ session key allows triggerSwap (0x684bceb0) (2 ms)
-    √ session key does NOT allow transfer selector (6 ms)
-    √ session key budget is capped at 0.002 ETH (15 ms)
-    √ error field is optional in WalletInfo (5 ms)
-  Phase 8.2 — Oracle Feed: Risk Score & Verdict Logic
-    √ risk score 0 decodes to 8 all-clean checks (10 ms)
-    √ risk score 0 → APPROVED verdict (27 ms)
-    √ risk score 4 (bit 2) → Known Honeypot flagged (48 ms)
-    √ risk score 4 → BLOCKED (1 ms)
-    √ risk score 36 = Honeypot (bit 2) + Privilege Escalation (bit 5) (3 ms)
-    √ risk score 255 flags all 8 bits (18 ms)
-    √ risk score 1 (bit 0) → Unverified Code only (6 ms)
-    √ risk score 16 (bit 4) → Obfuscated Tax only (2 ms)
-    √ risk score 128 (bit 7) → Logic Bomb only (3 ms)
-    √ negative score → ERROR verdict (1 ms)
-  Phase 8.2 — Oracle Feed: SSE Event Parsing
-    √ parses phase event (7 ms)
-    √ parses tx event with hash (3 ms)
-    √ parses final_verdict BLOCKED event (2 ms)
-    √ parses final_verdict APPROVED event (1 ms)
-    √ parses llm-reasoning-start for GPT-4o (2 ms)
-    √ parses static-analysis GoPlus event (7 ms)
-
-PASS test/oracle.spec.ts (275.199 s)
-  Aegis CRE Oracle V5 — ABI encoding
-    √ encodes (tradeId=3, riskScore=0) to 64-byte ABI-encoded hex (108 ms)
-    √ encodes (tradeId=0, riskScore=4) — honeypot flag (2 ms)
-    √ encodes riskScore=255 (all risk bits set) (2 ms)
-    √ oracle config vaultAddress points to AegisModule (2 ms)
-    √ V5 config shape has required CRE fields (6 ms)
-    √ V3 and V5 onReport ABI encoding is identical (same uint256,uint256 schema) (1 ms)
-  Oracle AI JSON → onReportDirect hex payload (5.5.3)
-    √ AI response {"risk": 5} → correct hex payload for onReportDirect (6 ms)
-    √ AI response {"risk": 0} → approved (clean token) (2 ms)
-    √ AI response {"risk": 36} → denied (honeypot + privilege escalation) (2 ms)
-    √ calldata length is always exactly 138 chars (4+32+32 bytes) (79 ms)
-
-PASS test/bot.spec.ts (283.607 s)
+PASS test/bot.spec.ts (58.67 s)
   AegisAgent V5 — ERC-4337 Bot
-    √ validates required config fields exist (101 ms)
-    √ requestAudit calldata contains target token address (5 ms)
+    √ validates required config fields exist (22 ms)
+    √ requestAudit calldata contains target token address (3 ms)
     √ triggerSwap calldata contains token address and 1 ETH amount (5 ms)
-    √ agent design: gas wallet is separate from Smart Account (capital custody) (3 ms)
+    √ agent design: gas wallet is separate from Smart Account (capital custody) (13 ms)
     √ risk matrix bit decoding identifies correct flags (3 ms)
-    √ polling returns false if no clearance event after timeout (302 ms)
+    √ polling returns false if no clearance event after timeout (34 ms)
 
-  console.log
-    [TEST] Decompiled 19666 hex chars → 15000 chars in 12680ms
+PASS test/oracle.spec.ts (59.021 s)
+  Aegis CRE Oracle V5 — ABI encoding
+    √ encodes (tradeId=3, riskScore=0) to 64-byte ABI-encoded hex (46 ms)
+    √ encodes (tradeId=0, riskScore=4) — honeypot flag (2 ms)
+    √ encodes riskScore=255 (all risk bits set) (1 ms)
+    √ oracle config vaultAddress points to AegisModule (3 ms)
+    √ V5 config shape has required CRE fields (4 ms)
+    √ V3 and V5 onReport ABI encoding is identical (same uint256,uint256 schema) (28 ms)
+  Oracle AI JSON → onReportDirect hex payload (5.5.3)
+    √ AI response {"risk": 5} → correct hex payload for onReportDirect (4 ms)
+    √ AI response {"risk": 0} → approved (clean token) (4 ms)
+    √ AI response {"risk": 36} → denied (honeypot + privilege escalation) (8 ms)
+    √ calldata length is always exactly 138 chars (4+32+32 bytes) (55 ms)
 
-      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:89:17)
-
-  console.log
-    [TEST] First 300 chars:
-    // SPDX-License-Identifier: MIT
-    pragma solidity >=0.8.0;
-    
-    /// @title            Decompiled Contract
-    /// @author           Jonathan Becker <jonathan@jbecker.dev>
-    /// @custom:version   heimdall-rs v0.9.2
-    ///
-    /// @notice           This contract was decompiled using the heimdall-rs decompiler.
-    ///
-
-      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:90:17)
+PASS test/frontend.spec.ts (60.852 s)
+  Phase 8.1 — Wallet Info + Session Key Rendering
+    √ WalletInfo type has all required fields (23 ms)
+    √ truncates owner address to 0x109D…65Cf (2 ms)
+    √ truncates module address correctly (1 ms)
+    √ session key targets only the AegisModule (1 ms)
+    √ session key allows exactly 2 selectors (3 ms)
+    √ session key allows requestAudit (0xe34eac65) (2 ms)
+    √ session key allows triggerSwap (0x684bceb0) (6 ms)
+    √ session key does NOT allow transfer selector (2 ms)
+    √ session key budget is capped at 0.002 ETH (2 ms)
+    √ error field is optional in WalletInfo (3 ms)
+  Phase 8.2 — Oracle Feed: Risk Score & Verdict Logic
+    √ risk score 0 decodes to 8 all-clean checks (2 ms)
+    √ risk score 0 → APPROVED verdict (2 ms)
+    √ risk score 4 (bit 2) → Known Honeypot flagged (2 ms)
+    √ risk score 4 → BLOCKED (2 ms)
+    √ risk score 36 = Honeypot (bit 2) + Privilege Escalation (bit 5) (2 ms)
+    √ risk score 255 flags all 8 bits (1 ms)
+    √ risk score 1 (bit 0) → Unverified Code only (2 ms)
+    √ risk score 16 (bit 4) → Obfuscated Tax only (1 ms)
+    √ risk score 128 (bit 7) → Logic Bomb only (2 ms)
+    √ negative score → ERROR verdict (2 ms)
+  Phase 8.2 — Oracle Feed: SSE Event Parsing
+    √ parses phase event (2 ms)
+    √ parses tx event with hash (1 ms)
+    √ parses final_verdict BLOCKED event (1 ms)
+    √ parses final_verdict APPROVED event (5 ms)
+    √ parses llm-reasoning-start for GPT-4o (1 ms)
+    √ parses static-analysis GoPlus event (1 ms)
 
   console.log
     [TEST] Live bytecode for AegisModule: 19666 hex chars
@@ -87,936 +58,185 @@ PASS test/bot.spec.ts (283.607 s)
       at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:120:17)
 
   console.log
-    [TEST] Full pipeline: Base Sepolia → Heimdall → 15000 chars of decompiled code
-
-      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:147:17)
-
-  console.log
     [TEST] Step 1: Fetched 19666 hex chars from Base Sepolia
 
       at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:169:17)
 
-  console.log
-    [TEST] Step 2: Heimdall decompiled → 8000 chars
-
-      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:180:17)
-
-  console.log
-    [TEST] Step 3: GPT-4o raw response: ```json
-    {
-      "obfuscatedTax": false,
-      "privilegeEscalation": true,
-      "externalCallRisk": false,
-      "logicBomb": false,
-      "reasoning": "The contract contains privilege checks that can be bypassed due to incorrect owner validation logic."
-    }
-    ```
-
-      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:214:17)
-
-  console.log
-    [TEST] ✅ LLM Risk Assessment from decompiled code:
-
-      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:235:17)
-
-  console.log
-    [TEST]   obfuscatedTax: false
-
-      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:236:17)
-
-  console.log
-    [TEST]   privilegeEscalation: true
-
-      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:237:17)
-
-  console.log
-    [TEST]   externalCallRisk: false
-
-      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:238:17)
-
-  console.log
-    [TEST]   logicBomb: false
-
-      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:239:17)
-
-  console.log
-    [TEST]   8-bit risk mask: 2 (0b00000010)
-
-      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:240:17)
-
-  console.log
-    [TEST]   reasoning: The contract contains privilege checks that can be bypassed due to incorrect owner validation logic.
-
-      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:241:17)
-
-PASS test/cre/HeimdallLive.spec.ts (305.462 s)
+FAIL test/cre/HeimdallLive.spec.ts (64.232 s)
   Phase 2: Live Heimdall Microservice
-    √ GET /health should return ok with Heimdall version (2694 ms)
-    √ POST /decompile should return decompiled logic for known bytecode (14474 ms)
-    √ POST /decompile should reject empty bytecode (42 ms)
+    × GET /health should return ok with Heimdall version (390 ms)
+    × POST /decompile should return decompiled logic for known bytecode (601 ms)
+    × POST /decompile should reject empty bytecode (30 ms)
   Phase 3: Live Base Sepolia Pipeline
-    √ should fetch live bytecode from Base Sepolia via eth_getCode (169 ms)
-    √ should fetch bytecode AND decompile via full pipeline (6620 ms)
+    √ should fetch live bytecode from Base Sepolia via eth_getCode (244 ms)
+    × should fetch bytecode AND decompile via full pipeline (77 ms)
   Phase 4: Live LLM Consensus Integration
-    √ should send Heimdall-decompiled code to live GPT-4o and get valid risk JSON (13688 ms)
+    × should send Heimdall-decompiled code to live GPT-4o and get valid risk JSON (80 ms)
 
-PASS test/safe_setup.spec.ts (35.883 s)
+  ● Phase 2: Live Heimdall Microservice › GET /health should return ok with Heimdall version
+
+    TypeError: fetch failed
+
+    [0m [90m 27 |[39m     [36mconst[39m timer [33m=[39m setTimeout(() [33m=>[39m controller[33m.[39mabort()[33m,[39m timeoutMs)[33m;[39m
+     [90m 28 |[39m     [36mtry[39m {
+    [31m[1m>[22m[39m[90m 29 |[39m         [36mreturn[39m [36mawait[39m fetch(url[33m,[39m { [33m...[39mopts[33m,[39m signal[33m:[39m controller[33m.[39msignal })[33m;[39m
+     [90m    |[39m                [31m[1m^[22m[39m
+     [90m 30 |[39m     } [36mfinally[39m {
+     [90m 31 |[39m         clearTimeout(timer)[33m;[39m
+     [90m 32 |[39m     }[0m
+
+      at fetchWithTimeout (test/cre/HeimdallLive.spec.ts:29:16)
+      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:60:21)
+
+    Cause:
+    AggregateError:
+
+
+  ● Phase 2: Live Heimdall Microservice › POST /decompile should return decompiled logic for known bytecode
+
+    TypeError: fetch failed
+
+    [0m [90m 27 |[39m     [36mconst[39m timer [33m=[39m setTimeout(() [33m=>[39m controller[33m.[39mabort()[33m,[39m timeoutMs)[33m;[39m
+     [90m 28 |[39m     [36mtry[39m {
+    [31m[1m>[22m[39m[90m 29 |[39m         [36mreturn[39m [36mawait[39m fetch(url[33m,[39m { [33m...[39mopts[33m,[39m signal[33m:[39m controller[33m.[39msignal })[33m;[39m
+     [90m    |[39m                [31m[1m^[22m[39m
+     [90m 30 |[39m     } [36mfinally[39m {
+     [90m 31 |[39m         clearTimeout(timer)[33m;[39m
+     [90m 32 |[39m     }[0m
+
+      at fetchWithTimeout (test/cre/HeimdallLive.spec.ts:29:16)
+      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:75:21)
+
+    Cause:
+    AggregateError:
+
+
+  ● Phase 2: Live Heimdall Microservice › POST /decompile should reject empty bytecode
+
+    TypeError: fetch failed
+
+    [0m [90m 27 |[39m     [36mconst[39m timer [33m=[39m setTimeout(() [33m=>[39m controller[33m.[39mabort()[33m,[39m timeoutMs)[33m;[39m
+     [90m 28 |[39m     [36mtry[39m {
+    [31m[1m>[22m[39m[90m 29 |[39m         [36mreturn[39m [36mawait[39m fetch(url[33m,[39m { [33m...[39mopts[33m,[39m signal[33m:[39m controller[33m.[39msignal })[33m;[39m
+     [90m    |[39m                [31m[1m^[22m[39m
+     [90m 30 |[39m     } [36mfinally[39m {
+     [90m 31 |[39m         clearTimeout(timer)[33m;[39m
+     [90m 32 |[39m     }[0m
+
+      at fetchWithTimeout (test/cre/HeimdallLive.spec.ts:29:16)
+      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:94:21)
+
+    Cause:
+    AggregateError:
+
+
+  ● Phase 3: Live Base Sepolia Pipeline › should fetch bytecode AND decompile via full pipeline
+
+    TypeError: fetch failed
+
+    [0m [90m 27 |[39m     [36mconst[39m timer [33m=[39m setTimeout(() [33m=>[39m controller[33m.[39mabort()[33m,[39m timeoutMs)[33m;[39m
+     [90m 28 |[39m     [36mtry[39m {
+    [31m[1m>[22m[39m[90m 29 |[39m         [36mreturn[39m [36mawait[39m fetch(url[33m,[39m { [33m...[39mopts[33m,[39m signal[33m:[39m controller[33m.[39msignal })[33m;[39m
+     [90m    |[39m                [31m[1m^[22m[39m
+     [90m 30 |[39m     } [36mfinally[39m {
+     [90m 31 |[39m         clearTimeout(timer)[33m;[39m
+     [90m 32 |[39m     }[0m
+
+      at fetchWithTimeout (test/cre/HeimdallLive.spec.ts:29:16)
+      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:129:21)
+
+    Cause:
+    AggregateError:
+
+
+  ● Phase 4: Live LLM Consensus Integration › should send Heimdall-decompiled code to live GPT-4o and get valid risk JSON
+
+    TypeError: fetch failed
+
+    [0m [90m 27 |[39m     [36mconst[39m timer [33m=[39m setTimeout(() [33m=>[39m controller[33m.[39mabort()[33m,[39m timeoutMs)[33m;[39m
+     [90m 28 |[39m     [36mtry[39m {
+    [31m[1m>[22m[39m[90m 29 |[39m         [36mreturn[39m [36mawait[39m fetch(url[33m,[39m { [33m...[39mopts[33m,[39m signal[33m:[39m controller[33m.[39msignal })[33m;[39m
+     [90m    |[39m                [31m[1m^[22m[39m
+     [90m 30 |[39m     } [36mfinally[39m {
+     [90m 31 |[39m         clearTimeout(timer)[33m;[39m
+     [90m 32 |[39m     }[0m
+
+      at fetchWithTimeout (test/cre/HeimdallLive.spec.ts:29:16)
+      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:172:30)
+
+    Cause:
+    AggregateError:
+
+
+PASS test/session_key.spec.ts (72.717 s)
+  getSmartSessionValidatorModule (unit)
+    √ returns type=validator (not executor) (20 ms)
+    √ has the canonical SmartSessions validator address (2 ms)
+  AegisModule function selectors (unit)
+    √ requestAudit(address) selector is 4 bytes (2 ms)
+    √ triggerSwap(address,uint256,uint256) selector is 4 bytes (6 ms)
+    √ selectors are distinct (no collision) (4 ms)
+  buildAgentSession (unit)
+    √ specifies the SmartSessions validator as session validator (10 ms)
+    √ encodes agent address in sessionValidatorInitData (4 ms)
+    √ permits exactly 2 actions (requestAudit + triggerSwap) (6 ms)
+    √ first action targets AegisModule with requestAudit selector (3 ms)
+    √ second action targets AegisModule with triggerSwap selector (5 ms)
+    √ has a 32-byte salt (3 ms)
+  SESSION_MODES (unit)
+    √ USE mode = 0x00 (agent presents existing signed session) (1 ms)
+    √ ENABLE mode = 0x01 (agent enables + uses in same UserOp) (1 ms)
+    √ UNSAFE_ENABLE mode = 0x02 (skip policy checks — dev only) (1 ms)
+
+PASS test/bot_v5.spec.ts (72.693 s)
+  buildV5RequestAuditCall (unit)
+    √ targets AegisModule (NOT the Safe directly) (22 ms)
+    √ attaches zero ETH value (treasury pays, not the agent) (2 ms)
+    √ encodes requestAudit(address) selector correctly (2 ms)
+    √ encodes the token address as the only argument (3 ms)
+  buildV5TriggerSwapCall (unit)
+    √ targets AegisModule (5 ms)
+    √ attaches zero ETH value (module treasury provides ETH for swaps) (4 ms)
+    √ encodes triggerSwap(address,uint256,uint256) — 3 params (3 ms)
+    √ defaults amountOutMinimum to 1 (contract requires non-zero) (17 ms)
+    √ is distinct from requestAudit calldata (different selector) (3 ms)
+  Legacy vs V5 call structure
+    √ V5 triggerSwap has 3 params, legacy bot.ts ABI had only 2 (bug fixed) (2 ms)
+  ERC-7715 Session Key Constraints (5.5.2)
+    √ session key targets ONLY the AegisModule address (10 ms)
+    √ session permits exactly 2 selectors: requestAudit + triggerSwap (3 ms)
+    √ session DOES NOT permit arbitrary function selectors (e.g. ETH drain) (2 ms)
+    √ session DOES NOT permit calling a random contract (only AegisModule) (1 ms)
+    √ session uses the SmartSessionsValidator (Rhinestone canonical) (1 ms)
+    √ session key = agent public address (embedded in initData) (2 ms)
+
+PASS test/safe_setup.spec.ts (15.345 s)
   buildSafeConfig (unit)
-    √ returns a config with the correct owner and entry point (14 ms)
+    √ returns a config with the correct owner and entry point (8 ms)
     √ starts with threshold 1 (single-owner Safe) (2 ms)
   buildAegisModuleConfig (unit)
-    √ returns type='executor' (ERC-7579 TYPE_EXECUTOR = 2) (10 ms)
-    √ sets module address correctly (3 ms)
-    √ has zero initData for AegisModule (onInstall is a no-op) (3 ms)
+    √ returns type='executor' (ERC-7579 TYPE_EXECUTOR = 2) (7 ms)
+    √ sets module address correctly (2 ms)
+    √ has zero initData for AegisModule (onInstall is a no-op) (2 ms)
   constants (unit)
     √ ENTRYPOINT_V07 matches canonical ERC-4337 v0.7 address (2 ms)
   deploySafeWithAegisModule (integration — requires BASE_SEPOLIA_RPC_URL)
     ○ skipped deploys a Safe and installs AegisModule as ERC-7579 Executor
 
-PASS test/bot_v5.spec.ts (322.872 s)
-  buildV5RequestAuditCall (unit)
-    √ targets AegisModule (NOT the Safe directly) (303 ms)
-    √ attaches zero ETH value (treasury pays, not the agent) (3 ms)
-    √ encodes requestAudit(address) selector correctly (2 ms)
-    √ encodes the token address as the only argument (2 ms)
-  buildV5TriggerSwapCall (unit)
-    √ targets AegisModule (6 ms)
-    √ attaches zero ETH value (module treasury provides ETH for swaps) (3 ms)
-    √ encodes triggerSwap(address,uint256,uint256) — 3 params (3 ms)
-    √ defaults amountOutMinimum to 1 (contract requires non-zero) (4 ms)
-    √ is distinct from requestAudit calldata (different selector) (11 ms)
-  Legacy vs V5 call structure
-    √ V5 triggerSwap has 3 params, legacy bot.ts ABI had only 2 (bug fixed) (9 ms)
-  ERC-7715 Session Key Constraints (5.5.2)
-    √ session key targets ONLY the AegisModule address (4 ms)
-    √ session permits exactly 2 selectors: requestAudit + triggerSwap (205 ms)
-    √ session DOES NOT permit arbitrary function selectors (e.g. ETH drain) (2 ms)
-    √ session DOES NOT permit calling a random contract (only AegisModule) (1 ms)
-    √ session uses the SmartSessionsValidator (Rhinestone canonical) (1 ms)
-    √ session key = agent public address (embedded in initData) (1 ms)
-
-PASS test/session_install.spec.ts (356.036 s)
+PASS test/session_install.spec.ts (75.6 s)
   SmartSessionValidator Integration (Base Sepolia)
-    √ SmartSessionValidator is installed on Safe as validator module (141 ms)
-    √ AegisModule is still installed as executor module (1 ms)
+    √ SmartSessionValidator is installed on Safe as validator module (13 ms)
+    √ AegisModule is still installed as executor module (2 ms)
     √ Agent wallet is subscribed with non-zero budget (1 ms)
-    √ Agent can requestAudit via UserOp (session key scoped) (2 ms)
+    √ Agent can requestAudit via UserOp (session key scoped) (1 ms)
     √ Agent can triggerSwap via UserOp after clearance (1 ms)
     √ Agent cannot call withdrawETH (not in session scope) (1 ms)
-    √ Agent cannot call revokeAgent (not in session scope) (2 ms)
+    √ Agent cannot call revokeAgent (not in session scope) (1 ms)
     √ buildAgentSession produces valid session for agent (1 ms)
 
-FAIL test/live_e2e.spec.ts (364.928 s)
-  Live CRE E2E Integration (Base Sepolia)
-    × requestAudit(MockBRETT) emits AuditRequested (341 ms)
-    × onReportDirect(riskScore=0) approves clean token (684 ms)
-    × triggerSwap(MockBRETT) succeeds via UserOp after approval (1 ms)
-    × onReportDirect(riskScore=4) denies honeypot token (1 ms)
-    × triggerSwap(MockHoneypot) reverts with TokenNotCleared (1 ms)
-
-  ● Live CRE E2E Integration (Base Sepolia) › requestAudit(MockBRETT) emits AuditRequested
-
-    TransactionExecutionError: The total cost (gas * gas fee + value) of executing this transaction exceeds the balance of the account.
-
-    This error could arise when the account does not have enough funds to:
-     - pay for the total gas fee,
-     - pay for the value to send.
-     
-    The cost of the transaction is calculated as `gas * gas fee + value`, where:
-     - `gas` is the amount of gas needed for transaction to execute,
-     - `gas fee` is the gas fee,
-     - `value` is the amount of ether to send to the recipient.
-     
-    Request Arguments:
-      from:   0x109D8072B1762263ed094BC05c5110895Adc65Cf
-      to:     0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89
-      value:  0.005 ETH
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-    [0m [90m 116 |[39m
-     [90m 117 |[39m         [90m// Fund module + subscribe agent[39m
-    [31m[1m>[22m[39m[90m 118 |[39m         [36mconst[39m depositHash [33m=[39m [36mawait[39m walletClient[33m.[39msendTransaction({ to[33m:[39m [33mMODULE[39m[33m,[39m value[33m:[39m parseEther([32m"0.005"[39m) })[33m;[39m
-     [90m     |[39m                             [31m[1m^[22m[39m
-     [90m 119 |[39m         [36mawait[39m publicClient[33m.[39mwaitForTransactionReceipt({ hash[33m:[39m depositHash })[33m;[39m
-     [90m 120 |[39m
-     [90m 121 |[39m         [36mconst[39m subHash [33m=[39m [36mawait[39m walletClient[33m.[39mwriteContract({[0m
-
-      at getTransactionError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getTransactionError.ts:44:10)
-      at sendTransaction (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/sendTransaction.ts:366:30)
-      at Object.<anonymous> (test/live_e2e.spec.ts:118:29)
-
-    Cause:
-    InsufficientFundsError: The total cost (gas * gas fee + value) of executing this transaction exceeds the balance of the account.
-
-    This error could arise when the account does not have enough funds to:
-     - pay for the total gas fee,
-     - pay for the value to send.
-     
-    The cost of the transaction is calculated as `gas * gas fee + value`, where:
-     - `gas` is the amount of gas needed for transaction to execute,
-     - `gas fee` is the gas fee,
-     - `value` is the amount of ether to send to the recipient.
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-    [0m [90m 116 |[39m
-     [90m 117 |[39m         [90m// Fund module + subscribe agent[39m
-    [31m[1m>[22m[39m[90m 118 |[39m         [36mconst[39m depositHash [33m=[39m [36mawait[39m walletClient[33m.[39msendTransaction({ to[33m:[39m [33mMODULE[39m[33m,[39m value[33m:[39m parseEther([32m"0.005"[39m) })[33m;[39m
-     [90m     |[39m                             [31m[1m^[22m[39m
-     [90m 119 |[39m         [36mawait[39m publicClient[33m.[39mwaitForTransactionReceipt({ hash[33m:[39m depositHash })[33m;[39m
-     [90m 120 |[39m
-     [90m 121 |[39m         [36mconst[39m subHash [33m=[39m [36mawait[39m walletClient[33m.[39mwriteContract({[0m
-
-      at getNodeError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getNodeError.ts:103:12)
-      at node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getTransactionError.ts:37:31
-      at getTransactionError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getTransactionError.ts:43:5)
-      at sendTransaction (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/sendTransaction.ts:366:30)
-      at Object.<anonymous> (test/live_e2e.spec.ts:118:29)
-
-    Cause:
-    EstimateGasExecutionError: The total cost (gas * gas fee + value) of executing this transaction exceeds the balance of the account.
-
-    This error could arise when the account does not have enough funds to:
-     - pay for the total gas fee,
-     - pay for the value to send.
-     
-    The cost of the transaction is calculated as `gas * gas fee + value`, where:
-     - `gas` is the amount of gas needed for transaction to execute,
-     - `gas fee` is the gas fee,
-     - `value` is the amount of ether to send to the recipient.
-     
-    Estimate Gas Arguments:
-      from:                  0x109D8072B1762263ed094BC05c5110895Adc65Cf
-      to:                    0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89
-      value:                 0.005 ETH
-      maxFeePerGas:          0.007 gwei
-      maxPriorityFeePerGas:  0.001 gwei
-      nonce:                 156
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-    [0m [90m 116 |[39m
-     [90m 117 |[39m         [90m// Fund module + subscribe agent[39m
-    [31m[1m>[22m[39m[90m 118 |[39m         [36mconst[39m depositHash [33m=[39m [36mawait[39m walletClient[33m.[39msendTransaction({ to[33m:[39m [33mMODULE[39m[33m,[39m value[33m:[39m parseEther([32m"0.005"[39m) })[33m;[39m
-     [90m     |[39m                             [31m[1m^[22m[39m
-     [90m 119 |[39m         [36mawait[39m publicClient[33m.[39mwaitForTransactionReceipt({ hash[33m:[39m depositHash })[33m;[39m
-     [90m 120 |[39m
-     [90m 121 |[39m         [36mconst[39m subHash [33m=[39m [36mawait[39m walletClient[33m.[39mwriteContract({[0m
-
-      at getEstimateGasError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getEstimateGasError.ts:42:10)
-      at estimateGas (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/public/estimateGas.ts:223:30)
-      at prepareTransactionRequest (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/prepareTransactionRequest.ts:579:19)
-      at sendTransaction (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/sendTransaction.ts:313:23)
-      at Object.<anonymous> (test/live_e2e.spec.ts:118:29)
-
-    Cause:
-    InsufficientFundsError: The total cost (gas * gas fee + value) of executing this transaction exceeds the balance of the account.
-
-    This error could arise when the account does not have enough funds to:
-     - pay for the total gas fee,
-     - pay for the value to send.
-     
-    The cost of the transaction is calculated as `gas * gas fee + value`, where:
-     - `gas` is the amount of gas needed for transaction to execute,
-     - `gas fee` is the gas fee,
-     - `value` is the amount of ether to send to the recipient.
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-    [0m [90m 116 |[39m
-     [90m 117 |[39m         [90m// Fund module + subscribe agent[39m
-    [31m[1m>[22m[39m[90m 118 |[39m         [36mconst[39m depositHash [33m=[39m [36mawait[39m walletClient[33m.[39msendTransaction({ to[33m:[39m [33mMODULE[39m[33m,[39m value[33m:[39m parseEther([32m"0.005"[39m) })[33m;[39m
-     [90m     |[39m                             [31m[1m^[22m[39m
-     [90m 119 |[39m         [36mawait[39m publicClient[33m.[39mwaitForTransactionReceipt({ hash[33m:[39m depositHash })[33m;[39m
-     [90m 120 |[39m
-     [90m 121 |[39m         [36mconst[39m subHash [33m=[39m [36mawait[39m walletClient[33m.[39mwriteContract({[0m
-
-      at getNodeError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getNodeError.ts:103:12)
-      at node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getEstimateGasError.ts:35:31
-      at getEstimateGasError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getEstimateGasError.ts:41:5)
-      at estimateGas (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/public/estimateGas.ts:223:30)
-      at prepareTransactionRequest (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/prepareTransactionRequest.ts:579:19)
-      at sendTransaction (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/sendTransaction.ts:313:23)
-      at Object.<anonymous> (test/live_e2e.spec.ts:118:29)
-
-    Cause:
-    InvalidInputRpcError: Missing or invalid parameters.
-    Double check you have provided the correct parameters.
-
-    URL: https://sepolia.base.org
-    Request body: {"method":"eth_estimateGas","params":[{"from":"0x109D8072B1762263ed094BC05c5110895Adc65Cf","maxFeePerGas":"0x6acfc0","maxPriorityFeePerGas":"0xf4240","nonce":"0x9c","to":"0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89","value":"0x11c37937e08000"}]}
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-      at delay.count.count (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/buildRequest.ts:176:25)
-      at attemptRetry (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/promise/withRetry.ts:44:22)
-
-    Cause:
-    RpcRequestError: RPC Request failed.
-
-    URL: https://sepolia.base.org
-    Request body: {"method":"eth_estimateGas","params":[{"from":"0x109D8072B1762263ed094BC05c5110895Adc65Cf","maxFeePerGas":"0x6acfc0","maxPriorityFeePerGas":"0xf4240","nonce":"0x9c","to":"0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89","value":"0x11c37937e08000"}]}
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-      at request (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/clients/transports/http.ts:157:19)
-      at delay.count.count (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/buildRequest.ts:153:22)
-      at attemptRetry (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/promise/withRetry.ts:44:22)
-
-  ● Live CRE E2E Integration (Base Sepolia) › onReportDirect(riskScore=0) approves clean token
-
-    TransactionExecutionError: The total cost (gas * gas fee + value) of executing this transaction exceeds the balance of the account.
-
-    This error could arise when the account does not have enough funds to:
-     - pay for the total gas fee,
-     - pay for the value to send.
-     
-    The cost of the transaction is calculated as `gas * gas fee + value`, where:
-     - `gas` is the amount of gas needed for transaction to execute,
-     - `gas fee` is the gas fee,
-     - `value` is the amount of ether to send to the recipient.
-     
-    Request Arguments:
-      from:   0x109D8072B1762263ed094BC05c5110895Adc65Cf
-      to:     0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89
-      value:  0.005 ETH
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-    [0m [90m 116 |[39m
-     [90m 117 |[39m         [90m// Fund module + subscribe agent[39m
-    [31m[1m>[22m[39m[90m 118 |[39m         [36mconst[39m depositHash [33m=[39m [36mawait[39m walletClient[33m.[39msendTransaction({ to[33m:[39m [33mMODULE[39m[33m,[39m value[33m:[39m parseEther([32m"0.005"[39m) })[33m;[39m
-     [90m     |[39m                             [31m[1m^[22m[39m
-     [90m 119 |[39m         [36mawait[39m publicClient[33m.[39mwaitForTransactionReceipt({ hash[33m:[39m depositHash })[33m;[39m
-     [90m 120 |[39m
-     [90m 121 |[39m         [36mconst[39m subHash [33m=[39m [36mawait[39m walletClient[33m.[39mwriteContract({[0m
-
-      at getTransactionError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getTransactionError.ts:44:10)
-      at sendTransaction (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/sendTransaction.ts:366:30)
-      at Object.<anonymous> (test/live_e2e.spec.ts:118:29)
-
-    Cause:
-    InsufficientFundsError: The total cost (gas * gas fee + value) of executing this transaction exceeds the balance of the account.
-
-    This error could arise when the account does not have enough funds to:
-     - pay for the total gas fee,
-     - pay for the value to send.
-     
-    The cost of the transaction is calculated as `gas * gas fee + value`, where:
-     - `gas` is the amount of gas needed for transaction to execute,
-     - `gas fee` is the gas fee,
-     - `value` is the amount of ether to send to the recipient.
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-    [0m [90m 116 |[39m
-     [90m 117 |[39m         [90m// Fund module + subscribe agent[39m
-    [31m[1m>[22m[39m[90m 118 |[39m         [36mconst[39m depositHash [33m=[39m [36mawait[39m walletClient[33m.[39msendTransaction({ to[33m:[39m [33mMODULE[39m[33m,[39m value[33m:[39m parseEther([32m"0.005"[39m) })[33m;[39m
-     [90m     |[39m                             [31m[1m^[22m[39m
-     [90m 119 |[39m         [36mawait[39m publicClient[33m.[39mwaitForTransactionReceipt({ hash[33m:[39m depositHash })[33m;[39m
-     [90m 120 |[39m
-     [90m 121 |[39m         [36mconst[39m subHash [33m=[39m [36mawait[39m walletClient[33m.[39mwriteContract({[0m
-
-      at getNodeError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getNodeError.ts:103:12)
-      at node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getTransactionError.ts:37:31
-      at getTransactionError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getTransactionError.ts:43:5)
-      at sendTransaction (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/sendTransaction.ts:366:30)
-      at Object.<anonymous> (test/live_e2e.spec.ts:118:29)
-
-    Cause:
-    EstimateGasExecutionError: The total cost (gas * gas fee + value) of executing this transaction exceeds the balance of the account.
-
-    This error could arise when the account does not have enough funds to:
-     - pay for the total gas fee,
-     - pay for the value to send.
-     
-    The cost of the transaction is calculated as `gas * gas fee + value`, where:
-     - `gas` is the amount of gas needed for transaction to execute,
-     - `gas fee` is the gas fee,
-     - `value` is the amount of ether to send to the recipient.
-     
-    Estimate Gas Arguments:
-      from:                  0x109D8072B1762263ed094BC05c5110895Adc65Cf
-      to:                    0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89
-      value:                 0.005 ETH
-      maxFeePerGas:          0.007 gwei
-      maxPriorityFeePerGas:  0.001 gwei
-      nonce:                 156
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-    [0m [90m 116 |[39m
-     [90m 117 |[39m         [90m// Fund module + subscribe agent[39m
-    [31m[1m>[22m[39m[90m 118 |[39m         [36mconst[39m depositHash [33m=[39m [36mawait[39m walletClient[33m.[39msendTransaction({ to[33m:[39m [33mMODULE[39m[33m,[39m value[33m:[39m parseEther([32m"0.005"[39m) })[33m;[39m
-     [90m     |[39m                             [31m[1m^[22m[39m
-     [90m 119 |[39m         [36mawait[39m publicClient[33m.[39mwaitForTransactionReceipt({ hash[33m:[39m depositHash })[33m;[39m
-     [90m 120 |[39m
-     [90m 121 |[39m         [36mconst[39m subHash [33m=[39m [36mawait[39m walletClient[33m.[39mwriteContract({[0m
-
-      at getEstimateGasError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getEstimateGasError.ts:42:10)
-      at estimateGas (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/public/estimateGas.ts:223:30)
-      at prepareTransactionRequest (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/prepareTransactionRequest.ts:579:19)
-      at sendTransaction (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/sendTransaction.ts:313:23)
-      at Object.<anonymous> (test/live_e2e.spec.ts:118:29)
-
-    Cause:
-    InsufficientFundsError: The total cost (gas * gas fee + value) of executing this transaction exceeds the balance of the account.
-
-    This error could arise when the account does not have enough funds to:
-     - pay for the total gas fee,
-     - pay for the value to send.
-     
-    The cost of the transaction is calculated as `gas * gas fee + value`, where:
-     - `gas` is the amount of gas needed for transaction to execute,
-     - `gas fee` is the gas fee,
-     - `value` is the amount of ether to send to the recipient.
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-    [0m [90m 116 |[39m
-     [90m 117 |[39m         [90m// Fund module + subscribe agent[39m
-    [31m[1m>[22m[39m[90m 118 |[39m         [36mconst[39m depositHash [33m=[39m [36mawait[39m walletClient[33m.[39msendTransaction({ to[33m:[39m [33mMODULE[39m[33m,[39m value[33m:[39m parseEther([32m"0.005"[39m) })[33m;[39m
-     [90m     |[39m                             [31m[1m^[22m[39m
-     [90m 119 |[39m         [36mawait[39m publicClient[33m.[39mwaitForTransactionReceipt({ hash[33m:[39m depositHash })[33m;[39m
-     [90m 120 |[39m
-     [90m 121 |[39m         [36mconst[39m subHash [33m=[39m [36mawait[39m walletClient[33m.[39mwriteContract({[0m
-
-      at getNodeError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getNodeError.ts:103:12)
-      at node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getEstimateGasError.ts:35:31
-      at getEstimateGasError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getEstimateGasError.ts:41:5)
-      at estimateGas (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/public/estimateGas.ts:223:30)
-      at prepareTransactionRequest (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/prepareTransactionRequest.ts:579:19)
-      at sendTransaction (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/sendTransaction.ts:313:23)
-      at Object.<anonymous> (test/live_e2e.spec.ts:118:29)
-
-    Cause:
-    InvalidInputRpcError: Missing or invalid parameters.
-    Double check you have provided the correct parameters.
-
-    URL: https://sepolia.base.org
-    Request body: {"method":"eth_estimateGas","params":[{"from":"0x109D8072B1762263ed094BC05c5110895Adc65Cf","maxFeePerGas":"0x6acfc0","maxPriorityFeePerGas":"0xf4240","nonce":"0x9c","to":"0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89","value":"0x11c37937e08000"}]}
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-      at delay.count.count (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/buildRequest.ts:176:25)
-      at attemptRetry (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/promise/withRetry.ts:44:22)
-
-    Cause:
-    RpcRequestError: RPC Request failed.
-
-    URL: https://sepolia.base.org
-    Request body: {"method":"eth_estimateGas","params":[{"from":"0x109D8072B1762263ed094BC05c5110895Adc65Cf","maxFeePerGas":"0x6acfc0","maxPriorityFeePerGas":"0xf4240","nonce":"0x9c","to":"0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89","value":"0x11c37937e08000"}]}
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-      at request (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/clients/transports/http.ts:157:19)
-      at delay.count.count (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/buildRequest.ts:153:22)
-      at attemptRetry (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/promise/withRetry.ts:44:22)
-
-  ● Live CRE E2E Integration (Base Sepolia) › triggerSwap(MockBRETT) succeeds via UserOp after approval
-
-    TransactionExecutionError: The total cost (gas * gas fee + value) of executing this transaction exceeds the balance of the account.
-
-    This error could arise when the account does not have enough funds to:
-     - pay for the total gas fee,
-     - pay for the value to send.
-     
-    The cost of the transaction is calculated as `gas * gas fee + value`, where:
-     - `gas` is the amount of gas needed for transaction to execute,
-     - `gas fee` is the gas fee,
-     - `value` is the amount of ether to send to the recipient.
-     
-    Request Arguments:
-      from:   0x109D8072B1762263ed094BC05c5110895Adc65Cf
-      to:     0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89
-      value:  0.005 ETH
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-    [0m [90m 116 |[39m
-     [90m 117 |[39m         [90m// Fund module + subscribe agent[39m
-    [31m[1m>[22m[39m[90m 118 |[39m         [36mconst[39m depositHash [33m=[39m [36mawait[39m walletClient[33m.[39msendTransaction({ to[33m:[39m [33mMODULE[39m[33m,[39m value[33m:[39m parseEther([32m"0.005"[39m) })[33m;[39m
-     [90m     |[39m                             [31m[1m^[22m[39m
-     [90m 119 |[39m         [36mawait[39m publicClient[33m.[39mwaitForTransactionReceipt({ hash[33m:[39m depositHash })[33m;[39m
-     [90m 120 |[39m
-     [90m 121 |[39m         [36mconst[39m subHash [33m=[39m [36mawait[39m walletClient[33m.[39mwriteContract({[0m
-
-      at getTransactionError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getTransactionError.ts:44:10)
-      at sendTransaction (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/sendTransaction.ts:366:30)
-      at Object.<anonymous> (test/live_e2e.spec.ts:118:29)
-
-    Cause:
-    InsufficientFundsError: The total cost (gas * gas fee + value) of executing this transaction exceeds the balance of the account.
-
-    This error could arise when the account does not have enough funds to:
-     - pay for the total gas fee,
-     - pay for the value to send.
-     
-    The cost of the transaction is calculated as `gas * gas fee + value`, where:
-     - `gas` is the amount of gas needed for transaction to execute,
-     - `gas fee` is the gas fee,
-     - `value` is the amount of ether to send to the recipient.
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-    [0m [90m 116 |[39m
-     [90m 117 |[39m         [90m// Fund module + subscribe agent[39m
-    [31m[1m>[22m[39m[90m 118 |[39m         [36mconst[39m depositHash [33m=[39m [36mawait[39m walletClient[33m.[39msendTransaction({ to[33m:[39m [33mMODULE[39m[33m,[39m value[33m:[39m parseEther([32m"0.005"[39m) })[33m;[39m
-     [90m     |[39m                             [31m[1m^[22m[39m
-     [90m 119 |[39m         [36mawait[39m publicClient[33m.[39mwaitForTransactionReceipt({ hash[33m:[39m depositHash })[33m;[39m
-     [90m 120 |[39m
-     [90m 121 |[39m         [36mconst[39m subHash [33m=[39m [36mawait[39m walletClient[33m.[39mwriteContract({[0m
-
-      at getNodeError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getNodeError.ts:103:12)
-      at node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getTransactionError.ts:37:31
-      at getTransactionError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getTransactionError.ts:43:5)
-      at sendTransaction (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/sendTransaction.ts:366:30)
-      at Object.<anonymous> (test/live_e2e.spec.ts:118:29)
-
-    Cause:
-    EstimateGasExecutionError: The total cost (gas * gas fee + value) of executing this transaction exceeds the balance of the account.
-
-    This error could arise when the account does not have enough funds to:
-     - pay for the total gas fee,
-     - pay for the value to send.
-     
-    The cost of the transaction is calculated as `gas * gas fee + value`, where:
-     - `gas` is the amount of gas needed for transaction to execute,
-     - `gas fee` is the gas fee,
-     - `value` is the amount of ether to send to the recipient.
-     
-    Estimate Gas Arguments:
-      from:                  0x109D8072B1762263ed094BC05c5110895Adc65Cf
-      to:                    0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89
-      value:                 0.005 ETH
-      maxFeePerGas:          0.007 gwei
-      maxPriorityFeePerGas:  0.001 gwei
-      nonce:                 156
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-    [0m [90m 116 |[39m
-     [90m 117 |[39m         [90m// Fund module + subscribe agent[39m
-    [31m[1m>[22m[39m[90m 118 |[39m         [36mconst[39m depositHash [33m=[39m [36mawait[39m walletClient[33m.[39msendTransaction({ to[33m:[39m [33mMODULE[39m[33m,[39m value[33m:[39m parseEther([32m"0.005"[39m) })[33m;[39m
-     [90m     |[39m                             [31m[1m^[22m[39m
-     [90m 119 |[39m         [36mawait[39m publicClient[33m.[39mwaitForTransactionReceipt({ hash[33m:[39m depositHash })[33m;[39m
-     [90m 120 |[39m
-     [90m 121 |[39m         [36mconst[39m subHash [33m=[39m [36mawait[39m walletClient[33m.[39mwriteContract({[0m
-
-      at getEstimateGasError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getEstimateGasError.ts:42:10)
-      at estimateGas (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/public/estimateGas.ts:223:30)
-      at prepareTransactionRequest (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/prepareTransactionRequest.ts:579:19)
-      at sendTransaction (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/sendTransaction.ts:313:23)
-      at Object.<anonymous> (test/live_e2e.spec.ts:118:29)
-
-    Cause:
-    InsufficientFundsError: The total cost (gas * gas fee + value) of executing this transaction exceeds the balance of the account.
-
-    This error could arise when the account does not have enough funds to:
-     - pay for the total gas fee,
-     - pay for the value to send.
-     
-    The cost of the transaction is calculated as `gas * gas fee + value`, where:
-     - `gas` is the amount of gas needed for transaction to execute,
-     - `gas fee` is the gas fee,
-     - `value` is the amount of ether to send to the recipient.
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-    [0m [90m 116 |[39m
-     [90m 117 |[39m         [90m// Fund module + subscribe agent[39m
-    [31m[1m>[22m[39m[90m 118 |[39m         [36mconst[39m depositHash [33m=[39m [36mawait[39m walletClient[33m.[39msendTransaction({ to[33m:[39m [33mMODULE[39m[33m,[39m value[33m:[39m parseEther([32m"0.005"[39m) })[33m;[39m
-     [90m     |[39m                             [31m[1m^[22m[39m
-     [90m 119 |[39m         [36mawait[39m publicClient[33m.[39mwaitForTransactionReceipt({ hash[33m:[39m depositHash })[33m;[39m
-     [90m 120 |[39m
-     [90m 121 |[39m         [36mconst[39m subHash [33m=[39m [36mawait[39m walletClient[33m.[39mwriteContract({[0m
-
-      at getNodeError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getNodeError.ts:103:12)
-      at node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getEstimateGasError.ts:35:31
-      at getEstimateGasError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getEstimateGasError.ts:41:5)
-      at estimateGas (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/public/estimateGas.ts:223:30)
-      at prepareTransactionRequest (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/prepareTransactionRequest.ts:579:19)
-      at sendTransaction (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/sendTransaction.ts:313:23)
-      at Object.<anonymous> (test/live_e2e.spec.ts:118:29)
-
-    Cause:
-    InvalidInputRpcError: Missing or invalid parameters.
-    Double check you have provided the correct parameters.
-
-    URL: https://sepolia.base.org
-    Request body: {"method":"eth_estimateGas","params":[{"from":"0x109D8072B1762263ed094BC05c5110895Adc65Cf","maxFeePerGas":"0x6acfc0","maxPriorityFeePerGas":"0xf4240","nonce":"0x9c","to":"0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89","value":"0x11c37937e08000"}]}
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-      at delay.count.count (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/buildRequest.ts:176:25)
-      at attemptRetry (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/promise/withRetry.ts:44:22)
-
-    Cause:
-    RpcRequestError: RPC Request failed.
-
-    URL: https://sepolia.base.org
-    Request body: {"method":"eth_estimateGas","params":[{"from":"0x109D8072B1762263ed094BC05c5110895Adc65Cf","maxFeePerGas":"0x6acfc0","maxPriorityFeePerGas":"0xf4240","nonce":"0x9c","to":"0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89","value":"0x11c37937e08000"}]}
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-      at request (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/clients/transports/http.ts:157:19)
-      at delay.count.count (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/buildRequest.ts:153:22)
-      at attemptRetry (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/promise/withRetry.ts:44:22)
-
-  ● Live CRE E2E Integration (Base Sepolia) › onReportDirect(riskScore=4) denies honeypot token
-
-    TransactionExecutionError: The total cost (gas * gas fee + value) of executing this transaction exceeds the balance of the account.
-
-    This error could arise when the account does not have enough funds to:
-     - pay for the total gas fee,
-     - pay for the value to send.
-     
-    The cost of the transaction is calculated as `gas * gas fee + value`, where:
-     - `gas` is the amount of gas needed for transaction to execute,
-     - `gas fee` is the gas fee,
-     - `value` is the amount of ether to send to the recipient.
-     
-    Request Arguments:
-      from:   0x109D8072B1762263ed094BC05c5110895Adc65Cf
-      to:     0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89
-      value:  0.005 ETH
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-    [0m [90m 116 |[39m
-     [90m 117 |[39m         [90m// Fund module + subscribe agent[39m
-    [31m[1m>[22m[39m[90m 118 |[39m         [36mconst[39m depositHash [33m=[39m [36mawait[39m walletClient[33m.[39msendTransaction({ to[33m:[39m [33mMODULE[39m[33m,[39m value[33m:[39m parseEther([32m"0.005"[39m) })[33m;[39m
-     [90m     |[39m                             [31m[1m^[22m[39m
-     [90m 119 |[39m         [36mawait[39m publicClient[33m.[39mwaitForTransactionReceipt({ hash[33m:[39m depositHash })[33m;[39m
-     [90m 120 |[39m
-     [90m 121 |[39m         [36mconst[39m subHash [33m=[39m [36mawait[39m walletClient[33m.[39mwriteContract({[0m
-
-      at getTransactionError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getTransactionError.ts:44:10)
-      at sendTransaction (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/sendTransaction.ts:366:30)
-      at Object.<anonymous> (test/live_e2e.spec.ts:118:29)
-
-    Cause:
-    InsufficientFundsError: The total cost (gas * gas fee + value) of executing this transaction exceeds the balance of the account.
-
-    This error could arise when the account does not have enough funds to:
-     - pay for the total gas fee,
-     - pay for the value to send.
-     
-    The cost of the transaction is calculated as `gas * gas fee + value`, where:
-     - `gas` is the amount of gas needed for transaction to execute,
-     - `gas fee` is the gas fee,
-     - `value` is the amount of ether to send to the recipient.
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-    [0m [90m 116 |[39m
-     [90m 117 |[39m         [90m// Fund module + subscribe agent[39m
-    [31m[1m>[22m[39m[90m 118 |[39m         [36mconst[39m depositHash [33m=[39m [36mawait[39m walletClient[33m.[39msendTransaction({ to[33m:[39m [33mMODULE[39m[33m,[39m value[33m:[39m parseEther([32m"0.005"[39m) })[33m;[39m
-     [90m     |[39m                             [31m[1m^[22m[39m
-     [90m 119 |[39m         [36mawait[39m publicClient[33m.[39mwaitForTransactionReceipt({ hash[33m:[39m depositHash })[33m;[39m
-     [90m 120 |[39m
-     [90m 121 |[39m         [36mconst[39m subHash [33m=[39m [36mawait[39m walletClient[33m.[39mwriteContract({[0m
-
-      at getNodeError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getNodeError.ts:103:12)
-      at node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getTransactionError.ts:37:31
-      at getTransactionError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getTransactionError.ts:43:5)
-      at sendTransaction (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/sendTransaction.ts:366:30)
-      at Object.<anonymous> (test/live_e2e.spec.ts:118:29)
-
-    Cause:
-    EstimateGasExecutionError: The total cost (gas * gas fee + value) of executing this transaction exceeds the balance of the account.
-
-    This error could arise when the account does not have enough funds to:
-     - pay for the total gas fee,
-     - pay for the value to send.
-     
-    The cost of the transaction is calculated as `gas * gas fee + value`, where:
-     - `gas` is the amount of gas needed for transaction to execute,
-     - `gas fee` is the gas fee,
-     - `value` is the amount of ether to send to the recipient.
-     
-    Estimate Gas Arguments:
-      from:                  0x109D8072B1762263ed094BC05c5110895Adc65Cf
-      to:                    0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89
-      value:                 0.005 ETH
-      maxFeePerGas:          0.007 gwei
-      maxPriorityFeePerGas:  0.001 gwei
-      nonce:                 156
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-    [0m [90m 116 |[39m
-     [90m 117 |[39m         [90m// Fund module + subscribe agent[39m
-    [31m[1m>[22m[39m[90m 118 |[39m         [36mconst[39m depositHash [33m=[39m [36mawait[39m walletClient[33m.[39msendTransaction({ to[33m:[39m [33mMODULE[39m[33m,[39m value[33m:[39m parseEther([32m"0.005"[39m) })[33m;[39m
-     [90m     |[39m                             [31m[1m^[22m[39m
-     [90m 119 |[39m         [36mawait[39m publicClient[33m.[39mwaitForTransactionReceipt({ hash[33m:[39m depositHash })[33m;[39m
-     [90m 120 |[39m
-     [90m 121 |[39m         [36mconst[39m subHash [33m=[39m [36mawait[39m walletClient[33m.[39mwriteContract({[0m
-
-      at getEstimateGasError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getEstimateGasError.ts:42:10)
-      at estimateGas (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/public/estimateGas.ts:223:30)
-      at prepareTransactionRequest (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/prepareTransactionRequest.ts:579:19)
-      at sendTransaction (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/sendTransaction.ts:313:23)
-      at Object.<anonymous> (test/live_e2e.spec.ts:118:29)
-
-    Cause:
-    InsufficientFundsError: The total cost (gas * gas fee + value) of executing this transaction exceeds the balance of the account.
-
-    This error could arise when the account does not have enough funds to:
-     - pay for the total gas fee,
-     - pay for the value to send.
-     
-    The cost of the transaction is calculated as `gas * gas fee + value`, where:
-     - `gas` is the amount of gas needed for transaction to execute,
-     - `gas fee` is the gas fee,
-     - `value` is the amount of ether to send to the recipient.
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-    [0m [90m 116 |[39m
-     [90m 117 |[39m         [90m// Fund module + subscribe agent[39m
-    [31m[1m>[22m[39m[90m 118 |[39m         [36mconst[39m depositHash [33m=[39m [36mawait[39m walletClient[33m.[39msendTransaction({ to[33m:[39m [33mMODULE[39m[33m,[39m value[33m:[39m parseEther([32m"0.005"[39m) })[33m;[39m
-     [90m     |[39m                             [31m[1m^[22m[39m
-     [90m 119 |[39m         [36mawait[39m publicClient[33m.[39mwaitForTransactionReceipt({ hash[33m:[39m depositHash })[33m;[39m
-     [90m 120 |[39m
-     [90m 121 |[39m         [36mconst[39m subHash [33m=[39m [36mawait[39m walletClient[33m.[39mwriteContract({[0m
-
-      at getNodeError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getNodeError.ts:103:12)
-      at node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getEstimateGasError.ts:35:31
-      at getEstimateGasError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getEstimateGasError.ts:41:5)
-      at estimateGas (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/public/estimateGas.ts:223:30)
-      at prepareTransactionRequest (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/prepareTransactionRequest.ts:579:19)
-      at sendTransaction (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/sendTransaction.ts:313:23)
-      at Object.<anonymous> (test/live_e2e.spec.ts:118:29)
-
-    Cause:
-    InvalidInputRpcError: Missing or invalid parameters.
-    Double check you have provided the correct parameters.
-
-    URL: https://sepolia.base.org
-    Request body: {"method":"eth_estimateGas","params":[{"from":"0x109D8072B1762263ed094BC05c5110895Adc65Cf","maxFeePerGas":"0x6acfc0","maxPriorityFeePerGas":"0xf4240","nonce":"0x9c","to":"0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89","value":"0x11c37937e08000"}]}
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-      at delay.count.count (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/buildRequest.ts:176:25)
-      at attemptRetry (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/promise/withRetry.ts:44:22)
-
-    Cause:
-    RpcRequestError: RPC Request failed.
-
-    URL: https://sepolia.base.org
-    Request body: {"method":"eth_estimateGas","params":[{"from":"0x109D8072B1762263ed094BC05c5110895Adc65Cf","maxFeePerGas":"0x6acfc0","maxPriorityFeePerGas":"0xf4240","nonce":"0x9c","to":"0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89","value":"0x11c37937e08000"}]}
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-      at request (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/clients/transports/http.ts:157:19)
-      at delay.count.count (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/buildRequest.ts:153:22)
-      at attemptRetry (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/promise/withRetry.ts:44:22)
-
-  ● Live CRE E2E Integration (Base Sepolia) › triggerSwap(MockHoneypot) reverts with TokenNotCleared
-
-    TransactionExecutionError: The total cost (gas * gas fee + value) of executing this transaction exceeds the balance of the account.
-
-    This error could arise when the account does not have enough funds to:
-     - pay for the total gas fee,
-     - pay for the value to send.
-     
-    The cost of the transaction is calculated as `gas * gas fee + value`, where:
-     - `gas` is the amount of gas needed for transaction to execute,
-     - `gas fee` is the gas fee,
-     - `value` is the amount of ether to send to the recipient.
-     
-    Request Arguments:
-      from:   0x109D8072B1762263ed094BC05c5110895Adc65Cf
-      to:     0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89
-      value:  0.005 ETH
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-    [0m [90m 116 |[39m
-     [90m 117 |[39m         [90m// Fund module + subscribe agent[39m
-    [31m[1m>[22m[39m[90m 118 |[39m         [36mconst[39m depositHash [33m=[39m [36mawait[39m walletClient[33m.[39msendTransaction({ to[33m:[39m [33mMODULE[39m[33m,[39m value[33m:[39m parseEther([32m"0.005"[39m) })[33m;[39m
-     [90m     |[39m                             [31m[1m^[22m[39m
-     [90m 119 |[39m         [36mawait[39m publicClient[33m.[39mwaitForTransactionReceipt({ hash[33m:[39m depositHash })[33m;[39m
-     [90m 120 |[39m
-     [90m 121 |[39m         [36mconst[39m subHash [33m=[39m [36mawait[39m walletClient[33m.[39mwriteContract({[0m
-
-      at getTransactionError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getTransactionError.ts:44:10)
-      at sendTransaction (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/sendTransaction.ts:366:30)
-      at Object.<anonymous> (test/live_e2e.spec.ts:118:29)
-
-    Cause:
-    InsufficientFundsError: The total cost (gas * gas fee + value) of executing this transaction exceeds the balance of the account.
-
-    This error could arise when the account does not have enough funds to:
-     - pay for the total gas fee,
-     - pay for the value to send.
-     
-    The cost of the transaction is calculated as `gas * gas fee + value`, where:
-     - `gas` is the amount of gas needed for transaction to execute,
-     - `gas fee` is the gas fee,
-     - `value` is the amount of ether to send to the recipient.
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-    [0m [90m 116 |[39m
-     [90m 117 |[39m         [90m// Fund module + subscribe agent[39m
-    [31m[1m>[22m[39m[90m 118 |[39m         [36mconst[39m depositHash [33m=[39m [36mawait[39m walletClient[33m.[39msendTransaction({ to[33m:[39m [33mMODULE[39m[33m,[39m value[33m:[39m parseEther([32m"0.005"[39m) })[33m;[39m
-     [90m     |[39m                             [31m[1m^[22m[39m
-     [90m 119 |[39m         [36mawait[39m publicClient[33m.[39mwaitForTransactionReceipt({ hash[33m:[39m depositHash })[33m;[39m
-     [90m 120 |[39m
-     [90m 121 |[39m         [36mconst[39m subHash [33m=[39m [36mawait[39m walletClient[33m.[39mwriteContract({[0m
-
-      at getNodeError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getNodeError.ts:103:12)
-      at node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getTransactionError.ts:37:31
-      at getTransactionError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getTransactionError.ts:43:5)
-      at sendTransaction (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/sendTransaction.ts:366:30)
-      at Object.<anonymous> (test/live_e2e.spec.ts:118:29)
-
-    Cause:
-    EstimateGasExecutionError: The total cost (gas * gas fee + value) of executing this transaction exceeds the balance of the account.
-
-    This error could arise when the account does not have enough funds to:
-     - pay for the total gas fee,
-     - pay for the value to send.
-     
-    The cost of the transaction is calculated as `gas * gas fee + value`, where:
-     - `gas` is the amount of gas needed for transaction to execute,
-     - `gas fee` is the gas fee,
-     - `value` is the amount of ether to send to the recipient.
-     
-    Estimate Gas Arguments:
-      from:                  0x109D8072B1762263ed094BC05c5110895Adc65Cf
-      to:                    0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89
-      value:                 0.005 ETH
-      maxFeePerGas:          0.007 gwei
-      maxPriorityFeePerGas:  0.001 gwei
-      nonce:                 156
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-    [0m [90m 116 |[39m
-     [90m 117 |[39m         [90m// Fund module + subscribe agent[39m
-    [31m[1m>[22m[39m[90m 118 |[39m         [36mconst[39m depositHash [33m=[39m [36mawait[39m walletClient[33m.[39msendTransaction({ to[33m:[39m [33mMODULE[39m[33m,[39m value[33m:[39m parseEther([32m"0.005"[39m) })[33m;[39m
-     [90m     |[39m                             [31m[1m^[22m[39m
-     [90m 119 |[39m         [36mawait[39m publicClient[33m.[39mwaitForTransactionReceipt({ hash[33m:[39m depositHash })[33m;[39m
-     [90m 120 |[39m
-     [90m 121 |[39m         [36mconst[39m subHash [33m=[39m [36mawait[39m walletClient[33m.[39mwriteContract({[0m
-
-      at getEstimateGasError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getEstimateGasError.ts:42:10)
-      at estimateGas (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/public/estimateGas.ts:223:30)
-      at prepareTransactionRequest (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/prepareTransactionRequest.ts:579:19)
-      at sendTransaction (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/sendTransaction.ts:313:23)
-      at Object.<anonymous> (test/live_e2e.spec.ts:118:29)
-
-    Cause:
-    InsufficientFundsError: The total cost (gas * gas fee + value) of executing this transaction exceeds the balance of the account.
-
-    This error could arise when the account does not have enough funds to:
-     - pay for the total gas fee,
-     - pay for the value to send.
-     
-    The cost of the transaction is calculated as `gas * gas fee + value`, where:
-     - `gas` is the amount of gas needed for transaction to execute,
-     - `gas fee` is the gas fee,
-     - `value` is the amount of ether to send to the recipient.
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-    [0m [90m 116 |[39m
-     [90m 117 |[39m         [90m// Fund module + subscribe agent[39m
-    [31m[1m>[22m[39m[90m 118 |[39m         [36mconst[39m depositHash [33m=[39m [36mawait[39m walletClient[33m.[39msendTransaction({ to[33m:[39m [33mMODULE[39m[33m,[39m value[33m:[39m parseEther([32m"0.005"[39m) })[33m;[39m
-     [90m     |[39m                             [31m[1m^[22m[39m
-     [90m 119 |[39m         [36mawait[39m publicClient[33m.[39mwaitForTransactionReceipt({ hash[33m:[39m depositHash })[33m;[39m
-     [90m 120 |[39m
-     [90m 121 |[39m         [36mconst[39m subHash [33m=[39m [36mawait[39m walletClient[33m.[39mwriteContract({[0m
-
-      at getNodeError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getNodeError.ts:103:12)
-      at node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getEstimateGasError.ts:35:31
-      at getEstimateGasError (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/errors/getEstimateGasError.ts:41:5)
-      at estimateGas (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/public/estimateGas.ts:223:30)
-      at prepareTransactionRequest (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/prepareTransactionRequest.ts:579:19)
-      at sendTransaction (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/actions/wallet/sendTransaction.ts:313:23)
-      at Object.<anonymous> (test/live_e2e.spec.ts:118:29)
-
-    Cause:
-    InvalidInputRpcError: Missing or invalid parameters.
-    Double check you have provided the correct parameters.
-
-    URL: https://sepolia.base.org
-    Request body: {"method":"eth_estimateGas","params":[{"from":"0x109D8072B1762263ed094BC05c5110895Adc65Cf","maxFeePerGas":"0x6acfc0","maxPriorityFeePerGas":"0xf4240","nonce":"0x9c","to":"0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89","value":"0x11c37937e08000"}]}
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-      at delay.count.count (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/buildRequest.ts:176:25)
-      at attemptRetry (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/promise/withRetry.ts:44:22)
-
-    Cause:
-    RpcRequestError: RPC Request failed.
-
-    URL: https://sepolia.base.org
-    Request body: {"method":"eth_estimateGas","params":[{"from":"0x109D8072B1762263ed094BC05c5110895Adc65Cf","maxFeePerGas":"0x6acfc0","maxPriorityFeePerGas":"0xf4240","nonce":"0x9c","to":"0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89","value":"0x11c37937e08000"}]}
-
-    Details: insufficient funds for transfer
-    Version: viem@2.46.3
-
-      at request (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/clients/transports/http.ts:157:19)
-      at delay.count.count (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/buildRequest.ts:153:22)
-      at attemptRetry (node_modules/.pnpm/viem@2.46.3_typescript@4.9.5_zod@3.25.76/node_modules/viem/utils/promise/withRetry.ts:44:22)
-
-PASS test/session_key.spec.ts (103.714 s)
-  getSmartSessionValidatorModule (unit)
-    √ returns type=validator (not executor) (34 ms)
-    √ has the canonical SmartSessions validator address (16 ms)
-  AegisModule function selectors (unit)
-    √ requestAudit(address) selector is 4 bytes (22 ms)
-    √ triggerSwap(address,uint256,uint256) selector is 4 bytes (1 ms)
-    √ selectors are distinct (no collision) (1 ms)
-  buildAgentSession (unit)
-    √ specifies the SmartSessions validator as session validator (78 ms)
-    √ encodes agent address in sessionValidatorInitData (26 ms)
-    √ permits exactly 2 actions (requestAudit + triggerSwap) (22 ms)
-    √ first action targets AegisModule with requestAudit selector (1 ms)
-    √ second action targets AegisModule with triggerSwap selector (15 ms)
-    √ has a 32-byte salt (1 ms)
-  SESSION_MODES (unit)
-    √ USE mode = 0x00 (agent presents existing signed session) (4 ms)
-    √ ENABLE mode = 0x01 (agent enables + uses in same UserOp) (1 ms)
-    √ UNSAFE_ENABLE mode = 0x02 (skip policy checks — dev only)
-
 A worker process has failed to exit gracefully and has been force exited. This is likely caused by tests leaking due to improper teardown. Try running with --detectOpenHandles to find leaks. Active timers can also cause this, ensure that .unref() was called on them.
-Test Suites: 1 failed, 8 passed, 9 total
-Tests:       5 failed, 1 skipped, 92 passed, 98 total
+Test Suites: 1 failed, 7 passed, 8 total
+Tests:       5 failed, 1 skipped, 87 passed, 93 total
 Snapshots:   0 total
-Time:        372.554 s
+Time:        78.095 s, estimated 357 s
 Ran all test suites.

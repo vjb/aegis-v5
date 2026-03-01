@@ -23,7 +23,7 @@ eth_getCode(address)  →  Heimdall Docker (local)  →  GPT-4o  →  8-bit Risk
 
 1. **Bytecode Extraction** — `eth_getCode` fetches the raw EVM bytecode from Base Sepolia via JSON-RPC
 2. **Decompilation** — [Heimdall-rs v0.9.2](https://github.com/Jon-Becker/heimdall-rs) runs symbolic execution inside a local Docker container, reconstructing Solidity-like pseudocode with function signatures, storage patterns, and control flow
-3. **AI Analysis** — GPT-4o (temperature=0, deterministic) analyzes the decompiled output for the same 4 risk patterns as verified contracts: obfuscated tax, privilege escalation, external call risk, logic bombs
+3. **AI Analysis** — GPT-4o (temperature=0, deterministic) receives the decompiled output with a specialized reverse-engineering prompt. The prompt instructs the LLM to hunt for honeypot sell blocks, hidden minting, fee manipulation (>90%), blocklisting patterns, and unauthorized self-destruct/delegatecall — all at the EVM opcode level (storage slots, `CALL`, `REVERT` patterns). It returns a structured JSON verdict including `is_malicious` and the standard 4 risk fields
 4. **Risk Encoding** — Results are encoded as bits 4–7 of the standard 8-bit risk mask
 
 ### Key Advantages
