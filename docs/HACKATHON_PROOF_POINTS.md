@@ -9,9 +9,9 @@
 | Suite | Tests | Status | Evidence |
 |---|---|---|---|
 | **Forge (Solidity)** | 21 | ✅ All passing | [`forge_tests.txt`](sample_output/forge_tests.txt) |
-| **Jest (TypeScript)** | 93 | ✅ All passing | [`jest_tests.txt`](sample_output/jest_tests.txt) |
-| **Frontend UI** | 27/50 | ✅ Tested | [`UI_TEST_MATRIX.md`](UI_TEST_MATRIX.md) |
-| **Total** | **114+** | | |
+| **Jest (TypeScript)** | 92 | ✅ All passing (1 skipped) | [`jest_tests.txt`](sample_output/jest_tests.txt) |
+| **Frontend UI** | 42/50 | ✅ Tested | [`UI_TEST_MATRIX.md`](UI_TEST_MATRIX.md) |
+| **Total** | **155** | | |
 
 ---
 
@@ -23,6 +23,7 @@
 | **Safe + SmartSessionValidator** | [`0xC006bfc3Cac01634168e9cD0a1fEbD4Ffb816e14`](https://sepolia.basescan.org/address/0xC006bfc3Cac01634168e9cD0a1fEbD4Ffb816e14) | ✅ ERC-7579 |
 | MockBRETT | [`0x46d40e0abda0814bb0cb323b2bb85a129d00b0ac`](https://sepolia.basescan.org/address/0x46d40e0abda0814bb0cb323b2bb85a129d00b0ac) | Deployed |
 | MockHoneypot | [`0xf672c8fc888b98db5c9662d26e657417a3c453b5`](https://sepolia.basescan.org/address/0xf672c8fc888b98db5c9662d26e657417a3c453b5) | Deployed |
+| **MaliciousRugToken** | [`0x99900d61f42bA57A8C3DA5b4d763f0F2Dc51E2B3`](https://sepolia.basescan.org/address/0x99900d61f42bA57A8C3DA5b4d763f0F2Dc51E2B3) | Deployed (unverified) |
 
 ---
 
@@ -56,6 +57,7 @@
 | 8-bit risk matrix | Bitwise "Union of Fears" |
 | Per-field median consensus | Tolerates LLM nondeterminism across DON nodes |
 | Configurable firewall | 8 knobs injected into LLM system prompt |
+| 3 distinct AI prompts | CRE source audit, Heimdall bytecode, chat interface — see [`AI_PROMPT_CATALOG.md`](AI_PROMPT_CATALOG.md) |
 
 ---
 
@@ -64,8 +66,8 @@
 | Proof Point | Evidence |
 |---|---|
 | Docker microservice | `services/decompiler/` — heimdall-rs v0.9.2 |
-| Live decompilation | 19,666 hex chars → 15,000 chars decompiled Solidity |
-| Specialized RE prompt | Honeypot, hidden mint, fee manipulation, blocklisting patterns |
+| **MaliciousRugToken detection** | 13,326 hex chars → 14,002 chars decompiled → `is_malicious: true`, `obfuscatedTax: true` |
+| Specialized RE prompt | Honeypot, hidden mint, fee manipulation, blocklisting, self-destruct patterns |
 | GPT-4o on decompiled code | [`heimdall_tests.txt`](sample_output/heimdall_tests.txt) — valid risk JSON with `is_malicious` |
 | 6/6 live integration tests | Phase 2 (microservice) + Phase 3 (pipeline) + Phase 4 (LLM) |
 
@@ -76,11 +78,13 @@
 | Feature | Status |
 |---|---|
 | 3-panel command center | ✅ Agents, Firewall, Audit Log, Marketplace |
-| AI chat interface | ✅ Real treasury balance, agent list |
-| Oracle feed (SSE) | ✅ Live CRE audit of BRETT — GPT-4o + Llama-3 → APPROVED |
+| AI chat interface | ✅ Real treasury balance, dynamic agent list (no hardcoded names) |
+| Oracle feed (SSE) | ✅ Live CRE audit — BRETT APPROVED, HoneypotCoin BLOCKED (riskCode=36) |
 | Kill switch | ✅ PROTOCOL LOCKED banner |
 | 5 marketplace bots | ✅ BLUECHIP, YIELD, DEGEN, SAFE, HEIMDALL |
 | 8-bit firewall toggles | ✅ Synced with on-chain `firewallConfig()` |
+| Trade simulation modal | ✅ Token picker, amount slider, oracle audit trigger |
+| Session key display | ✅ Permitted/blocked functions, scoped selectors |
 | Resizable panels | ✅ Drag handles |
 
 ---
@@ -92,7 +96,7 @@
 | `demo_v5_setup.ps1` | ~2 min | Docker, WASM compile, Base Sepolia connectivity |
 | `demo_v5_master.ps1` | ~5 min | Full 7-act E2E: treasury → agents → audit → CRE → swap/revert → budget → kill switch |
 | `demo_v5_cre.ps1` | ~3 min | Raw CRE WASM execution for Chainlink judges |
-| `demo_v5_heimdall.ps1` | ~3 min | Bytecode decompilation + AI analysis |
+| `demo_v5_heimdall.ps1` | ~3 min | Bytecode decompilation → GPT-4o detects **MALICIOUS** contract |
 
 ---
 
@@ -103,6 +107,8 @@
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | 12 Mermaid diagrams |
 | [`CONFIDENTIAL_HTTP.md`](CONFIDENTIAL_HTTP.md) | Privacy track deep-dive |
 | [`ERC_STANDARDS.md`](ERC_STANDARDS.md) | ERC-4337 + 7579 + 7715 |
-| [`HEIMDALL_PIPELINE.md`](HEIMDALL_PIPELINE.md) | Bytecode decompilation docs |
+| [`HEIMDALL_PIPELINE.md`](HEIMDALL_PIPELINE.md) | Bytecode decompilation with real detection demo |
+| [`AI_PROMPT_CATALOG.md`](AI_PROMPT_CATALOG.md) | All 3 AI prompts with templates and design rationale |
 | [`DEMO_GUIDE.md`](DEMO_GUIDE.md) | How to run all demos |
 | [`ERC7579_ROADMAP.md`](ERC7579_ROADMAP.md) | Production roadmap |
+| [`UI_TEST_MATRIX.md`](UI_TEST_MATRIX.md) | 42/50 frontend tests documented |
