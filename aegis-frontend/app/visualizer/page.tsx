@@ -9,8 +9,8 @@ const ConsensusVisualizer = dynamic(
     { ssr: false, loading: () => <div style={{ color: '#94a3b8', textAlign: 'center', padding: '40px' }}>Loading visualizer...</div> }
 );
 
-const BRETT = '0x46d40e0abda0814bb0cb323b2bb85a129d00b0ac';
-const HONEYPOT = '0xf672c8fc888b98db5c9662d26e657417a3c453b5';
+const BRETT = 'BRETT';
+const HONEYPOT = 'Honeypot';
 
 export default function VisualizerPage() {
     const [token, setToken] = useState(BRETT);
