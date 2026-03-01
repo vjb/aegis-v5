@@ -17,7 +17,7 @@
   Pinging Base Sepolia RPC... |/-\|/-\|/-\   ✅ Connected successfully to Base Sepolia (Chain ID: 84532)
 
 > cast balance 0x109D8072B1762263ed094BC05c5110895Adc65Cf
-  Checking deployer bankroll... |/-\|/-\|/-   ✅ Dev Wallet funded with 0.0044 ETH (Ready for deployments)
+  Checking deployer bankroll... |/-\|/-\|/-\|   ✅ Dev Wallet funded with 0.0044 ETH (Ready for deployments)
 
   ┌──────────────────── DEPLOYED CONTRACTS ───────────────────┐
   │                                                            │
@@ -41,25 +41,24 @@
   [Docker]  Container aegis-decompiler  Removed
   [Docker]  Network aegis-v4_default  Removing
   [Docker]  Network aegis-v4_default  Removed
-  [Docker] 2026/03/01 16:27:12 http2: server: error reading preface from client //./pipe/docker_engine: file has already been closed
+  [Docker] 2026/03/01 16:40:01 http2: server: error reading preface from client //./pipe/docker_engine: file has already been closed
+  [Docker] 2026/03/01 16:40:02 http2: server: error reading preface from client //./pipe/docker_engine: file has already been closed
   [Docker] #0 building with "default" instance using docker driver
   [Docker] 
   [Docker] #1 [decompiler internal] load build definition from Dockerfile
   [Docker] #1 transferring dockerfile: 1.27kB 0.0s done
-  [Docker] #1 DONE 0.0s
+  [Docker] #1 DONE 0.1s
   [Docker] 
   [Docker] #2 [decompiler internal] load metadata for docker.io/library/debian:trixie-slim
-  [Docker] #2 ...
+  [Docker] #2 DONE 1.5s
   [Docker] 
   [Docker] #3 [decompiler internal] load metadata for docker.io/library/rust:1.85-bookworm
-  [Docker] #3 DONE 1.1s
-  [Docker] 
-  [Docker] #2 [decompiler internal] load metadata for docker.io/library/debian:trixie-slim
-  [Docker] #2 DONE 1.1s
+  [Docker] #3 DONE 1.5s
   [Docker] 
   [Docker] #4 [decompiler internal] load .dockerignore
   [Docker] #4 transferring context: 2B done
   [Docker] #4 DONE 0.0s
+  [Docker] 2026/03/01 16:40:04 http2: server: error reading preface from client //./pipe/docker_engine: file has already been closed
   [Docker] 
   [Docker] #5 [decompiler builder 1/5] FROM docker.io/library/rust:1.85-bookworm@sha256:e51d0265072d2d9d5d320f6a44dde6b9ef13653b035098febd68cce8fa7c0bc4
   [Docker] #5 DONE 0.0s
@@ -71,31 +70,31 @@
   [Docker] #7 transferring context: 63B done
   [Docker] #7 DONE 0.0s
   [Docker] 
-  [Docker] #8 [decompiler stage-1 6/7] COPY package.json server.js ./
+  [Docker] #8 [decompiler builder 4/5] RUN curl -L http://get.heimdall.rs | bash
   [Docker] #8 CACHED
   [Docker] 
-  [Docker] #9 [decompiler stage-1 2/7] RUN apt-get update &&     apt-get install -y curl libssl3t64 &&     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - &&     apt-get install -y nodejs &&     rm -rf /var/lib/apt/lists/*
+  [Docker] #9 [decompiler builder 5/5] RUN $HOME/.bifrost/bin/bifrost -B
   [Docker] #9 CACHED
   [Docker] 
   [Docker] #10 [decompiler stage-1 3/7] COPY --from=builder /root/.bifrost/bin/heimdall /usr/local/bin/heimdall
   [Docker] #10 CACHED
   [Docker] 
-  [Docker] #11 [decompiler stage-1 4/7] RUN heimdall --version
+  [Docker] #11 [decompiler stage-1 2/7] RUN apt-get update &&     apt-get install -y curl libssl3t64 &&     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - &&     apt-get install -y nodejs &&     rm -rf /var/lib/apt/lists/*
   [Docker] #11 CACHED
   [Docker] 
-  [Docker] #12 [decompiler builder 3/5] RUN echo '#!/bin/sh\nexec "$@"' > /usr/local/bin/sudo && chmod +x /usr/local/bin/sudo
+  [Docker] #12 [decompiler stage-1 6/7] COPY package.json server.js ./
   [Docker] #12 CACHED
   [Docker] 
-  [Docker] #13 [decompiler builder 2/5] RUN apt-get update &&     apt-get install -y build-essential libssl-dev pkg-config curl &&     rm -rf /var/lib/apt/lists/*
+  [Docker] #13 [decompiler stage-1 4/7] RUN heimdall --version
   [Docker] #13 CACHED
   [Docker] 
-  [Docker] #14 [decompiler builder 5/5] RUN $HOME/.bifrost/bin/bifrost -B
+  [Docker] #14 [decompiler builder 2/5] RUN apt-get update &&     apt-get install -y build-essential libssl-dev pkg-config curl &&     rm -rf /var/lib/apt/lists/*
   [Docker] #14 CACHED
   [Docker] 
   [Docker] #15 [decompiler stage-1 5/7] WORKDIR /app
   [Docker] #15 CACHED
   [Docker] 
-  [Docker] #16 [decompiler builder 4/5] RUN curl -L http://get.heimdall.rs | bash
+  [Docker] #16 [decompiler builder 3/5] RUN echo '#!/bin/sh\nexec "$@"' > /usr/local/bin/sudo && chmod +x /usr/local/bin/sudo
   [Docker] #16 CACHED
   [Docker] 
   [Docker] #17 [decompiler stage-1 7/7] RUN npm install --production
@@ -103,13 +102,13 @@
   [Docker] 
   [Docker] #18 [decompiler] exporting to image
   [Docker] #18 exporting layers done
-  [Docker] #18 writing image sha256:43673cfdb55b1957550bbf9d66265d608d271064661f5d2b74ca9863d09d43a4 done
-  [Docker] #18 naming to docker.io/library/aegis-v4-decompiler 0.0s done
+  [Docker] #18 writing image sha256:43673cfdb55b1957550bbf9d66265d608d271064661f5d2b74ca9863d09d43a4 0.0s done
+  [Docker] #18 naming to docker.io/library/aegis-v4-decompiler done
   [Docker] #18 DONE 0.0s
-  [Docker] 2026/03/01 16:27:13 http2: server: error reading preface from client //./pipe/docker_engine: file has already been closed
+  [Docker] 2026/03/01 16:40:04 http2: server: error reading preface from client //./pipe/docker_engine: file has already been closed
   [Docker] 
   [Docker] #19 [cre-node internal] load build definition from Dockerfile
-  [Docker] #19 transferring dockerfile: 2.58kB done
+  [Docker] #19 transferring dockerfile: 2.58kB 0.0s done
   [Docker] #19 DONE 0.0s
   [Docker] 
   [Docker] #20 [cre-node internal] load metadata for docker.io/library/ubuntu:24.04
@@ -126,28 +125,28 @@
   [Docker] #23 transferring context: 35B done
   [Docker] #23 DONE 0.0s
   [Docker] 
-  [Docker] #24 [cre-node  2/10] RUN apt-get update && apt-get install -y     curl     git     build-essential     unzip     wget     python3     golang-go     ca-certificates     gnupg     xz-utils     && rm -rf /var/lib/apt/lists/*
+  [Docker] #24 [cre-node  8/10] WORKDIR /app
   [Docker] #24 CACHED
   [Docker] 
-  [Docker] #25 [cre-node  9/10] COPY entrypoint.sh /entrypoint.sh
+  [Docker] #25 [cre-node  3/10] RUN mkdir -p /etc/apt/keyrings &&     curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg &&     echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list &&     apt-get update && apt-get install -y nodejs
   [Docker] #25 CACHED
   [Docker] 
-  [Docker] #26 [cre-node  5/10] RUN curl -L https://foundry.paradigm.xyz | bash &&     foundryup
+  [Docker] #26 [cre-node  7/10] RUN mkdir -p /root/.cache/javy/v5.0.4/linux-x64 &&     curl -L https://github.com/bytecodealliance/javy/releases/download/v5.0.4/javy-x86_64-linux-v5.0.4.gz | gunzip > /root/.cache/javy/v5.0.4/linux-x64/javy &&     chmod +x /root/.cache/javy/v5.0.4/linux-x64/javy
   [Docker] #26 CACHED
   [Docker] 
-  [Docker] #27 [cre-node  7/10] RUN mkdir -p /root/.cache/javy/v5.0.4/linux-x64 &&     curl -L https://github.com/bytecodealliance/javy/releases/download/v5.0.4/javy-x86_64-linux-v5.0.4.gz | gunzip > /root/.cache/javy/v5.0.4/linux-x64/javy &&     chmod +x /root/.cache/javy/v5.0.4/linux-x64/javy
+  [Docker] #27 [cre-node  2/10] RUN apt-get update && apt-get install -y     curl     git     build-essential     unzip     wget     python3     golang-go     ca-certificates     gnupg     xz-utils     && rm -rf /var/lib/apt/lists/*
   [Docker] #27 CACHED
   [Docker] 
   [Docker] #28 [cre-node  6/10] RUN curl -sSL https://cre.chain.link/install.sh | bash &&     mv /root/.cre/bin/cre /usr/local/bin/cre
   [Docker] #28 CACHED
   [Docker] 
-  [Docker] #29 [cre-node  3/10] RUN mkdir -p /etc/apt/keyrings &&     curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg &&     echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list &&     apt-get update && apt-get install -y nodejs
+  [Docker] #29 [cre-node  9/10] COPY entrypoint.sh /entrypoint.sh
   [Docker] #29 CACHED
   [Docker] 
-  [Docker] #30 [cre-node  4/10] RUN curl -fsSL https://bun.sh/install | bash
+  [Docker] #30 [cre-node  5/10] RUN curl -L https://foundry.paradigm.xyz | bash &&     foundryup
   [Docker] #30 CACHED
   [Docker] 
-  [Docker] #31 [cre-node  8/10] WORKDIR /app
+  [Docker] #31 [cre-node  4/10] RUN curl -fsSL https://bun.sh/install | bash
   [Docker] #31 CACHED
   [Docker] 
   [Docker] #32 [cre-node 10/10] RUN chmod +x /entrypoint.sh
@@ -156,6 +155,7 @@
   [Docker] #33 [cre-node] exporting to image
   [Docker] #33 exporting layers done
   [Docker] #33 writing image sha256:1b54d382bf24fcbdc6f36b64bffcab76d610c277a43dc6d25e0db97b335e95d8 done
+  [Docker] #33 naming to docker.io/library/aegis-v4-cre-node
   [Docker] #33 naming to docker.io/library/aegis-v4-cre-node done
   [Docker] #33 DONE 0.0s
   [Docker]  Network aegis-v4_default  Creating
@@ -165,13 +165,13 @@
   [Docker]  Container aegis-oracle-node  Creating
   [Docker]  Container aegis-oracle-node  Created
   [Docker]  Container aegis-decompiler  Starting
-  [Docker] Error response from daemon: driver failed programming external connectivity on endpoint aegis-decompiler (4138abe695706996700ea0b19816b35c1c6c23699f1f5bac47b265bff21fa7a7): Bind for 0.0.0.0:8080 failed: port is already allocated
+  [Docker] Error response from daemon: driver failed programming external connectivity on endpoint aegis-decompiler (c2c68c20a50fe61e33382c2dbd25850089f42cb25e4fb1040d25df457797f7a6): Bind for 0.0.0.0:8080 failed: port is already allocated
   ✅ Chainlink CRE Oracle Node is LIVE.
 
 [Scene 3] Compiling TypeScript to WebAssembly (Javy)...
 
 > docker exec aegis-oracle-node bash -c "cd /app && bun x cre-setup"
-  Initializing Javy compiler... |/-\|/-\|/-\|/-\|/-   [WASM] Error response from daemon: container 55f9e32e84d7b13b0828ed90ebf2117bd38c4a19c090f5fd228cc26bc45b43de is not running
+  Initializing Javy compiler... |/-\|/-\|/-\|/-\|/-   [WASM] Error response from daemon: container 1c07cb7df8b00c3fffb025d29256c77c7fa5f716e253579f49b30074ef0badf6 is not running
   ✅ AI Consensus logic successfully compiled to /app/dist/aegis-oracle.wasm
 
 ═══════════════════════════════════════════════════════════════════════

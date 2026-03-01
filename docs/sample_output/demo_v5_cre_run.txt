@@ -21,7 +21,7 @@
   ℹ️  Simulating Agent NOVA routing ERC-4337 intent through Pimlico...
 
 > cast send 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89 "requestAudit(address)" 0xf672c8fc888b98db5c9662d26e657417a3c453b5 --rpc-url https://sepolia.base.org --private-key <PRIVATE_KEY>
-  Awaiting Base Sepolia Block Confirmation... |/-\|/-\|/-\|/-\|/-\|/-\|/-\|   ✅ UserOperation Confirmed. AuditRequested Event Emitted.
+  Awaiting Base Sepolia Block Confirmation... |/-\|/-\|/-\|/-\|/-\|/-\|/-\|/   ✅ UserOperation Confirmed. AuditRequested Event Emitted.
   ➤ TxHash: 0x0000000000000000000000000000000000000000000000000000000000000000
 
 ==========================================================================
@@ -32,7 +32,7 @@
 
 --- BEGIN RAW SECURE WASM EXECUTION ---
 
-Error response from daemon: container 55f9e32e84d7b13b0828ed90ebf2117bd38c4a19c090f5fd228cc26bc45b43de is not running
+Error response from daemon: container 1c07cb7df8b00c3fffb025d29256c77c7fa5f716e253579f49b30074ef0badf6 is not running
 
 --- END RAW SECURE WASM EXECUTION ---
 
