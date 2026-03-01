@@ -271,6 +271,27 @@ if (logicBomb)                         riskMatrix |= 128; // Bit 7
 
 ---
 
+## 🔗 Files Using Chainlink
+
+> **Hackathon requirement:** The README must link to all files that use Chainlink.
+
+| File | Role |
+|---|---|
+| [`cre-node/aegis-oracle.ts`](cre-node/aegis-oracle.ts) | CRE WASM Oracle — GoPlus + BaseScan + GPT-4o + Llama-3 via ConfidentialHTTPClient |
+| [`cre-node/workflow.yaml`](cre-node/workflow.yaml) | CRE workflow definition (target, RPC, artifact paths) |
+| [`cre-node/workflow.ts`](cre-node/workflow.ts) | CRE entry point — re-exports main from aegis-oracle.ts |
+| [`cre-node/config.json`](cre-node/config.json) | CRE node config (AegisModule address) |
+| [`cre-node/secrets.yaml`](cre-node/secrets.yaml) | Secret ID references for DON vault |
+| [`cre-node/Dockerfile`](cre-node/Dockerfile) | Docker container for CRE node + Javy WASM compilation |
+| [`src/AegisModule.sol`](src/AegisModule.sol) | ERC-7579 Executor — `onReport()` callback from CRE oracle |
+| [`test/oracle.spec.ts`](test/oracle.spec.ts) | Oracle unit tests (risk matrix, AI JSON parsing) |
+| [`aegis-frontend/app/api/audit/route.ts`](aegis-frontend/app/api/audit/route.ts) | Frontend API: full CRE pipeline + `onReportDirect()` |
+| [`aegis-frontend/app/components/OracleFeed.tsx`](aegis-frontend/app/components/OracleFeed.tsx) | UI: SSE stream consumer for live CRE output |
+| [`scripts/demo_v5_cre.ps1`](scripts/demo_v5_cre.ps1) | CRE WASM compile + `cre workflow simulate` demo |
+| [`scripts/demo_v5_master.ps1`](scripts/demo_v5_master.ps1) | Full E2E: `requestAudit()` → CRE → `onReportDirect()` → `triggerSwap()` |
+
+---
+
 ## 🎬 Demo Scripts
 
 > **Three cinematic PowerShell scripts with interactive ActIntro scene introductions.**
