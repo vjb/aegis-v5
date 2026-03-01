@@ -120,6 +120,39 @@ sequenceDiagram
 
 ---
 
+## 🔬 Heimdall Bytecode Decompilation Pipeline
+
+> **What happens when BaseScan returns no verified source code?**
+
+Traditional security tools go blind when a contract is unverified. Aegis doesn't stop — it deploys the **Heimdall Pipeline**, a local EVM bytecode decompiler that reverse-engineers any deployed contract into readable Solidity.
+
+**Pipeline:** `eth_getCode` → **Heimdall Docker** → GPT-4o → 8-bit Risk Code
+
+| Stage | Technology | What It Does |
+|---|---|---|
+| **Bytecode Extraction** | `eth_getCode` via JSON-RPC | Fetches raw EVM bytecode from any deployed contract |
+| **Decompilation** | [Heimdall-rs v0.9.2](https://heimdall.rs) (Docker) | Symbolic execution → reconstructed Solidity with function signatures, storage patterns, control flow |
+| **AI Analysis** | GPT-4o (temperature=0) | Analyzes decompiled code for obfuscated taxes, privilege escalation, external call risks, logic bombs |
+| **Risk Encoding** | 8-bit bitmask | Same risk code format as verified contract analysis — seamless fallback |
+
+**Key advantages over third-party decompilation APIs:**
+- 🐳 **Runs locally** — zero external dependencies, no API keys for decompilation
+- 🚫 **No Cloudflare blocks** — pure Docker container, no rate limits
+- ⚡ **Fast** — 2-second decompilation for typical contracts
+- 🔒 **Confidential** — bytecode never leaves the local network
+
+```powershell
+# Start the Heimdall microservice
+docker run -d -p 8080:8080 --name aegis-heimdall aegis-heimdall
+
+# Run the interactive demo
+.\scripts\demo_v5_heimdall.ps1 -Interactive
+```
+
+> **Sample output:** [`docs/sample_output/demo_v5_heimdall_run.txt`](docs/sample_output/demo_v5_heimdall_run.txt)
+
+---
+
 ## 🏗️ The Separation of Identity and Capital
 
 The fundamental security philosophy of Aegis is the strict separation of **Execution Identity** and **Trading Capital**. The protocol relies on three distinct actors:
