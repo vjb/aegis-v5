@@ -242,16 +242,15 @@ export default function OracleFeed({ isKilled, externalTrigger, onTriggerConsume
                             {/* Phases */}
                             <div className="space-y-2 mb-3">
                                 {run.phases.map((p, i) => (
-                                    <div key={i} className="flex items-center gap-2.5 mono text-xs">
-                                        {p.status === 'running' && <Loader2 className="w-3.5 h-3.5 animate-spin flex-shrink-0" style={{ color: 'var(--cyan)' }} />}
-                                        {p.status === 'done' && <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--green)' }} />}
+                                    <div key={i} className={`flex items-center gap-2.5 mono text-xs ${p.label.includes('Heimdall') ? 'heimdall-glow' : ''}`} style={{ borderRadius: p.label.includes('Heimdall') ? 6 : 0, padding: p.label.includes('Heimdall') ? '2px 4px' : 0 }}>
+                                        {p.status === 'running' && <Loader2 className="w-3.5 h-3.5 animate-spin flex-shrink-0" style={{ color: p.label.includes('Heimdall') ? 'var(--indigo)' : 'var(--cyan)' }} />}
+                                        {p.status === 'done' && <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" style={{ color: p.label.includes('Heimdall') ? 'var(--indigo)' : 'var(--green)' }} />}
                                         {p.status === 'error' && <XCircle className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--red)' }} />}
                                         {p.status === 'pending' && <ChevronRight className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--text-subtle)' }} />}
                                         <span style={{
-                                            color: p.status === 'running' ? 'var(--cyan)'
-                                                : p.status === 'done' ? 'var(--text-muted)'
-                                                    : p.status === 'error' ? 'var(--red)'
-                                                        : 'var(--text-subtle)',
+                                            color: p.label.includes('Heimdall')
+                                                ? (p.status === 'running' ? 'var(--indigo)' : p.status === 'done' ? 'var(--indigo)' : p.status === 'error' ? 'var(--red)' : 'var(--text-subtle)')
+                                                : (p.status === 'running' ? 'var(--cyan)' : p.status === 'done' ? 'var(--text-muted)' : p.status === 'error' ? 'var(--red)' : 'var(--text-subtle)'),
                                         }}>{p.label}</span>
                                     </div>
                                 ))}
