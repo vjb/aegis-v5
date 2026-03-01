@@ -147,3 +147,97 @@ describe("Phase 3: Live Base Sepolia Pipeline", () => {
         console.log(`[TEST] Full pipeline: Base Sepolia → Heimdall → ${body.decompiled.length} chars of decompiled code`);
     });
 });
+
+// ═════════════════════════════════════════════════════════════════════════════
+// PHASE 4: Live LLM Consensus with Heimdall output
+// ═════════════════════════════════════════════════════════════════════════════
+
+describe("Phase 4: Live LLM Consensus Integration", () => {
+    jest.setTimeout(180000); // LLM calls can take 30+ seconds
+
+    const OPENAI_KEY = process.env.OPENAI_API_KEY;
+
+    it("should send Heimdall-decompiled code to live GPT-4o and get valid risk JSON", async () => {
+        if (!OPENAI_KEY) {
+            console.log("[TEST] OPENAI_API_KEY not set — skipping live LLM test");
+            return;
+        }
+
+        // Step 1: Live bytecode from Base Sepolia
+        const bytecode = await getLiveBytecode(AEGIS_MODULE);
+        expect(bytecode.length).toBeGreaterThan(100);
+        console.log(`[TEST] Step 1: Fetched ${bytecode.length} hex chars from Base Sepolia`);
+
+        // Step 2: Live decompilation via Heimdall
+        const decompileRes = await fetchWithTimeout(`${HEIMDALL_URL}/decompile`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ bytecode }),
+        }, 120000);
+        const decompileBody = await decompileRes.json() as any;
+        expect(decompileBody.success).toBe(true);
+        const decompiledSource = decompileBody.decompiled.slice(0, 8000); // Trim for token limits
+        console.log(`[TEST] Step 2: Heimdall decompiled → ${decompiledSource.length} chars`);
+
+        // Step 3: Live GPT-4o call with decompiled code
+        const prompt = `You are a smart contract security auditor. This code was DECOMPILED by Heimdall from raw EVM bytecode (it is NOT original source code). Variable names are generic (var_a, var_b), function selectors may be unresolved. Focus on EVM-level patterns.
+
+Analyze for malicious patterns and return ONLY valid JSON:
+{
+  "obfuscatedTax": boolean,
+  "privilegeEscalation": boolean,
+  "externalCallRisk": boolean,
+  "logicBomb": boolean,
+  "reasoning": "one sentence"
+}
+
+Decompiled contract:
+${decompiledSource}`;
+
+        const llmRes = await fetchWithTimeout("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${OPENAI_KEY}`,
+            },
+            body: JSON.stringify({
+                model: "gpt-4o",
+                messages: [{ role: "user", content: prompt }],
+                temperature: 0,
+                max_tokens: 300,
+            }),
+        }, 60000);
+
+        expect(llmRes.status).toBe(200);
+        const llmBody = await llmRes.json() as any;
+        const content = llmBody.choices[0].message.content;
+        console.log(`[TEST] Step 3: GPT-4o raw response: ${content}`);
+
+        // Parse the JSON from GPT-4o response (strip markdown fences if present)
+        const jsonStr = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+        const riskResult = JSON.parse(jsonStr);
+
+        // Assert valid risk structure
+        expect(typeof riskResult.obfuscatedTax).toBe("boolean");
+        expect(typeof riskResult.privilegeEscalation).toBe("boolean");
+        expect(typeof riskResult.externalCallRisk).toBe("boolean");
+        expect(typeof riskResult.logicBomb).toBe("boolean");
+        expect(typeof riskResult.reasoning).toBe("string");
+        expect(riskResult.reasoning.length).toBeGreaterThan(0);
+
+        // Compute risk mask (same as oracle)
+        const riskMask =
+            (riskResult.obfuscatedTax ? 1 : 0) |
+            (riskResult.privilegeEscalation ? 2 : 0) |
+            (riskResult.externalCallRisk ? 4 : 0) |
+            (riskResult.logicBomb ? 8 : 0);
+
+        console.log(`[TEST] ✅ LLM Risk Assessment from decompiled code:`);
+        console.log(`[TEST]   obfuscatedTax: ${riskResult.obfuscatedTax}`);
+        console.log(`[TEST]   privilegeEscalation: ${riskResult.privilegeEscalation}`);
+        console.log(`[TEST]   externalCallRisk: ${riskResult.externalCallRisk}`);
+        console.log(`[TEST]   logicBomb: ${riskResult.logicBomb}`);
+        console.log(`[TEST]   8-bit risk mask: ${riskMask} (0b${riskMask.toString(2).padStart(8, "0")})`);
+        console.log(`[TEST]   reasoning: ${riskResult.reasoning}`);
+    });
+});
