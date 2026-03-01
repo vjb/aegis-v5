@@ -277,7 +277,17 @@ export async function GET(req: NextRequest) {
 
                 child.stdout.on('data', handleData);
                 child.stderr.on('data', handleData);
-                await new Promise(r => child.on('close', r));
+
+                // Wait for stdout+stderr to finish BEFORE checking extractedScore.
+                // child.on('close') can fire before all 'data' events are processed.
+                await new Promise<void>((resolve) => {
+                    let stdoutDone = false;
+                    let stderrDone = false;
+                    const check = () => { if (stdoutDone && stderrDone) resolve(); };
+                    child.stdout.on('end', () => { stdoutDone = true; check(); });
+                    child.stderr.on('end', () => { stderrDone = true; check(); });
+                    child.on('error', () => resolve()); // don't hang on spawn error
+                });
 
                 if (streamBuffer.trim()) streamBuffer.split('\n').forEach(processLine);
 
