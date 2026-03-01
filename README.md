@@ -594,29 +594,8 @@ Because Aegis sits at the execution layer — every cleared trade flows through 
 | **Development** | Google Antigravity, Gemini, Claude | Agent-first IDE for rapid Web3 development |
 | **Media & Presentation** | Google NotebookLM, Veo 3 | Infographics, narrative video interstitials, cinematic B-roll |
 
----
 
-## 🔗 Chainlink Integration Files
 
-> **Hackathon requirement:** The README must link to all files that use Chainlink.
-
-| File | Role |
-|---|---|
-| [`cre-node/aegis-oracle.ts`](cre-node/aegis-oracle.ts) | **CRE WASM Oracle** — GoPlus + BaseScan + GPT-4o + Llama-3 via ConfidentialHTTPClient |
-| [`cre-node/workflow.yaml`](cre-node/workflow.yaml) | CRE workflow definition (target, RPC, artifact paths) |
-| [`cre-node/workflow.ts`](cre-node/workflow.ts) | CRE entry point — re-exports `main` from `src/oracle/aegis-oracle.ts` |
-| [`cre-node/config.json`](cre-node/config.json) | CRE node config (AegisModule address) |
-| [`cre-node/secrets.yaml`](cre-node/secrets.yaml) | Secret ID references for DON vault |
-| [`cre-node/Dockerfile`](cre-node/Dockerfile) | Docker container for CRE node + Javy WASM compilation |
-| [`src/AegisModule.sol`](src/AegisModule.sol) | ERC-7579 Executor — `onReport()` callback from CRE oracle |
-| [`src/oracle/aegis-oracle.ts`](src/oracle/aegis-oracle.ts) | Oracle implementation (shared between CRE node and frontend API) |
-| [`scripts/v5_e2e_mock.ts`](scripts/v5_e2e_mock.ts) | E2E test — UserOp → CRE → oracle → swap/revert |
-
-| [`test/oracle.spec.ts`](test/oracle.spec.ts) | Oracle unit tests (risk matrix, AI JSON parsing) |
-| [`aegis-frontend/app/api/audit/route.ts`](aegis-frontend/app/api/audit/route.ts) | Frontend API: full CRE pipeline + `onReportDirect` |
-| [`aegis-frontend/app/components/OracleFeed.tsx`](aegis-frontend/app/components/OracleFeed.tsx) | UI: SSE stream consumer for live CRE output |
-
----
 
 ## 🔗 Links
 
