@@ -226,7 +226,7 @@ export async function GET(req: NextRequest) {
                         send({ type: 'llm-score', model: 'OpenAI GPT-4o', bit: 0 }); // marks model done
                         return;
                     }
-                    if (cleaned.match(/\[GPT-4o\] Response:/)) {
+                    if (cleaned.match(/\[GPT-4o\] Response/)) {
                         // Absorb — reasoning text comes from [GPT-4o] Reasoning: line
                         return;
                     }
@@ -245,7 +245,7 @@ export async function GET(req: NextRequest) {
                         send({ type: 'llm-score', model: 'Groq Llama-3', bit: 0 }); // marks model done
                         return;
                     }
-                    if (cleaned.match(/\[Llama-3\] Response:/)) {
+                    if (cleaned.match(/\[Llama-3\] Response/)) {
                         // Absorb — reasoning text comes from [Llama-3] Reasoning: line
                         return;
                     }
@@ -267,7 +267,8 @@ export async function GET(req: NextRequest) {
                     if (cleaned.includes('__BASESCAN_END__')) { send({ type: 'static-analysis', source: 'BaseScan', status: 'OK' }); return; }
 
                     // ── Catch-all: active LLM streaming ──────────────────
-                    if (activeLlm && !cleaned.startsWith('[') && !cleaned.includes('Capability ') && !cleaned.includes('Workflow execution') && !cleaned.includes('cannot read property') && !cleaned.includes('returned an error')) {
+                    // Filter out: CRE framework errors, raw JSON fragments, log metadata
+                    if (activeLlm && !cleaned.startsWith('[') && !cleaned.startsWith('{') && !cleaned.startsWith('"') && !cleaned.includes('Capability ') && !cleaned.includes('Workflow execution') && !cleaned.includes('cannot read property') && !cleaned.includes('returned an error') && !cleaned.includes('HTTP') && !cleaned.includes('Prompt sent') && !cleaned.includes('Sending') && !cleaned.includes('truncated')) {
                         send({ type: 'llm-reasoning-chunk', model: activeLlm, text: cleaned + ' ' });
                     }
                 };
