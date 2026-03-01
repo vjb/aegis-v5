@@ -2,9 +2,20 @@
     "preset": "ts-jest",
     "testEnvironment": "node",
     "testMatch": [
-        "**/test/**/*.spec.ts"
+        "**/test/**/*.spec.ts",
+        "**/test/**/*.spec.tsx"
     ],
     "moduleNameMapper": {
+        "\\.(css|less|scss)$": "<rootDir>/test/__mocks__/styleMock.js",
+        "@xyflow/react/dist/style\\.css$": "<rootDir>/test/__mocks__/styleMock.js",
+        "^react$": "<rootDir>/aegis-frontend/node_modules/react",
+        "^react/(.*)$": "<rootDir>/aegis-frontend/node_modules/react/$1",
+        "^react-dom$": "<rootDir>/aegis-frontend/node_modules/react-dom",
+        "^react-dom/(.*)$": "<rootDir>/aegis-frontend/node_modules/react-dom/$1",
+        "^@xyflow/react$": "<rootDir>/aegis-frontend/node_modules/@xyflow/react",
+        "^@xyflow/react/(.*)$": "<rootDir>/aegis-frontend/node_modules/@xyflow/react/$1",
+        "^framer-motion$": "<rootDir>/aegis-frontend/node_modules/framer-motion",
+        "^framer-motion/(.*)$": "<rootDir>/aegis-frontend/node_modules/framer-motion/$1",
         "^viem/account-abstraction$": "<rootDir>/node_modules/viem/_cjs/account-abstraction/index.js",
         "^viem/accounts$": "<rootDir>/node_modules/viem/_cjs/accounts/index.js",
         "^viem/chains$": "<rootDir>/node_modules/viem/_cjs/chains/index.js",
@@ -20,7 +31,9 @@
             {
                 "tsconfig": {
                     "module": "commonjs",
-                    "target": "ES2020"
+                    "target": "ES2020",
+                    "jsx": "react-jsx",
+                    "esModuleInterop": true
                 }
             }
         ]
