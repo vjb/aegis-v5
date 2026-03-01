@@ -154,6 +154,8 @@ const handler = async (req: NextRequest) => {
 };
 
 // ── Export with x402 payment gate ───────────────────────────────────
+// IMPORTANT: Use www.x402.org — x402.org returns a 308 redirect which
+// causes Node.js fetch to drop the POST body, failing verification.
 const env = loadEnv();
 
 export const GET = withX402(
@@ -165,5 +167,8 @@ export const GET = withX402(
         config: {
             description: 'Aegis CRE Oracle Audit — 8-bit risk analysis via GoPlus + GPT-4o',
         },
+    },
+    {
+        url: 'https://www.x402.org/facilitator',
     }
 );
