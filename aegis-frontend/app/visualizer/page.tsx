@@ -106,7 +106,7 @@ export default function VisualizerPage() {
                                         ? (e.data?.riskCode === 0 ? '#4ade80' : '#f87171')
                                         : '#e2e8f0',
                                 }}>
-                                    {e.type}: {JSON.stringify(e.data || e.stage || e.message).slice(0, 80)}
+                                    {e.type}: {(JSON.stringify(e.data || e.stage || e.message || e.phase || '') || '').slice(0, 80)}
                                 </span>
                             </div>
                         ))
