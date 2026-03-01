@@ -31,7 +31,7 @@ const DEFAULTS: FirewallConfig = {
 };
 
 const BITS = [
-    { bit: 0, label: 'Unverified Source Code', source: 'GoPlus', desc: 'Block tokens with no verified code on BaseScan', key: 'allowUnverified', inverted: true },
+    { bit: 0, label: 'Unverified Source Code', source: 'GoPlus + Heimdall', desc: 'Block tokens with no verified code — Heimdall bytecode decompilation activates as fallback', key: 'allowUnverified', inverted: true },
     { bit: 1, label: 'Sell Tax Restriction', source: 'GoPlus', desc: 'Block tokens with buy/sell tax above the maxTax threshold', key: 'blockSellRestriction', inverted: false },
     { bit: 2, label: 'Honeypot Detection', source: 'GoPlus', desc: 'Block tokens that can be bought but never sold', key: 'blockHoneypots', inverted: false },
     { bit: 3, label: 'Upgradeable Proxy', source: 'GoPlus', desc: 'Block tokens behind proxy contracts where owner can swap logic', key: 'blockProxies', inverted: false },
@@ -184,7 +184,7 @@ export default function FirewallTab() {
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2.5 mb-1">
                                         <span className="mono text-sm font-semibold" style={{ color: on ? 'var(--text-primary)' : 'var(--text-muted)' }}>{b.label}</span>
-                                        <span className={`badge ${b.source === 'AI' ? 'badge-indigo' : 'badge-green'}`}>{b.source}</span>
+                                        <span className={`badge ${b.source === 'AI' ? 'badge-indigo' : b.source.includes('Heimdall') ? 'badge-indigo' : 'badge-green'}`}>{b.source}</span>
                                     </div>
                                     <p className="mono text-xs" style={{ color: 'var(--text-muted)' }}>{b.desc}</p>
                                 </div>
