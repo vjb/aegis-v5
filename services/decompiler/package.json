@@ -1,0 +1,12 @@
+{
+    "name": "aegis-heimdall-decompiler",
+    "version": "1.0.0",
+    "description": "Local Heimdall EVM decompiler microservice for Aegis Protocol",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js"
+    },
+    "dependencies": {
+        "express": "^4.21.0"
+    }
+}
