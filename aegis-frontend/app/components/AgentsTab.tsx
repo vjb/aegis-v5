@@ -42,6 +42,7 @@ const DEMO_AGENTS: Agent[] = [
     { address: '0xba5359fac9736e687c39d9613de3e8fa6c7af1ce', allowance: '50000000000000000', allowanceEth: '0.050000', active: true, name: 'NOVA' },
     { address: '0x6e9972213bf459853fa33e28ab7219e9157c8d02', allowance: '8000000000000000', allowanceEth: '0.008000', active: true, name: 'CIPHER' },
     { address: '0x7b1afe2745533d852d6fd5a677f14c074210d896', allowance: '0', allowanceEth: '0.000000', active: false, name: 'REX' },
+    { address: '0xf5a5e415061470a8b9137959180901aea72450a4', allowance: '15000000000000000', allowanceEth: '0.015000', active: true, name: 'PHANTOM' },
 ];
 
 const DEMO_SUGGESTIONS = [

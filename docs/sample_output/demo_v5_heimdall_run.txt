@@ -108,6 +108,6 @@
   Pipeline: eth_getCode → Heimdall (local) → GPT-4o → 8-bit risk
 
 ═══════════════════════════════════════════════════════════════════════
-  Branch: feature/heimdall-decompiler
+  Branch: main (merged from feature/heimdall-decompiler)
 
 
