@@ -188,6 +188,13 @@ export default function Home() {
             Chainlink CRE DON
           </span>
           <span style={{ color: 'var(--border-bright)', margin: '0 2px' }}>·</span>
+          <span className="flex items-center gap-2" title="Heimdall EVM Decompiler (Docker)" style={{ cursor: 'help', marginRight: 3 }}>
+            <span className="w-2 h-2 rounded-full" style={{ background: dockerUp ? 'var(--indigo, #818cf8)' : 'var(--red)', boxShadow: `0 0 6px ${dockerUp ? 'rgba(129,140,248,0.5)' : 'var(--red)'}` }} />
+            <span style={{ color: dockerUp ? 'var(--indigo, #818cf8)' : 'var(--red)' }}>
+              {dockerUp ? 'Heimdall' : 'Heimdall Off'}
+            </span>
+          </span>
+          <span style={{ color: 'var(--border-bright)', margin: '0 2px' }}>·</span>
           <span style={{ marginLeft: 2 }}>{wallet?.network || 'Base VNet'}</span>
         </div>
 
