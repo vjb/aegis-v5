@@ -31,7 +31,8 @@ function loadEnv() {
         BASESCAN_API_KEY: envObj.BASESCAN_API_KEY || process.env.BASESCAN_API_KEY || '',
         GOPLUS_APP_KEY: envObj.GOPLUS_APP_KEY || process.env.GOPLUS_APP_KEY || '',
         // Treasury address that receives USDC payments
-        TREASURY_ADDRESS: envObj.TREASURY_ADDRESS || process.env.TREASURY_ADDRESS || '0x109D8072B1762263ed094BC05c5110895Adc65Cf',
+        // IMPORTANT: Must be different from the payer wallet (x402 rejects from===to)
+        TREASURY_ADDRESS: envObj.TREASURY_ADDRESS || process.env.TREASURY_ADDRESS || '0xC006bfc3Cac01634168e9cD0a1fEbD4Ffb816e14',
     };
 }
 
