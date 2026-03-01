@@ -121,7 +121,7 @@ export async function GET(req: NextRequest) {
                 let goPlusStarted = false;
 
                 const dockerArgs = [
-                    'exec', '-e', 'AEGIS_DEMO_MODE=true', 'aegis-heimdall',
+                    'exec', '-e', 'AEGIS_DEMO_MODE=true', 'aegis-oracle-node',
                     'cre', 'workflow', 'simulate', '.',
                     '--target', 'base-sepolia',
                     '--evm-tx-hash', hash,
@@ -342,14 +342,19 @@ export async function GET(req: NextRequest) {
                 // Commit verdict on-chain
                 let callbackHash: string | null = null;
                 if (extractedScore >= 0) {
-                    callbackHash = await walletClient.writeContract({
-                        address: getAddress(moduleAddr),
-                        abi: moduleAbi,
-                        functionName: 'onReportDirect',
-                        args: [tradeId, BigInt(extractedScore)],
-                    });
-                    const cbReceipt = await publicClient.waitForTransactionReceipt({ hash: callbackHash as `0x${string}` });
-                    send({ type: 'tx-status', status: cbReceipt.status === 'success' ? 'Confirmed' : 'Reverted', hash: callbackHash });
+                    try {
+                        callbackHash = await walletClient.writeContract({
+                            address: getAddress(moduleAddr),
+                            abi: moduleAbi,
+                            functionName: 'onReportDirect',
+                            args: [tradeId, BigInt(extractedScore)],
+                        });
+                        const cbReceipt = await publicClient.waitForTransactionReceipt({ hash: callbackHash as `0x${string}` });
+                        send({ type: 'tx-status', status: cbReceipt.status === 'success' ? 'Confirmed' : 'Reverted', hash: callbackHash });
+                    } catch (reportErr: any) {
+                        // NoPendingRequest (0xcc2c06e8) — tradeId already resolved
+                        send({ type: 'tx-status', status: 'Skipped (already resolved)', hash: null });
+                    }
                 }
 
                 // JIT swap — ONLY when explicitly requested (auditOnly=false), never from the UI Oracle Feed
