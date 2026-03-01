@@ -40,7 +40,7 @@ function loadEnv() {
 function getClients(env: Record<string, string>) {
     let pk = env.PRIVATE_KEY || '';
     if (!pk.startsWith('0x')) pk = `0x${pk}`;
-    const rpc = env.BASE_SEPOLIA_RPC_URL || env.TENDERLY_RPC_URL || 'https://sepolia.base.org';
+    const rpc = env.BASE_SEPOLIA_RPC_URL || 'https://sepolia.base.org';
     const moduleAddr = env.AEGIS_MODULE_ADDRESS;
     const account = privateKeyToAccount(pk as `0x${string}`);
     const publicClient = createPublicClient({ chain: baseSepolia, transport: http(rpc) });

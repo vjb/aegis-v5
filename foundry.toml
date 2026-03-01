@@ -25,5 +25,3 @@ quote_style = "double"
 tab_width = 4
 wrap_comments = true
 
-# [etherscan] — Tenderly verifier (legacy, not used in V5)
-# unknown_chain = { key = "${TENDERLY_KEY}", chain = 73578453, url = "https://virtual.base.eu.rpc.tenderly.co/fbbf0f8d-8827-488f-8289-5ee7872695d8/verify" }

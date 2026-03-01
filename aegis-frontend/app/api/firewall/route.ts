@@ -32,7 +32,7 @@ function loadEnv() {
 }
 
 function getRpc(env: Record<string, string>): string | undefined {
-    return env.BASE_SEPOLIA_RPC_URL || env.TENDERLY_RPC_URL;
+    return env.BASE_SEPOLIA_RPC_URL;
 }
 
 // GET — read current on-chain firewallConfig

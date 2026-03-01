@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
                     const [k, ...rest] = line.split('=');
                     const v = rest.join('=').trim();
                     if (k === 'PRIVATE_KEY') privateKey = v;
-                    if (k === 'BASE_SEPOLIA_RPC_URL' || (k === 'TENDERLY_RPC_URL' && !rpcUrl)) rpcUrl = v;
+                    if (k === 'BASE_SEPOLIA_RPC_URL') rpcUrl = v;
                     if (k === 'AEGIS_MODULE_ADDRESS') moduleAddr = v;
                 });
 

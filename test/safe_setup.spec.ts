@@ -69,7 +69,7 @@ describe("constants (unit)", () => {
 });
 
 // ── INTEGRATION: Live Safe deployment ─────────────────────────────────────
-const RPC = process.env.BASE_SEPOLIA_RPC_URL || process.env.TENDERLY_RPC_URL;
+const RPC = process.env.BASE_SEPOLIA_RPC_URL;
 const PRIVATE_KEY = process.env.PRIVATE_KEY as Hex | undefined;
 const MODULE_ADDRESS = process.env.AEGIS_MODULE_ADDRESS as Address | undefined;
 

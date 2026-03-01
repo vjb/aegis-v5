@@ -590,7 +590,7 @@ Because Aegis sits at the execution layer — every cleared trade flows through 
 | [`src/AegisModule.sol`](src/AegisModule.sol) | ERC-7579 Executor — `onReport()` callback from CRE oracle |
 | [`src/oracle/aegis-oracle.ts`](src/oracle/aegis-oracle.ts) | Oracle implementation (shared between CRE node and frontend API) |
 | [`scripts/v5_e2e_mock.ts`](scripts/v5_e2e_mock.ts) | E2E test — UserOp → CRE → oracle → swap/revert |
-| [`test/live_e2e.spec.ts`](test/live_e2e.spec.ts) | Live integration tests on Base Sepolia |
+
 | [`test/oracle.spec.ts`](test/oracle.spec.ts) | Oracle unit tests (risk matrix, AI JSON parsing) |
 | [`aegis-frontend/app/api/audit/route.ts`](aegis-frontend/app/api/audit/route.ts) | Frontend API: full CRE pipeline + `onReportDirect` |
 | [`aegis-frontend/app/components/OracleFeed.tsx`](aegis-frontend/app/components/OracleFeed.tsx) | UI: SSE stream consumer for live CRE output |

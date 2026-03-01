@@ -45,7 +45,7 @@ const MOCK_CONFIG = {
     aegisModuleAddress: "0x1234567890123456789012345678901234567890" as `0x${string}`,
     targetTokenAddress: "0xDeaDbeefdEAdbeefdEadbEEFdeadbeEFdEaDbeeF" as `0x${string}`,
     pimlicoApiKey: "test-pimlico-key",
-    rpcUrl: "https://virtual.base.rpc.tenderly.co/test",
+    rpcUrl: "https://sepolia.base.org",
     tradeAmount: BigInt(1e18), // 1 ETH
 };
 

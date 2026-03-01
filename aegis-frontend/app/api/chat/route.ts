@@ -51,7 +51,7 @@ function loadEnv() {
 
     // process.env provides fallback for keys not in the .env file (e.g. OPENAI_API_KEY from .env.local)
     const fromProcess: Record<string, string> = {};
-    const keys = ['OPENAI_API_KEY', 'BASE_SEPOLIA_RPC_URL', 'TENDERLY_RPC_URL', 'AEGIS_MODULE_ADDRESS', 'PRIVATE_KEY', 'DEV_WALLET_ADDRESS', 'AGENT_WALLET_ADDRESS'];
+    const keys = ['OPENAI_API_KEY', 'BASE_SEPOLIA_RPC_URL', 'AEGIS_MODULE_ADDRESS', 'PRIVATE_KEY', 'DEV_WALLET_ADDRESS', 'AGENT_WALLET_ADDRESS'];
     keys.forEach(k => { if (process.env[k]) fromProcess[k] = process.env[k]!; });
 
     // .env file wins — process.env may have stale values cached by Next.js
@@ -61,7 +61,7 @@ function loadEnv() {
 async function buildSystemContext(): Promise<string> {
     try {
         const env = loadEnv();
-        const rpc = env.BASE_SEPOLIA_RPC_URL || env.TENDERLY_RPC_URL;
+        const rpc = env.BASE_SEPOLIA_RPC_URL;
         const moduleAddrRaw = env.AEGIS_MODULE_ADDRESS;
         const ownerKey = env.PRIVATE_KEY;
         if (!rpc || !moduleAddrRaw) return buildDemoFallback();

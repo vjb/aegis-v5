@@ -40,7 +40,7 @@ export async function GET() {
             if (k && rest.length) env[k.trim()] = rest.join('=').trim();
         });
 
-        const rpc = env.BASE_SEPOLIA_RPC_URL || env.TENDERLY_RPC_URL || '';
+        const rpc = env.BASE_SEPOLIA_RPC_URL || '';
         const moduleAddr = getAddress(env.AEGIS_MODULE_ADDRESS);
         const explorerBase = 'https://sepolia.basescan.org/tx';
 

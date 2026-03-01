@@ -61,7 +61,7 @@ services:
       - "4337:4337"
     # EntryPoint v0.7 (EIP-4337 canonical) — deployed on Base and most forks
     command: >
-      sh -c "npx --yes @pimlico/alto@latest -e 0x0000000071727De22E5E9d8BAf0edAc6f37da032 -r ${TENDERLY_RPC_URL} -x ${PRIVATE_KEY} --port 4337 --rpc-gas-estimate"
+      sh -c "npx --yes @pimlico/alto@latest -e 0x0000000071727De22E5E9d8BAf0edAc6f37da032 -r ${BASE_SEPOLIA_RPC_URL} -x ${PRIVATE_KEY} --port 4337 --rpc-gas-estimate"
     # Comment out if you don't want the bundler running alongside the oracle
     profiles:
       - v5

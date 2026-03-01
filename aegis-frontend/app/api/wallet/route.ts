@@ -21,7 +21,7 @@ export async function GET() {
         let pk = env.PRIVATE_KEY || '';
         if (!pk.startsWith('0x')) pk = `0x${pk}`;
 
-        const rpc = env.BASE_SEPOLIA_RPC_URL || env.TENDERLY_RPC_URL || 'https://sepolia.base.org';
+        const rpc = env.BASE_SEPOLIA_RPC_URL || 'https://sepolia.base.org';
         const account = privateKeyToAccount(pk as `0x${string}`);
         const ownerAddress = account.address;
 
