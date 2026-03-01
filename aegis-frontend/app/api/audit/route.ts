@@ -259,7 +259,7 @@ export async function GET(req: NextRequest) {
                     if (cleaned.includes('__BASESCAN_END__')) { send({ type: 'static-analysis', source: 'BaseScan', status: 'OK' }); return; }
 
                     // ── Catch-all: active LLM streaming ──────────────────
-                    if (activeLlm && !cleaned.startsWith('[')) {
+                    if (activeLlm && !cleaned.startsWith('[') && !cleaned.includes('Capability ') && !cleaned.includes('Workflow execution') && !cleaned.includes('cannot read property') && !cleaned.includes('returned an error')) {
                         send({ type: 'llm-reasoning-chunk', model: activeLlm, text: cleaned + ' ' });
                     }
                 };
