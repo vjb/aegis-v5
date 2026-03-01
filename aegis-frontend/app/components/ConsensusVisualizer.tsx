@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import {
     ReactFlow,
     Background,
@@ -228,7 +228,12 @@ interface ConsensusVisualizerProps {
     onEvent?: (event: VisualizerEvent) => void;
 }
 
-export default function ConsensusVisualizer({ sseUrl, onEvent }: ConsensusVisualizerProps) {
+export interface ConsensusVisualizerHandle {
+    processEvent: (event: VisualizerEvent) => void;
+    reset: () => void;
+}
+
+const ConsensusVisualizer = forwardRef<ConsensusVisualizerHandle, ConsensusVisualizerProps>(function ConsensusVisualizer({ sseUrl, onEvent }, ref) {
     const nodeTypes = useMemo(() => ({ pipeline: PipelineNode }), []);
     const [nodes, setNodes, onNodesChange] = useNodesState(buildInitialNodes());
     const [edges, setEdges, onEdgesChange] = useEdgesState(buildInitialEdges());
@@ -334,8 +339,15 @@ export default function ConsensusVisualizer({ sseUrl, onEvent }: ConsensusVisual
         return () => es.close();
     }, [sseUrl, processEvent]);
 
-    // Expose processEvent for imperative use
-    (ConsensusVisualizer as any)._processEvent = processEvent;
+    // Expose processEvent for imperative use via ref
+    useImperativeHandle(ref, () => ({
+        processEvent,
+        reset: () => {
+            setNodes(buildInitialNodes());
+            setEdges(buildInitialEdges());
+            setVerdict(null);
+        },
+    }), [processEvent, setNodes, setEdges]);
 
     return (
         <div data-testid="consensus-visualizer" style={{ width: '100%', height: 400, background: '#0a0e1a', borderRadius: 12, overflow: 'hidden', position: 'relative' }}>
@@ -384,4 +396,6 @@ export default function ConsensusVisualizer({ sseUrl, onEvent }: ConsensusVisual
             </AnimatePresence>
         </div>
     );
-}
+});
+
+export default ConsensusVisualizer;
