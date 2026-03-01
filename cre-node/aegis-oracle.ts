@@ -187,7 +187,6 @@ type AIAnalysisInput = {
     basescanKey: string;
     openAiKey: string;
     groqKey: string;
-    dedaubKey: string;
 };
 
 type AIAnalysisResult = {
@@ -342,14 +341,13 @@ const performAIAnalysis = (
     input: AIAnalysisInput
 ): AIAnalysisResult => {
     const { targetAddress, maxTax, blockProxies, strictLogic, blockHoneypots,
-        basescanKey, openAiKey, groqKey, dedaubKey } = input;
+        basescanKey, openAiKey, groqKey } = input;
     let obfuscatedTax = 0, privilegeEscalation = 0, externalCallRisk = 0, logicBomb = 0;
 
     const confidentialClient = new ConfidentialHTTPClient();
     const mockData = MOCK_REGISTRY[targetAddress];
     let sourceCode = "";
     let contractName = "";
-    let isDecompiled = false;
 
     // Phase 2: Fetch contract source
     if (mockData) {
@@ -385,73 +383,6 @@ const performAIAnalysis = (
             }
             break;
         }
-
-        // ── DEDAUB FALLBACK — decompile unverified contracts ──────────
-        if (!sourceCode || sourceCode.length === 0) {
-            nodeRuntime.log(`[DEDAUB_BETA] Unverified contract detected — attempting bytecode decompilation`);
-            nodeRuntime.log(`[DEDAUB_BETA] Fetching bytecode via RPC for ${targetAddress}`);
-
-            try {
-                // Fetch raw bytecode via ConfidentialHTTPClient (keeps RPC URL private)
-                const rpcRes = confidentialClient.sendRequest(nodeRuntime, {
-                    vaultDonSecrets: [],
-                    request: {
-                        url: `https://sepolia.base.org`,
-                        method: "POST",
-                        multiHeaders: { "Content-Type": { values: ["application/json"] } },
-                        bodyString: JSON.stringify({
-                            jsonrpc: "2.0",
-                            method: "eth_getCode",
-                            params: [targetAddress, "latest"],
-                            id: 1
-                        })
-                    }
-                }).result();
-
-                if (rpcRes.statusCode === 200) {
-                    const rpcBody = JSON.parse(new TextDecoder().decode(rpcRes.body));
-                    const bytecode = rpcBody.result || "";
-
-                    if (bytecode && bytecode !== "0x" && bytecode.length > 2) {
-                        nodeRuntime.log(`[DEDAUB_BETA] Bytecode: ${bytecode.length} hex chars — sending to Dedaub API`);
-                        nodeRuntime.log(`[DEDAUB_BETA] AEGIS_DEDAUB_SECRET stays inside the Decentralized Oracle Network`);
-
-                        // Strip 0x prefix for Dedaub
-                        const cleanBytecode = bytecode.startsWith("0x") ? bytecode.slice(2) : bytecode;
-
-                        const dedaubRes = confidentialClient.sendRequest(nodeRuntime, {
-                            vaultDonSecrets: [{ key: "AEGIS_DEDAUB_SECRET", namespace: "aegis" }],
-                            request: {
-                                url: "https://api.dedaub.com/api/v2/decompile",
-                                method: "POST",
-                                multiHeaders: {
-                                    "Content-Type": { values: ["application/json"] },
-                                    "x-api-key": { values: [`${dedaubKey}`] }
-                                },
-                                bodyString: JSON.stringify({ bytecode: cleanBytecode })
-                            }
-                        }).result();
-
-                        nodeRuntime.log(`[DEDAUB_BETA] HTTP ${dedaubRes.statusCode}`);
-
-                        if (dedaubRes.statusCode === 200) {
-                            const dedaubBody = JSON.parse(new TextDecoder().decode(dedaubRes.body));
-                            sourceCode = dedaubBody.source || dedaubBody.decompiled || "";
-                            contractName = `Decompiled_${targetAddress.slice(0, 10)}`;
-                            isDecompiled = true;
-                            nodeRuntime.log(`[DEDAUB_BETA] Decompilation successful: ${sourceCode.length} chars`);
-                        } else {
-                            nodeRuntime.log(`[DEDAUB_BETA] Decompilation failed: HTTP ${dedaubRes.statusCode}`);
-                        }
-                    } else {
-                        nodeRuntime.log(`[DEDAUB_BETA] No bytecode at address — EOA or self-destructed`);
-                    }
-                }
-            } catch (dedaubErr: any) {
-                nodeRuntime.log(`[DEDAUB_BETA] Fallback error: ${String(dedaubErr).slice(0, 500)}`);
-            }
-        }
-
         if (sourceCode.length > 15000) {
             sourceCode = sourceCode.slice(0, 15000);
             nodeRuntime.log(`[BaseScan] Source truncated to 15000 chars for AI input`);
@@ -461,15 +392,6 @@ const performAIAnalysis = (
 
     // Phase 3: Dual-LLM consensus
     if (sourceCode && sourceCode.length > 0) {
-        // Build the AI prompt with optional decompiled-code instructions
-        const decompiledInstructions = isDecompiled
-            ? `\n\nIMPORTANT: The code below is DECOMPILED from raw EVM bytecode (not original source code). It lacks original variable names, comments, and may use generic names like arg0, stor_0, etc.
-Focus on: suspicious CALL/DELEGATECALL patterns, hardcoded timestamp locks (block.timestamp comparisons), hidden fee deductions in transfer paths, unusual storage slot access patterns, and owner-controlled allowlists that restrict token transfers.
-Decompiled code that restricts transfers to specific addresses is a STRONG indicator of a honeypot.\n`
-            : "";
-
-        const sourceLabel = isDecompiled ? "[DECOMPILED]" : "";
-
         const aiPrompt = `You are the Aegis Protocol Lead Security Auditor for a DeFi firewall. Analyze this ERC-20 token contract for MALICIOUS patterns ONLY.
 
 Return ONLY a valid JSON object with these exact boolean keys plus a reasoning string:
@@ -478,9 +400,9 @@ Return ONLY a valid JSON object with these exact boolean keys plus a reasoning s
   externalCallRisk: TRUE only if transfer logic makes unguarded calls to arbitrary user-controlled addresses that could re-enter and drain funds.
   logicBomb: TRUE only if there is a time-locked or block-based trigger that will disable transfers or steal funds in the future.
   reasoning: one sentence summary.
-${decompiledInstructions}
+
 Firewall: maxTax=${maxTax}%, blockProxies=${blockProxies}, blockHoneypots=${blockHoneypots}.
-Contract: ${contractName} ${sourceLabel}
+Contract: ${contractName}
 
 ${sourceCode}`;
 
@@ -615,12 +537,6 @@ const onAuditTrigger = (runtime: Runtime<Config>, log: EVMLog): string => {
     const basescanKey = runtime.getSecret({ id: "AEGIS_BASESCAN_SECRET" }).result().value;
     const openAiKey = runtime.getSecret({ id: "AEGIS_OPENAI_SECRET" }).result().value;
     const groqKey = runtime.getSecret({ id: "AEGIS_GROQ_SECRET" }).result().value;
-    let dedaubKey = '';
-    try {
-        dedaubKey = runtime.getSecret({ id: "AEGIS_DEDAUB_SECRET" }).result().value || '';
-    } catch {
-        // AEGIS_DEDAUB_SECRET not registered — Dedaub fallback will be skipped
-    }
     let goPlusAppKey = '', goPlusAppSecret = '';
     try {
         goPlusAppKey = runtime.getSecret({ id: "AEGIS_GOPLUS_KEY" }).result().value || '';
@@ -660,7 +576,7 @@ const onAuditTrigger = (runtime: Runtime<Config>, log: EVMLog): string => {
         })
     )({
         targetAddress, maxTax, blockProxies, strictLogic, blockHoneypots,
-        basescanKey, openAiKey, groqKey, dedaubKey
+        basescanKey, openAiKey, groqKey
     }).result();
 
     const { obfuscatedTax, privilegeEscalation, externalCallRisk, logicBomb } = aiResult;
