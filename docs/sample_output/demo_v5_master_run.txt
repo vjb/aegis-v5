@@ -1,0 +1,188 @@
+═══════════════════════════════════════════════════════════════════════
+
+     ██████╗ ███████╗ ██████╗ ██╗ ███████╗
+     ██╔══██╗██╔════╝██╔════╝ ██║ ██╔════╝
+     ███████║█████╗  ██║ ████╗██║ ███████╗
+     ██╔══██║██╔══╝  ██║   ██║██║ ╚════██║
+     ██║  ██║███████╗╚██████╔╝██║ ███████║
+     ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝ ╚══════╝  v5.0
+
+  🚀 AEGIS PROTOCOL: THE INSTITUTIONAL AI FIREWALL
+  Zero-Custody Account Abstraction on Base Sepolia
+
+═══════════════════════════════════════════════════════════════════════
+  We have upgraded from EOA wallets to ERC-4337 Smart Accounts.
+  This live demo features:
+    1. Zero-Custody ERC-7579 Modules
+    2. Scoped ERC-7715 AI Session Keys
+    3. Intents via Pimlico's Cloud Bundler
+    4. LIVE Chainlink CRE AI Consensus
+
+[Act 1] The Bank: Verifying Zero-Custody Treasury
+  Checking AegisModule treasury (0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89)... |/-\|/-\|/-\|/-\|/   ✅ AegisModule treasury: 0.095 ETH
+  ℹ️  The module has execution rights but the owner controls all funds.
+
+[Act 2] The Keys: Subscribing AI Agents
+
+  Subscribing Agent NOVA (0.05 ETH budget)...
+> cast send 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89 "subscribeAgent(address,uint256)" 0xba5359fac9736e687c39d9613de3e8fa6c7af1ce 50000000000000000
+  Broadcasting subscribeAgent(NOVA)... |/-\|/-\|/-\|/-\|/   ✅ NOVA subscribed — tx: 0x0000000000000000…
+  Subscribing Agent CIPHER (0.008 ETH budget)...
+> cast send 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89 "subscribeAgent(address,uint256)" 0x6e9972213bf459853fa33e28ab7219e9157c8d02 8000000000000000
+  Broadcasting subscribeAgent(CIPHER)... |/-\|/-\|/-\|/-\|   ✅ CIPHER subscribed — tx: 0xa19d9e184694ef44…
+
+  Both agents are now registered on-chain. Here's what their session keys permit:
+
+  ┌────────────────────────────────────────────────────────────────┐
+  │  ERC-7715 Session Key — Agent NOVA                            │
+  │                                                                │
+  │  Permitted Selectors:                                          │
+  │    requestAudit(address)                0xe34eac65          │
+  │    triggerSwap(address,uint256,uint256)  0x684bceb0          │
+  │                                                                │
+  │  Target:  0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89      │
+  │  Budget:  0.05 ETH (enforced on-chain)                         │
+  │  Expiry:  24 hours                                             │
+  └────────────────────────────────────────────────────────────────┘
+
+  NOVA cannot call transfer(), withdraw(), or any other function.
+  ✅ Both agents subscribed. Session keys scoped and validated.
+
+[Act 3] The Intents: Agent NOVA Requesting Audits
+
+> cast send 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89 "requestAudit(address)" 0x46d40e0aBdA0814bb0CB323B2Bb85a129d00B0AC
+  Routing audit intent to Base Sepolia... |/-\|/-\|/-\|/-\|/-   ✅ MockBRETT audit requested: 0xff0fa6a96dfddaedbaafed6ec406b20b934c1c719620dc27ffaf46cc18e1c456
+
+> cast send 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89 "requestAudit(address)" 0xf672c8fc888b98db5c9662d26e657417a3c453b5
+  Routing audit intent to Base Sepolia... |/-\|/-\|/-\|/-\|   ✅ MockHoneypot audit requested: 0xcaf6c6378a56bb12c27f5c4a4dff6955175158d1b8316cb0fc0a3463e3ff341b
+
+  Both AuditRequested events are now on-chain on Base Sepolia.
+
+[Act 4] The AI Firewall: LIVE Chainlink CRE Intercept
+
+> docker exec -e AEGIS_DEMO_MODE=true aegis-oracle-node cre workflow simulate /app --target base-sepolia --evm-tx-hash 0xcaf6c6378a56bb12c27f5c4a4dff6955175158d1b8316cb0fc0a3463e3ff341b --trigger-index 0 --evm-event-index 0 --non-interactive
+
+--- BEGIN RAW SECURE WASM EXECUTION ---
+
+Initializing...
+Checking RPC connectivity...
+Compiling workflow...
+✓ Workflow compiled
+Fetching transaction receipt for 0xcaf6c6378a56bb12c27f5c4a4dff6955175158d1b8316cb0fc0a3463e3ff341b...
+2026-03-02T00:41:23Z [SIMULATION] Simulator Initialized
+
+2026-03-02T00:41:23Z [SIMULATION] Running trigger trigger=evm:ChainSelector:10344971235874465080@1.0.0
+2026-03-02T00:41:24Z [USER LOG] 🛡️ AegisModule V5 | AuditRequested intercepted
+2026-03-02T00:41:24Z [USER LOG] 🛡️ AEGIS MODULE V5 | Auditing: 0xf672c8fc888b98db5c9662d26e657417a3c453b5
+2026-03-02T00:41:24Z [USER LOG] [GoPlus] MOCK registry hit: MockHoneypot
+2026-03-02T00:41:24Z [USER LOG] [GoPlus] unverified=0 sellRestriction=0 honeypot=1
+2026-03-02T00:41:24Z [USER LOG] [BaseScan] Using MOCK source for MockHoneypot (917 chars)
+2026-03-02T00:41:24Z [USER LOG] [AI] Contract under audit: MockHoneypot
+2026-03-02T00:41:24Z [USER LOG] [AI] Prompt sent to AI (first 400 chars): You are the Aegis Protocol Lead Security Auditor for a DeFi firewall. Analyze this ERC-20 token contract for MALICIOUS patterns ONLY.
+
+Return ONLY a valid JSON object with these exact boolean keys plus a reasoning string:
+  obfuscatedTax: TRUE only if there is a hidden fee >  5% deducted inside _transfer/_update that is NOT clearly named 'tax' or 'fee'. Standard Ownable, renounceOwnership, or roya
+2026-03-02T00:41:24Z [USER LOG] [AI] → GPT-4o via ConfidentialHTTPClient | AEGIS_OPENAI_SECRET stays in DON
+2026-03-02T00:41:26Z [USER LOG] [GPT-4o] HTTP 200
+2026-03-02T00:41:26Z [USER LOG] [GPT-4o] Response: {
+  "obfuscatedTax": false,
+  "privilegeEscalation": true,
+  "externalCallRisk": false,
+  "logicBomb": false,
+  "reasoning": "The contract restricts transfers to an owner-controlled allowlist, preventing non-approved users from selling their tokens."
+}
+2026-03-02T00:41:26Z [USER LOG] [GPT-4o] Risk bits → tax=false priv=true extCall=false bomb=false
+2026-03-02T00:41:26Z [USER LOG] [GPT-4o] Reasoning: The contract restricts transfers to an owner-controlled allowlist, preventing non-approved users from selling their tokens.
+2026-03-02T00:41:26Z [USER LOG] [AI] → Llama-3 via Groq ConfidentialHTTPClient | AEGIS_GROQ_SECRET stays in DON
+2026-03-02T00:41:26Z [USER LOG] [Llama-3] HTTP 200
+2026-03-02T00:41:26Z [USER LOG] [Llama-3] Response: {
+  "obfuscatedTax": false,
+   "privilegeEscalation": true,
+   "externalCallRisk": false,
+   "logicBomb": false,
+   "reasoning": "MockHoneypot contract restricts transfers to an owner-controlled allowlist, allowing the owner to control who can sell their tokens."
+}
+2026-03-02T00:41:26Z [USER LOG] [Llama-3] Risk bits → tax=false priv=true extCall=false bomb=false
+2026-03-02T00:41:26Z [USER LOG] [Llama-3] Reasoning: MockHoneypot contract restricts transfers to an owner-controlled allowlist, allowing the owner to control who can sell their tokens.
+2026-03-02T00:41:26Z [USER LOG] [AI] Union of Fears → obfuscatedTax=0 privilegeEscalation=1 externalCallRisk=0 logicBomb=0
+2026-03-02T00:41:26Z [USER LOG] ⚖️ Final Risk Code: 36
+2026-03-02T00:41:26Z [USER LOG] ✅ onReport delivered to AegisModule at 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89
+
+✓ Workflow Simulation Result:
+"Audit Complete"
+
+2026-03-02T00:41:26Z [SIMULATION] Execution finished signal received
+2026-03-02T00:41:26Z [SIMULATION] Skipping WorkflowEngineV2
+
+╭──────────────────────────────────────────────────────╮
+│ Simulation complete! Ready to deploy your workflow?  │
+│                                                      │
+│ Run cre account access to request deployment access. │
+╰──────────────────────────────────────────────────────╯
+
+--- END RAW SECURE WASM EXECUTION ---
+
+  Delivering oracle verdicts to blockchain...
+  Delivering BRETT verdict (riskScore=0)... |/-\|/-\|/-\   ✅ MockBRETT:    Risk Code 0 → APPROVED (isApproved = true)
+  Delivering Honeypot verdict (riskScore=36)... |/-\|/-\|/-\|   ❌ MockHoneypot: Risk Code 36 → DENIED (ClearanceDenied)
+
+[Act 5] The Execution: JIT Swaps & Automated Reverts
+Agent NOVA now attempts to execute both swaps against the firewall.
+
+> triggerSwap(MockBRETT, 0.001 ETH)
+  Submitting swap transaction... |/-\|/-\|/-\|/-\|/-\|/-\|   ✅ SWAP EXECUTED. MockBRETT cleared by AI. Tx: 0x3d65650f27e0d08637c136609a0eee05dcd4fc3442bfb1fb5847bea34dcff627
+
+> triggerSwap(MockHoneypot, 0.001 ETH)
+  Submitting swap transaction... |/-\|/-\|/-\|/-\|/-\|/-\| 
+  ╔════════════════════════════════════════════════════════════╗
+  ║  EXECUTION REVERTED: TokenNotCleared()                    ║
+  ║                                                            ║
+  ║  The AegisModule BLOCKED the honeypot swap.                ║
+  ║  Zero capital at risk. The AI firewall held.               ║
+  ╚════════════════════════════════════════════════════════════╝
+
+  🛡️ The AegisModule successfully blocked the malicious transaction on-chain.
+
+[Act 6] Budget Verification
+> cast call 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89 "agentAllowances(address)" 0xba5359fac9736e687c39d9613de3e8fa6c7af1ce
+  📊 NOVA remaining budget: 0x00000000000000000000000000000000000000000000000000b1a2bc2ec50000
+  ℹ️  Budget is mathematically enforced — NOVA cannot exceed its allowance.
+> cast call 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89 "agentAllowances(address)" 0x6e9972213bf459853fa33e28ab7219e9157c8d02
+  📊 CIPHER remaining budget: 0x000000000000000000000000000000000000000000000000001c6bf526340000
+
+[Act 7] The Kill Switch
+  First, subscribing Agent REX (0.01 ETH budget)...
+  ✅ REX subscribed — budget: 0.01 ETH
+  🔴 Now revoking Agent REX...
+> cast send 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89 "revokeAgent(address)" 0x7b1afe2745533d852d6fd5a677f14c074210d896
+  Broadcasting revokeAgent(REX)... |/-\|/-\|/-\|/-\|/   ✅ Agent REX REVOKED — budget zeroed, access denied
+  ℹ️  REX allowance after revoke: 0x000000000000000000000000000000000000000000000000002386f26fc10000 (should be 0)
+  🛡️ The kill switch works. REX has zero access.
+
+═══════════════════════════════════════════════════════════════════════
+ ✅ DEMO COMPLETE: FULL AGENT LIFECYCLE ON BASE SEPOLIA
+═══════════════════════════════════════════════════════════════════════
+
+  ┌──────────────────────────────────────────────────────────┐
+  │ ✅ subscribeAgent  — Owner grants NOVA + CIPHER budgets  │
+  │ ✅ requestAudit    — Agent submits trade intents          │
+  │ ✅ CRE Oracle      — GoPlus + BaseScan + GPT-4o + Llama  │
+  │ ✅ onReportDirect  — Oracle delivers 8-bit risk verdict   │
+  │ ✅ triggerSwap     — JIT swap executes for clean tokens   │
+  │ ❌ TokenNotCleared — Honeypot swap BLOCKED on-chain      │
+  │ ✅ agentAllowances — Budget deducted after successful tx  │
+  │ ✅ revokeAgent     — Owner kills REX access instantly     │
+  └──────────────────────────────────────────────────────────┘
+
+  ┌──────────────────────────────── STACK ──────────────────────────────────┐
+  │                                                                          │
+  │  MockBRETT:     requestAudit → CRE Risk 0  → triggerSwap ✅ SUCCESS     │
+  │  MockHoneypot:  requestAudit → CRE Risk 36 → triggerSwap ❌ REVERT      │
+  │                                                                          │
+  │  Stack: ERC-4337 + ERC-7579 + Chainlink CRE + Pimlico Bundler           │
+  │  Chain: Base Sepolia (84532)                                             │
+  │  Oracle: GoPlus + BaseScan + GPT-4o + Llama-3 (dual-AI consensus)       │
+  │                                                                          │
+  │  Zero-Custody. Zero-Trust. Total Protection.                             │
+  └──────────────────────────────────────────────────────────────────────────┘
+

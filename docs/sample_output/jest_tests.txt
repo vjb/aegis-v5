@@ -1,0 +1,233 @@
+jest-haste-map: Haste module naming collision: aegis-frontend
+  The following files share their name; please adjust your hasteImpl:
+    * <rootDir>\aegis-frontend\package.json
+    * <rootDir>\v3-reference\aegis-frontend\package.json
+
+jest-haste-map: Haste module naming collision: aegis-oracle-workflow
+  The following files share their name; please adjust your hasteImpl:
+    * <rootDir>\cre-node\package.json
+    * <rootDir>\v3-reference\cre-node\package.json
+
+PASS test/frontend.spec.ts (105.573 s)
+PASS test/oracle.spec.ts (109.592 s)
+PASS test/bot.spec.ts (110.169 s)
+FAIL test/visualizer/ConsensusVisualizer.spec.tsx (116.79 s)
+  ● ConsensusVisualizer › test_Visualizer_AnimatesPath_OnLiveSSEEvent
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+    [0m [90m 122 |[39m         [90m// Get the processEvent function from the component[39m
+     [90m 123 |[39m         [36mconst[39m processEvent [33m=[39m ([33mConsensusVisualizer[39m [36mas[39m any)[33m.[39m_processEvent[33m;[39m
+    [31m[1m>[22m[39m[90m 124 |[39m         expect(processEvent)[33m.[39mtoBeDefined()[33m;[39m
+     [90m     |[39m                              [31m[1m^[22m[39m
+     [90m 125 |[39m
+     [90m 126 |[39m         [90m// Simulate the full pipeline flow[39m
+     [90m 127 |[39m         [36mawait[39m act([36masync[39m () [33m=>[39m {[0m
+
+      at Object.<anonymous> (test/visualizer/ConsensusVisualizer.spec.tsx:124:30)
+
+  ● ConsensusVisualizer › shows BLOCKED verdict when consensus returns risk
+
+    TypeError: processEvent is not a function
+
+    [0m [90m 173 |[39m
+     [90m 174 |[39m         [36mawait[39m act([36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 175 |[39m             processEvent({ type[33m:[39m [32m'audit_requested'[39m[33m,[39m token[33m:[39m [32m'HoneypotCoin'[39m })[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 176 |[39m             processEvent({ type[33m:[39m [32m'bundler_relay'[39m })[33m;[39m
+     [90m 177 |[39m             processEvent({ type[33m:[39m [32m'don_started'[39m })[33m;[39m
+     [90m 178 |[39m             processEvent({ type[33m:[39m [32m'gpt4o_started'[39m })[33m;[39m[0m
+
+      at test/visualizer/ConsensusVisualizer.spec.tsx:175:13
+      at node_modules/.pnpm/@testing-library+react@16.3_893f466751a7d66081fd06e9edb9241a/node_modules/@testing-library/react/dist/act-compat.js:47:24
+      at process.env.NODE_ENV.exports.act (aegis-frontend/node_modules/react/cjs/react.development.js:814:22)
+      at node_modules/.pnpm/@testing-library+react@16.3_893f466751a7d66081fd06e9edb9241a/node_modules/@testing-library/react/dist/act-compat.js:46:25
+      at Object.<anonymous> (test/visualizer/ConsensusVisualizer.spec.tsx:174:18)
+
+PASS test/session_key.spec.ts (15.776 s)
+PASS test/x402/OracleMonetizationLive.spec.ts (14.484 s)
+  ● Console
+
+    console.log
+      [x402] 402 Response: {
+        "x402Version": 1,
+        "error": "X-PAYMENT header is required",
+        "accepts": [
+          {
+            "scheme": "exact",
+            "network": "base-sepolia",
+            "maxAmountRequired": "50000",
+            "resource": "http://localhost:3000/api/oracle/audit",
+            "description": "Aegis CRE Oracle Audit — 8-bit risk analysis via GoPlus + GPT-4o",
+            "mimeType": "application/json",
+            "payTo": "0xC006bfc3Cac01634168e9cD0a1fEbD4Ffb816e14",
+            "maxTimeoutSeconds": 300,
+            "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "outputSchema": {
+              "input": {
+                "type": "http",
+                "method": "GET",
+                "discoverable": true
+              }
+            },
+            "extra": {
+              "name": "USDC",
+              "version": "2"
+            }
+          }
+        ]
+      }
+
+      at Object.<anonymous> (test/x402/OracleMonetizationLive.spec.ts:42:17)
+
+    console.log
+      [x402] Content-Type: application/json
+
+      at Object.<anonymous> (test/x402/OracleMonetizationLive.spec.ts:68:17)
+
+    console.log
+      [x402] All headers: {
+        connection: 'keep-alive',
+        'content-type': 'application/json',
+        date: 'Sun, 01 Mar 2026 23:46:36 GMT',
+        'keep-alive': 'timeout=5',
+        'transfer-encoding': 'chunked',
+        vary: 'rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch'
+      }
+
+      at Object.<anonymous> (test/x402/OracleMonetizationLive.spec.ts:69:17)
+
+    console.log
+      [x402] Full 402 body: {
+        "x402Version": 1,
+        "error": "X-PAYMENT header is required",
+        "accepts": [
+          {
+            "scheme": "exact",
+            "network": "base-sepolia",
+            "maxAmountRequired": "50000",
+            "resource": "http://localhost:3000/api/oracle/audit",
+            "description": "Aegis CRE Oracle Audit — 8-bit risk analysis via GoPlus + GPT-4o",
+            "mimeType": "application/json",
+            "payTo": "0xC006bfc3Cac01634168e9cD0a1fEbD4Ffb816e14",
+            "maxTimeoutSeconds": 300,
+            "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "outputSchema": {
+              "input": {
+                "type": "http",
+                "method": "GET",
+                "discoverable": true
+              }
+            },
+            "extra": {
+              "name": "USDC",
+              "version": "2"
+            }
+          }
+        ]
+      }
+
+      at Object.<anonymous> (test/x402/OracleMonetizationLive.spec.ts:77:17)
+
+PASS test/bot_v5.spec.ts (125.749 s)
+PASS test/safe_setup.spec.ts (15.646 s)
+PASS test/session_install.spec.ts (132.93 s)
+PASS test/cre/HeimdallLive.spec.ts (143.564 s)
+  ● Console
+
+    console.log
+      [TEST] Decompiled 19666 hex chars → 15000 chars in 6728ms
+
+      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:89:17)
+
+    console.log
+      [TEST] First 300 chars:
+      // SPDX-License-Identifier: MIT
+      pragma solidity >=0.8.0;
+      
+      /// @title            Decompiled Contract
+      /// @author           Jonathan Becker <jonathan@jbecker.dev>
+      /// @custom:version   heimdall-rs v0.9.2
+      ///
+      /// @notice           This contract was decompiled using the heimdall-rs decompiler.
+      ///
+
+      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:90:17)
+
+    console.log
+      [TEST] Live bytecode for AegisModule: 19666 hex chars
+
+      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:120:17)
+
+    console.log
+      [TEST] Full pipeline: Base Sepolia → Heimdall → 15000 chars of decompiled code
+
+      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:147:17)
+
+    console.log
+      [TEST] Step 1: Fetched 19666 hex chars from Base Sepolia
+
+      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:169:17)
+
+    console.log
+      [TEST] Step 2: Heimdall decompiled → 8000 chars
+
+      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:180:17)
+
+    console.log
+      [TEST] Step 3: GPT-4o raw response: {
+        "obfuscatedTax": false,
+        "privilegeEscalation": true,
+        "externalCallRisk": false,
+        "logicBomb": false,
+        "is_malicious": true,
+        "reasoning": "The contract contains privilege escalation where only the owner can perform certain actions, potentially leading to malicious behavior."
+      }
+
+      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:236:17)
+
+    console.log
+      [TEST] ✅ LLM Risk Assessment from decompiled code:
+
+      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:258:17)
+
+    console.log
+      [TEST]   obfuscatedTax: false
+
+      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:259:17)
+
+    console.log
+      [TEST]   privilegeEscalation: true
+
+      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:260:17)
+
+    console.log
+      [TEST]   externalCallRisk: false
+
+      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:261:17)
+
+    console.log
+      [TEST]   logicBomb: false
+
+      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:262:17)
+
+    console.log
+      [TEST]   8-bit risk mask: 2 (0b00000010)
+
+      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:263:17)
+
+    console.log
+      [TEST]   reasoning: The contract contains privilege escalation where only the owner can perform certain actions, potentially leading to malicious behavior.
+
+      at Object.<anonymous> (test/cre/HeimdallLive.spec.ts:264:17)
+
+A worker process has failed to exit gracefully and has been force exited. This is likely caused by tests leaking due to improper teardown. Try running with --detectOpenHandles to find leaks. Active timers can also cause this, ensure that .unref() was called on them.
+
+Test Suites: 1 failed, 9 passed, 10 total
+Tests:       2 failed, 1 skipped, 99 passed, 102 total
+Snapshots:   0 total
+Time:        147.459 s
+Ran all test suites.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?

@@ -1,0 +1,37 @@
+
+═══════════════════════════════════════════════════════════════
+  🧪 AEGIS V5 E2E MOCK — Pimlico on Base Sepolia
+═══════════════════════════════════════════════════════════════
+  Owner:  0x109D8072B1762263ed094BC05c5110895Adc65Cf
+  Module: 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89
+  Token:  0x46d40e0aBdA0814bb0CB323B2Bb85a129d00B0AC
+
+━━━ PHASE 1: Deploy Safe Smart Account ━━━
+[PHASE 1] Safe: 0xC6220291d1eC65F7486c62073dFc333065BA92f8
+[PHASE 1] ✅ Safe deployed: 0xa3487396957b5fe57330df5f4226a44dbdf9cb53bd802679d3035431595d0523
+
+━━━ PHASE 2: Treasury Setup ━━━
+[PHASE 2] ✅ Deposited 0.005 ETH
+[PHASE 2] ✅ Safe subscribed as agent (0.002 ETH budget)
+
+━━━ PHASE 3: requestAudit (owner EOA) ━━━
+[PHASE 3] ✅ requestAudit tx: 0x6440fee8eb24b7de829ceb4dd71af2b136af64d42dead13218be092c6aeb55f4
+[PHASE 3] 📡 tradeId: 97
+
+━━━ PHASE 4: Mock Oracle (onReportDirect) ━━━
+[PHASE 4] ✅ Oracle: riskScore=0 → APPROVED
+[PHASE 4] 🔓 isApproved: true
+
+━━━ PHASE 5: triggerSwap via UserOp ━━━
+[PHASE 5] 🎉 Swap tx: 0x842fd512f3426ee9ecbe4b7d65eda4a0d7c91137197c624778bb42ef2429552e
+
+═══════════════════════════════════════════════════════════════
+  ✅ V5 E2E MOCK TEST COMPLETE — Pimlico Cloud Bundler
+═══════════════════════════════════════════════════════════════
+  Safe:           0xC6220291d1eC65F7486c62073dFc333065BA92f8
+  requestAudit:   ✅ (tradeId: 97)
+  Oracle mock:    ✅ (riskScore: 0 → APPROVED)
+  triggerSwap:    ✅ (via Pimlico UserOp)
+  ERC-4337:       ✅ (live on Base Sepolia)
+═══════════════════════════════════════════════════════════════
+

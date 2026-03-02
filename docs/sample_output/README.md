@@ -9,11 +9,12 @@
 | File | Script | What It Proves |
 |---|---|---|
 | [forge_tests.txt](forge_tests.txt) | `forge test -vv` | 21 Solidity tests passing (18 AegisModule + 3 templates) |
-| [jest_tests.txt](jest_tests.txt) | `npx jest` | 83 TypeScript tests passing across 7 suites |
+| [jest_tests.txt](jest_tests.txt) | `npx jest` | 99 TypeScript tests passing across 8 suites |
+| [heimdall_tests.txt](heimdall_tests.txt) | `npx jest heimdall` | 6 Heimdall live integration tests (real GPT-4o + bytecode decompilation) |
 | [demo_v5_setup_run.txt](demo_v5_setup_run.txt) | `demo_v5_setup.ps1` | Infrastructure boot: Base Sepolia ✅, Docker ✅, WASM ✅ |
 | [demo_v5_master_run.txt](demo_v5_master_run.txt) | `demo_v5_master.ps1` | Full 7-act lifecycle: subscribe → audit → CRE AI → swap/revert → budget → kill switch |
 | [demo_v5_cre_run.txt](demo_v5_cre_run.txt) | `demo_v5_cre.ps1` | Raw CRE WASM execution with GPT-4o + Llama-3 consensus |
-| [demo_v5_heimdall_run.txt](demo_v5_heimdall_run.txt) | `demo_v5_heimdall.ps1` | **Heimdall pipeline:** eth_getCode → bytecode decompilation → GPT-4o risk analysis on unverified contracts |
+| [demo_v5_heimdall_run.txt](demo_v5_heimdall_run.txt) | `demo_v5_heimdall.ps1` | **Heimdall pipeline:** eth_getCode → bytecode decompilation → GPT-4o detects MALICIOUS |
 | [erc4337_userop_run.txt](erc4337_userop_run.txt) | `v5_e2e_mock.ts` | **ERC-4337 proof:** Safe deploy → Pimlico UserOp → triggerSwap via Account Abstraction |
 | [session_validator_install.txt](session_validator_install.txt) | `v5_install_session_validator.ts` | **ERC-7715 proof:** Safe 7579 deploy → SmartSessionValidator installed → agent subscribed |
 
@@ -32,4 +33,4 @@
 powershell -ExecutionPolicy Bypass -File .\scripts\<script>.ps1 2>&1 | Out-File docs\sample_output\<output>.txt -Encoding utf8
 ```
 
-All runs were executed on **2026-02-28** against **Base Sepolia (Chain ID 84532)**.
+All runs were executed on **2026-03-01** against **Base Sepolia (Chain ID 84532)**.
