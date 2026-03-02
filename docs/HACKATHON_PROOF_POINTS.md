@@ -1,21 +1,75 @@
-# 🏆 Aegis Protocol V5 — Hackathon Proof Points
+# Aegis Protocol V5 — Hackathon Proof Points
 
-> Comprehensive catalog of demonstrable proof points for hackathon judges.
+> This document directly maps Aegis Protocol's V5 architecture to the Convergence Hackathon grading rubrics.
 
 ---
 
-## 📊 Test Suite Evidence
+## Track Requirement Mappings
+
+### Risk & Compliance
+
+| Requirement | Implementation | Evidence |
+|---|---|---|
+| CRE Workflow Simulation | `cre workflow simulate` with multi-model AI consensus | [`demo_v5_master.ps1`](../scripts/demo_v5_master.ps1) |
+| CRE-Only Showcase | Raw CRE output proving WASM sandbox + AI consensus + ConfidentialHTTP | [`demo_v5_cre.ps1`](../scripts/demo_v5_cre.ps1) |
+| Blockchain + External API | CRE bridges GoPlus, BaseScan, OpenAI, and Groq into deterministic on-chain callback | [`cre-node/aegis-oracle.ts`](../cre-node/aegis-oracle.ts) |
+| Automated Risk Monitoring | 8-bit risk matrix with owner-configurable firewall knobs | [`src/AegisModule.sol`](../src/AegisModule.sol) |
+| Protocol Safeguard Triggers | `TokenNotCleared()` revert, `ClearanceDenied` event, `revokeAgent()` | [`test/AegisModule.t.sol`](../test/AegisModule.t.sol) |
+
+### CRE & AI
+
+| Requirement | Implementation |
+|---|---|
+| AI agents consuming CRE workflows | AI Trading Agent submits `requestAudit()` → CRE evaluates → `triggerSwap()` |
+| Split-Brain AI Consensus | GPT-4o + Llama-3 run in parallel inside WASM sandbox, "Union of Fears" bitmask |
+| Per-Field Median Consensus | `ConsensusAggregationByFields` absorbs LLM nondeterminism across DON nodes |
+| Confidential HTTP for AI Privacy | All LLM + BaseScan calls via `ConfidentialHTTPClient` — keys never leave enclave |
+| CRE Workflow Config | [`workflow.yaml`](../cre-node/workflow.yaml) · [`config.json`](../cre-node/config.json) |
+| AI-in-the-Loop Execution | CRE callback directly controls whether agent can execute swap |
+
+### Privacy
+
+| Requirement | Implementation |
+|---|---|
+| Confidential HTTP for LLM Queries | GPT-4o + Llama-3 via `ConfidentialHTTPClient` (`confidential-http@1.0.0-alpha`) |
+| Confidential Source Retrieval | BaseScan API key sealed inside DON — never exposed |
+| Protection of Protocol IP | Threat-detection prompts encrypted in transit, invisible to node operators |
+| Full Documentation | [`CONFIDENTIAL_HTTP.md`](CONFIDENTIAL_HTTP.md) |
+
+### Autonomous Agents
+
+| Requirement | Implementation |
+|---|---|
+| `cre simulate` execution | `docker exec cre workflow simulate` with real Base Sepolia tx |
+| On-chain write on CRE-supported testnet | `requestAudit()` + `onReportDirect()` + `triggerSwap()` on Base Sepolia |
+| Agent-driven execution | AI agent submits UserOps via Pimlico bundler — no human in the loop |
+| BYOA (Bring Your Own Agent) | Any external agent can be subscribed via `subscribeAgent(address, uint256)` |
+
+### DeFi & Tokenization
+
+| Requirement | Implementation |
+|---|---|
+| Novel DeFi primitive | JIT Smart Treasury — AI-gated, budget-enforced token execution |
+| CRE as DeFi orchestration layer | Multi-model AI audit governs per-token clearance for swap execution |
+| Live ERC-20 balance changes | Cleared swaps produce real, verifiable token balance changes on Base Sepolia |
+
+---
+
+## Test Suite Evidence
 
 | Suite | Tests | Status | Evidence |
 |---|---|---|---|
 | **Forge (Solidity)** | 21 | ✅ All passing | [`forge_tests.txt`](sample_output/forge_tests.txt) |
-| **Jest (TypeScript)** | 92 | ✅ All passing (1 skipped) | [`jest_tests.txt`](sample_output/jest_tests.txt) |
+| **Jest (TypeScript)** | 99 | ✅ (2 visualizer side-quest) | [`jest_tests.txt`](sample_output/jest_tests.txt) |
+| **Heimdall Live** | 6 | ✅ All passing (live GPT-4o) | [`heimdall_tests.txt`](sample_output/heimdall_tests.txt) |
 | **Frontend UI** | 42/50 | ✅ Tested | [`UI_TEST_MATRIX.md`](UI_TEST_MATRIX.md) |
-| **Total** | **155** | | |
+| **Total** | **168** | | |
+
+> Full QA report: [`TEST_REPORT.md`](sample_output/20260301_195604/TEST_REPORT.md)
 
 ---
 
-## 🔗 On-Chain Contracts (Base Sepolia, Chain ID 84532)
+## On-Chain Contracts (Base Sepolia · Chain ID 84532)
 
 | Contract | Address | Verified |
 |---|---|---|
@@ -27,7 +81,7 @@
 
 ---
 
-## 🛡️ ERC Standards Compliance
+## ERC Standards Compliance
 
 | Standard | Implementation | Evidence |
 |---|---|---|
@@ -35,9 +89,15 @@
 | **ERC-4337** | Smart Account via Safe | UserOps relayed through Pimlico bundler |
 | **ERC-7715** | Session Keys | 2-selector scope (`requestAudit`, `triggerSwap`) |
 
+| Layer | Standard | On-Chain? | What's Real | What's Simulated |
+|---|---|---|---|---|
+| **Wallet** | ERC-4337 | ✅ | Safe Smart Account + Pimlico Bundler | Demo scripts use `cast send` instead of UserOps |
+| **Module** | ERC-7579 | ✅ | AegisModule installed on Safe, all functions live | — |
+| **Session** | ERC-7715 | ✅ | Session config built, SmartSessionValidator installed | Browser-based signing (full key-delegation pending Safe SDK) |
+
 ---
 
-## 🔮 Chainlink CRE Integration
+## Chainlink CRE Integration
 
 | Proof Point | Evidence |
 |---|---|
@@ -49,66 +109,64 @@
 
 ---
 
-## 🧠 AI Forensics
+## AI Forensics
 
 | Feature | Detail |
 |---|---|
 | Dual-model consensus | GPT-4o + Llama-3 (temperature=0, JSON schema) |
-| 8-bit risk matrix | Bitwise "Union of Fears" |
+| 8-bit risk matrix | Bitwise "Union of Fears" — see [ARCHITECTURE.md](ARCHITECTURE.md#8-8-bit-risk-matrix) |
 | Per-field median consensus | Tolerates LLM nondeterminism across DON nodes |
 | Configurable firewall | 8 knobs injected into LLM system prompt |
 | 3 distinct AI prompts | CRE source audit, Heimdall bytecode, chat interface — see [`AI_PROMPT_CATALOG.md`](AI_PROMPT_CATALOG.md) |
 
 ---
 
-## 🔬 Heimdall Bytecode Pipeline
+## Heimdall Bytecode Pipeline
 
 | Proof Point | Evidence |
 |---|---|
 | Docker microservice | `services/decompiler/` — heimdall-rs v0.9.2 |
-| **MaliciousRugToken detection** | 13,326 hex chars → 14,002 chars decompiled → `is_malicious: true`, `obfuscatedTax: true` |
-| Specialized RE prompt | Honeypot, hidden mint, fee manipulation, blocklisting, self-destruct patterns |
-| GPT-4o on decompiled code | [`heimdall_tests.txt`](sample_output/heimdall_tests.txt) — valid risk JSON with `is_malicious` |
+| **MaliciousRugToken detection** | 13,326 hex chars → 14,002 chars decompiled → `is_malicious: true` |
+| Specialized RE prompt | Honeypot, hidden mint, fee manipulation, blocklisting, self-destruct |
+| GPT-4o on decompiled code | [`heimdall_tests.txt`](sample_output/heimdall_tests.txt) |
 | 6/6 live integration tests | Phase 2 (microservice) + Phase 3 (pipeline) + Phase 4 (LLM) |
 
 ---
 
-## 🖥️ Frontend Dashboard
+## Frontend Dashboard
 
 | Feature | Status |
 |---|---|
 | 3-panel command center | ✅ Agents, Firewall, Audit Log, Marketplace |
-| AI chat interface | ✅ Real treasury balance, dynamic agent list (no hardcoded names) |
-| Oracle feed (SSE) | ✅ Live CRE audit — BRETT APPROVED, HoneypotCoin BLOCKED (riskCode=36) |
+| AI chat interface | ✅ Real treasury balance, dynamic agent list |
+| Oracle feed (SSE) | ✅ Live CRE audit — BRETT APPROVED, HoneypotCoin BLOCKED |
 | Kill switch | ✅ PROTOCOL LOCKED banner |
 | 5 marketplace bots | ✅ BLUECHIP, YIELD, DEGEN, SAFE, HEIMDALL |
 | 8-bit firewall toggles | ✅ Synced with on-chain `firewallConfig()` |
 | Trade simulation modal | ✅ Token picker, amount slider, oracle audit trigger |
 | Session key display | ✅ Permitted/blocked functions, scoped selectors |
-| Resizable panels | ✅ Drag handles |
 
 ---
 
-## 🎬 Demo Scripts
+## Demo Scripts
 
 | Script | Duration | What It Proves |
 |---|---|---|
 | `demo_v5_setup.ps1` | ~2 min | Docker, WASM compile, Base Sepolia connectivity |
 | `demo_v5_master.ps1` | ~5 min | Full 7-act E2E: treasury → agents → audit → CRE → swap/revert → budget → kill switch |
 | `demo_v5_cre.ps1` | ~3 min | Raw CRE WASM execution for Chainlink judges |
-| `demo_v5_heimdall.ps1` | ~3 min | Bytecode decompilation → GPT-4o detects **MALICIOUS** contract |
+| `demo_v5_heimdall.ps1` | ~3 min | Bytecode decompilation → GPT-4o detects MALICIOUS contract |
 
 ---
 
-## 📖 Documentation
+## Documentation Index
 
 | Document | Content |
 |---|---|
-| [`ARCHITECTURE.md`](ARCHITECTURE.md) | 12 Mermaid diagrams |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) | 13 Mermaid diagrams, ERC stack, risk matrix |
 | [`CONFIDENTIAL_HTTP.md`](CONFIDENTIAL_HTTP.md) | Privacy track deep-dive |
-| [`ERC_STANDARDS.md`](ERC_STANDARDS.md) | ERC-4337 + 7579 + 7715 |
-| [`HEIMDALL_PIPELINE.md`](HEIMDALL_PIPELINE.md) | Bytecode decompilation with real detection demo |
-| [`AI_PROMPT_CATALOG.md`](AI_PROMPT_CATALOG.md) | All 3 AI prompts with templates and design rationale |
+| [`HEIMDALL_PIPELINE.md`](HEIMDALL_PIPELINE.md) | Bytecode decompilation pipeline |
+| [`AI_PROMPT_CATALOG.md`](AI_PROMPT_CATALOG.md) | All 3 AI prompts with templates |
 | [`DEMO_GUIDE.md`](DEMO_GUIDE.md) | How to run all demos |
-| [`ERC7579_ROADMAP.md`](ERC7579_ROADMAP.md) | Production roadmap |
+| [`X402_MONETIZATION.md`](X402_MONETIZATION.md) | x402 oracle monetization |
 | [`UI_TEST_MATRIX.md`](UI_TEST_MATRIX.md) | 42/50 frontend tests documented |

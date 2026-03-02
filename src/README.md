@@ -1,3 +1,5 @@
+[🏠 Back to Main README](../README.md)
+
 # 🛡️ Aegis Protocol V5 — Solidity Source
 
 > **ERC-7579 Executor Module** deployed on Base Sepolia.
@@ -31,6 +33,4 @@ The core smart contract — an ERC-7579 Type-2 Executor Module that installs ont
 
 21 Forge tests in [`test/AegisModule.t.sol`](../test/AegisModule.t.sol) — see [`docs/sample_output/forge_tests.txt`](../docs/sample_output/forge_tests.txt) for output.
 
-### ERC Standards
-
-See [`docs/ERC_STANDARDS.md`](../docs/ERC_STANDARDS.md) for the full transparency document on what is live vs simulated.
+See [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md) for the full system architecture with Mermaid diagrams.

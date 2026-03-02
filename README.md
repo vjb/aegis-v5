@@ -7,12 +7,12 @@
 **Convergence Hackathon Tracks:** Risk & Compliance · CRE & AI · DeFi & Tokenization · Privacy · Autonomous Agents
 
 [![Forge Tests](https://img.shields.io/badge/forge%20tests-21%20passing-brightgreen)](test/AegisModule.t.sol)
-[![Jest Tests](https://img.shields.io/badge/jest%20tests-92%20passing-brightgreen)](test/)
+[![Jest Tests](https://img.shields.io/badge/jest%20tests-99%20passing-brightgreen)](test/)
 [![CRE Live](https://img.shields.io/badge/chainlink%20CRE-live%20on%20Base%20Sepolia-blue)](cre-node/)
 [![ERC-7579](https://img.shields.io/badge/ERC--7579-executor-orange)](src/AegisModule.sol)
 [![ERC-4337](https://img.shields.io/badge/ERC--4337-Pimlico%20bundler-purple)](scripts/v5_e2e_mock.ts)
 
-🎬 **[Watch the Demo Video](#)** · 📖 **[Architecture (12 Mermaid Diagrams)](docs/ARCHITECTURE.md)** · 🔐 **[Confidential HTTP Deep-Dive](docs/CONFIDENTIAL_HTTP.md)** · 🏗️ **[ERC Standards (4337 + 7579 + 7715)](docs/ERC_STANDARDS.md)** · 💰 **[x402 Oracle Monetization](docs/X402_MONETIZATION.md)**
+🎬 **[Watch the Demo Video](#)** · 📖 **[Architecture (13 Mermaid Diagrams)](docs/ARCHITECTURE.md)** · 🔐 **[Confidential HTTP Deep-Dive](docs/CONFIDENTIAL_HTTP.md)** · 🏆 **[Hackathon Proof Points](docs/HACKATHON_PROOF_POINTS.md)** · 💰 **[x402 Oracle Monetization](docs/X402_MONETIZATION.md)**
 
 ### Verified on Base Sepolia (Chain ID 84532)
 
@@ -145,52 +145,22 @@ Aegis ships with a **Next.js 3-panel command center** that lets you manage agent
 
 ---
 
-## 🏗️ The Separation of Identity and Capital
+## 🔐 How Aegis Works (The 3-Step Firewall)
 
-The fundamental security philosophy of Aegis is the strict separation of **Execution Identity** and **Trading Capital**. The protocol relies on three distinct actors:
+### Step 1 — The Vault (ERC-4337 + ERC-7579)
+Your capital lives in a **Safe Smart Account** with the **AegisModule** installed as an ERC-7579 Executor. You hire AI agents by issuing **ERC-7715 Session Keys** scoped to exactly 2 functions — `requestAudit()` and `triggerSwap()` — with a strict ETH budget. The agent never touches your private keys.
 
-### 1. The Capital Allocator (The Human Owner)
-- **Identity:** A standard Web3 wallet (MetaMask, hardware wallet).
-- **Role:** Absolute sovereign control. The Owner never delegates their private keys.
-- **Function:** Deposits capital into the Safe Smart Account, installs the AegisModule, and issues scoped session keys. Only the owner can call `subscribeAgent`, `revokeAgent`, and `setFirewallConfig`.
+### Step 2 — The Intent (Chainlink CRE)
+When an agent spots a trade opportunity, it calls `requestAudit(token)`. The Chainlink CRE DON intercepts the event and runs a multi-phase AI audit inside a WASM sandbox:
+- **GoPlus** — static on-chain security flags (honeypot, sell restriction, proxy)
+- **BaseScan** — source code retrieval via `ConfidentialHTTPClient`
+- **GPT-4o + Llama-3** — dual-model forensic consensus producing an 8-bit risk verdict
 
-### 2. The Safe Smart Account (ERC-7579)
-- **Identity:** An ERC-4337 Smart Account with the AegisModule installed as an Executor.
-- **Role:** The custodian and execution layer.
-- **Function:** Physically holds all user capital. Enforces budgets and acts as the gateway for the Chainlink CRE oracle. Capital only leaves during a successfully cleared JIT execution.
+### Step 3 — The Execution (or Hard Block)
+- `riskCode == 0` → `triggerSwap()` is unblocked. Capital moves atomically in a single transaction.
+- `riskCode > 0` → `ClearanceDenied` emitted. `triggerSwap()` reverts with `TokenNotCleared()`. **Zero capital at risk.**
 
-### 3. The Subscribed Agent (The AI Trader)
-- **Identity:** A completely separate wallet holding an ERC-7715 Session Key scoped to exactly 2 function selectors.
-- **Role:** The analytical brain and intent generator.
-- **Function:** Holds zero trading capital — only gas ETH to sign UserOperations via the Pimlico bundler. The agent submits `requestAudit()` intents and, upon clearance, calls `triggerSwap()`.
-
-### How Session Keys Enforce Security
-
-When the Owner subscribes an Agent, two critical state changes occur mathematically on-chain:
-
-1. **Identity Allowlisting:** The Agent's address is mapped as an authorized caller.
-2. **Budget Enforcement:** The Agent is assigned a strict financial allowance (e.g., 0.05 ETH).
-
-The ERC-7715 Session Key is scoped to exactly two selectors: `requestAudit(address)` (`0xe34eac65`) and `triggerSwap(address,uint256,uint256)` (`0x684bceb0`). The agent **cannot** call `transfer()`, `withdraw()`, or any other function. Even if the oracle clears a token, the smart contract mathematically prevents the Agent from exceeding its budget.
-
----
-
-## 🔐 The 3-Step Security Loop
-
-### Step 1 — Agent Submits Trade Intent
-The AI agent (holding only an ERC-7715 session key) sends a UserOp calling `AegisModule.requestAudit(token)`. This emits `AuditRequested` on-chain. **No capital moves yet.**
-
-### Step 2 — Chainlink CRE Renders Verdict
-The Chainlink CRE DON catches the event and runs a multi-phase audit:
-- **GoPlus** — static on-chain analysis (honeypot, sell restriction, proxy)
-- **BaseScan** — source code retrieval (via ConfidentialHTTPClient)
-- **GPT-4o + Llama-3** — dual-model AI consensus (obfuscated tax, privilege escalation, logic bombs)
-
-The result is an **8-bit risk matrix** delivered to `AegisModule.onReport(tradeId, riskScore)`.
-
-### Step 3 — JIT Swap (or Hard Block)
-- `riskScore == 0` → `triggerSwap()` is unblocked. The module executes the swap. Capital moves.
-- `riskScore > 0` → `ClearanceDenied` emitted. Trade blocked. **Zero capital at risk.**
+> For the full architecture with 13 Mermaid diagrams, see [ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ---
 
@@ -207,67 +177,9 @@ The result is an **8-bit risk matrix** delivered to `AegisModule.onReport(tradeI
 | 6 | External call risk | AI |
 | 7 | Logic bomb | AI |
 
----
+The oracle uses a bitwise **"Union of Fears"** — if *either* AI model flags a risk, the corresponding bit is set. Each bit is also gated by the owner's on-chain firewall config (8 toggles + maxTax slider). Details in [ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## 🛡️ Zero-Trust "Default Deny"
-
-Aegis operates on a strict zero-trust basis: **any interaction with an unverified smart contract is automatically blocked.** Bit 0 of the 8-bit risk matrix (`Unverified source code`) is set by the GoPlus static analysis layer whenever a contract's source code cannot be retrieved from BaseScan. The threshold is configurable by the Safe owner via the firewall config, but the default posture is always *deny*.
-
-This means shady coins — tokens deployed without verified source, proxy-hidden logic, or freshly deployed honeypots — are stopped before the AI pipeline even runs. The AI models (GPT-4o + Llama-3) only analyze contracts that have passed the initial GoPlus gate.
-
-> **Experimental:** A standalone [Heimdall bytecode decompilation pipeline](docs/HEIMDALL_PIPELINE.md) demonstrates how Aegis could extend coverage to unverified contracts by decompiling raw EVM bytecode before feeding it to the AI consensus layer.
-
----
-
-## 🔥 Dynamic Firewall Configuration
-
-The vault owner sets the AI firewall policy by calling `setFirewallConfig(string)` — either directly on-chain or via the Rules of Engagement panel in the UI. The rules are stored in contract state and automatically applied to every trade request. **Agents cannot override or bypass the firewall policy.**
-
-### How the Config Is Applied (Two Layers)
-
-When an agent calls `requestAudit(address)`, the module emits `AuditRequested` with the stored `firewallConfig` JSON. The CRE oracle decodes it and uses it in two distinct ways:
-
-**Layer 1 — LLM Prompt Injection** (affects what the AI decides to flag):
-
-The rules are interpolated directly into the system prompt sent to both GPT-4o and Llama-3:
-
-```
-- Maximum Allowed Tax: ${maxTax}%. If any fee exceeds this, flag obfuscatedTax as true.
-- Strict Logic Bomb Detection: ${strictLogic}. Apply maximum scrutiny to ANY conditional revert.
-- Block Mintable: ${blockMintable}. If owner can mint unlimited supply, flag privilegeEscalation.
-```
-
-**Layer 2 — Bitmask Gating** (acts as a per-bit on/off switch):
-
-After both LLMs return their risk fields, the oracle assembles the final 8-bit `riskMatrix`. Each bit is conditionally gated by the firewall config:
-
-```solidity
-if (unverifiedCode && !allowUnverified) riskMatrix |= 1;   // Bit 0
-if (sellRestriction)                   riskMatrix |= 2;   // Bit 1 — always enforced
-if (honeypot      && blockHoneypots)   riskMatrix |= 4;   // Bit 2
-if (proxyContract && blockProxies)    riskMatrix |= 8;   // Bit 3
-if (obfuscatedTax)                     riskMatrix |= 16;  // Bit 4 — always enforced if AI flags
-if (privilegeEscalation)               riskMatrix |= 32;  // Bit 5
-if (externalCallRisk)                  riskMatrix |= 64;  // Bit 6
-if (logicBomb)                         riskMatrix |= 128; // Bit 7
-```
-
-### Firewall Knob Reference
-
-| # | Knob | Type | Default | Source | What It Catches |
-|---|---|---|---|---|---|
-| 1 | `maxTax` | Slider 0–50% | 5% | 🤖 LLM + 📊 GoPlus | Hidden `_computePeg()` functions that silently skim 15% to a treasury |
-| 2 | `maxOwnerHolding` | Slider 0–100% | 20% | 📊 GoPlus | Deployer holding 85% of supply — classic rug-pull setup |
-| 3 | `minLiquidity` | Slider $0–$100K | $1K | 📊 GoPlus | Micro-cap tokens with $50 of liquidity |
-| 4 | `blockProxies` | Toggle | ✅ ON | 🤖 LLM + 📊 GoPlus | Upgradeable contracts where the owner can swap in malicious logic |
-| 5 | `strictLogic` | Toggle | ✅ ON | 🤖 LLM zero-day | `require(block.timestamp < deployedAt + 30 days)` — time-bomb |
-| 6 | `blockMintable` | Toggle | ✅ ON | 📊 GoPlus + 🤖 LLM | Owner can call `mint()` to inflate supply infinitely |
-| 7 | `blockHoneypots` | Toggle | ✅ ON | 📊 GoPlus | `require(_allowlist[msg.sender])` in `transfer()` — only deployer can sell |
-| 8 | `allowUnverified` | Toggle | ❌ OFF | 📊 GoPlus | ⚠️ Degen switch: skips source code requirement |
-
-**Preset Profiles:**
-- 🔒 **Vault Mode** — `maxTax=5%`, all guards ON, `allowUnverified=OFF`
-- 🎰 **Degen Mode** — `maxTax=50%`, `blockHoneypots=OFF`, `allowUnverified=ON`
+> **Experimental:** A standalone [Heimdall bytecode decompilation pipeline](docs/HEIMDALL_PIPELINE.md) extends coverage to unverified contracts by decompiling raw EVM bytecode.
 
 ---
 
@@ -434,30 +346,7 @@ Every on-chain transaction maps to one of these functions on [`AegisModule.sol`]
 
 ---
 
-## 🧠 Multi-Model AI Audit
 
-Aegis orchestrates a parallel **multi-model audit** within the CRE WASM sandbox. Both models receive identical Solidity source code and produce independent risk assessments:
-
-| Model | Role | Strengths |
-|---|---|---|
-| **GPT-4o** | Deep semantic forensics | Catches obfuscated tax functions, privilege escalation patterns, complex logic bombs |
-| **Llama-3 via Groq** | High-speed consensus | Sub-second inference, catches the same patterns independently for BFT consensus |
-
-The oracle produces a bitwise **"Union of Fears"** risk bitmask — if *either* model flags a risk, the corresponding bit is set. This is maximally conservative: the system catches threats that either model detects independently.
-
-### Per-Field Median Consensus
-
-LLMs are inherently nondeterministic — even at `temperature: 0.0`, outputs can vary across DON nodes. Aegis solves this by splitting the risk matrix into 8 individual fields, each with its own median consensus via `ConsensusAggregationByFields`. This gives majority-vote behavior (2-of-3 nodes agree = flagged), making the oracle resilient to single-node LLM hallucinations.
-
----
-
-## 🛡️ Inherent MEV Protection
-
-The V5 JIT architecture inherently protects against MEV:
-
-- **Off-chain intent auditing:** The agent's trade intent is evaluated entirely off-chain inside the Chainlink CRE enclave. No capital sits in a public mempool waiting to be arbitraged.
-- **Atomic single-block execution:** When clearance is granted, `triggerSwap` moves funds in a single atomic transaction. No multi-block window for sandwich attacks.
-- **Zero capital exposure:** Until the DON grants clearance, ETH stays safely in the module treasury. There is no "pending trade" state for MEV bots to observe.
 
 ---
 
@@ -503,86 +392,10 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full deep-dive with 12 
 | `/src` | Solidity source — [`AegisModule.sol`](src/AegisModule.sol) (ERC-7579 Executor) |
 | `/cre-node` | Chainlink CRE workflow — [`aegis-oracle.ts`](cre-node/aegis-oracle.ts), `workflow.yaml` |
 | `/scripts` | Demo scripts, AA config modules, E2E mock test |
-| `/test` | Forge + Jest test suites (21 + 92 = 113 tests) |
+| `/test` | Forge + Jest test suites (21 + 99 = 120 core tests) |
 | `/aegis-frontend` | Next.js Agentic Command Center — chat, oracle feed, firewall UI |
 | `/docs` | Architecture, Confidential HTTP, Demo Guide, sample outputs |
 | `/script` | Foundry deployment scripts (`DeployMocks.s.sol`) |
-
----
-
-## 🏆 Hackathon Track Requirements
-
-### Track: Risk & Compliance
-
-| Requirement | Implementation | Link |
-|---|---|---|
-| CRE Workflow Simulation | `cre workflow simulate` with multi-model AI consensus | [`demo_v5_master.ps1`](scripts/demo_v5_master.ps1) |
-| CRE-Only Showcase | Raw CRE output proving WASM sandbox + AI consensus + ConfidentialHTTP | [`demo_v5_cre.ps1`](scripts/demo_v5_cre.ps1) |
-| Blockchain + External API | CRE bridges GoPlus, BaseScan, OpenAI, and Groq into deterministic on-chain callback | [`cre-node/aegis-oracle.ts`](cre-node/aegis-oracle.ts) |
-| Automated Risk Monitoring | 8-bit risk matrix with owner-configurable firewall knobs | [`src/AegisModule.sol`](src/AegisModule.sol) |
-| Protocol Safeguard Triggers | `TokenNotCleared()` revert, `ClearanceDenied` event, `revokeAgent()` | [`test/AegisModule.t.sol`](test/AegisModule.t.sol) |
-| Video Demonstration | 3–5 min demo showcasing end-to-end workflow | [Demo Video](#) |
-
-### Track: CRE & AI
-
-| Requirement | Implementation |
-|---|---|
-| AI agents consuming CRE workflows | AI Trading Agent submits `requestAudit()` → CRE evaluates → `triggerSwap()` |
-| Split-Brain AI Consensus | GPT-4o + Llama-3 run in parallel inside WASM sandbox, "Union of Fears" bitmask |
-| Per-Field Median Consensus | `ConsensusAggregationByFields` absorbs LLM nondeterminism across DON nodes |
-| Confidential HTTP for AI Privacy | All LLM + BaseScan calls via `ConfidentialHTTPClient` — keys never leave enclave |
-| CRE Workflow Config | [`workflow.yaml`](cre-node/workflow.yaml) · [`config.json`](cre-node/config.json) |
-| AI-in-the-Loop Execution | CRE callback directly controls whether agent can execute swap |
-
-### Track: Privacy
-
-| Requirement | Implementation |
-|---|---|
-| Confidential HTTP for LLM Queries | GPT-4o + Llama-3 via `ConfidentialHTTPClient` (`confidential-http@1.0.0-alpha`) |
-| Confidential Source Retrieval | BaseScan API key sealed inside DON — never exposed |
-| Protection of Protocol IP | Proprietary threat-detection prompts encrypted in transit, invisible to node operators |
-| Full Documentation | [`docs/CONFIDENTIAL_HTTP.md`](docs/CONFIDENTIAL_HTTP.md) |
-
-### Track: Autonomous Agents
-
-| Requirement | Implementation |
-|---|---|
-| `cre simulate` execution | `docker exec cre workflow simulate` with real Base Sepolia tx |
-| On-chain write on CRE-supported testnet | `requestAudit()` + `onReportDirect()` + `triggerSwap()` on Base Sepolia |
-| Agent-driven execution | AI agent submits UserOps via Pimlico bundler — no human in the loop |
-| BYOA (Bring Your Own Agent) | Any external agent can be subscribed via `subscribeAgent(address, uint256)` |
-
-### Track: DeFi & Tokenization
-
-| Requirement | Implementation |
-|---|---|
-| Novel DeFi primitive | JIT Smart Treasury — AI-gated, budget-enforced token execution |
-| CRE as DeFi orchestration layer | Multi-model AI audit governs per-token clearance for swap execution |
-| Live ERC-20 balance changes | Cleared swaps produce real, verifiable token balance changes on Base Sepolia |
-
----
-
-## 🚨 Critical CRE/WASM Constraints
-
-To maintain Byzantine consensus, the Oracle Workflow follows strict rules:
-
-- **No Node.js Core Modules:** The WASM sandbox does not support `fs`, `os`, or `crypto`.
-- **Synchronous Capabilities:** Use `.result()` for all SDK calls (e.g., `httpClient.sendRequest(...).result()`).
-- **Sequential Secrets:** Secrets MUST be fetched one-by-one to avoid host-level race conditions.
-- **AI Reproducibility:** All LLM prompts use `temperature: 0` and strict JSON-schema enforcement.
-- **Per-Field Consensus:** `ConsensusAggregationByFields` with median per risk field tolerates AI nondeterminism.
-- **Confidential HTTP:** All secret-bearing calls use `ConfidentialHTTPClient`. Only GoPlus (public, no key) uses standard HTTP.
-
----
-
-### 💰 Built-In Monetization
-
-Because Aegis sits at the execution layer — every cleared trade flows through the protocol:
-
-| Model | How It Works |
-|---|---|
-| **Protocol Fee** | A microscopic fee (e.g., 0.05%) on every successful JIT execution. Deducted atomically inside `triggerSwap()`. |
-| **Enterprise SaaS** | Hedge funds and DAOs pay to route autonomous trading fleets through the Aegis CRE multi-model firewall. |
 
 ---
 
@@ -594,17 +407,26 @@ Because Aegis sits at the execution layer — every cleared trade flows through 
 | **Development** | Google Antigravity, Gemini, Claude | Agent-first IDE for rapid Web3 development |
 | **Media & Presentation** | Google NotebookLM, Veo 3 | Infographics, narrative video interstitials, cinematic B-roll |
 
+---
 
+## 📚 Deep Dives & Hackathon Judging
 
+| Document | Content |
+|---|---|
+| 🏆 [**Hackathon Proof Points**](docs/HACKATHON_PROOF_POINTS.md) | All 5 track requirement mappings, test evidence, on-chain contracts |
+| 📖 [**Architecture**](docs/ARCHITECTURE.md) | 13 Mermaid diagrams — CRE pipeline, risk matrix, firewall config, frontend |
+| 🔐 [**Confidential HTTP**](docs/CONFIDENTIAL_HTTP.md) | Privacy track deep-dive — how all API keys are sealed inside DON |
+| 🔬 [**Heimdall Pipeline**](docs/HEIMDALL_PIPELINE.md) | Bytecode decompilation for unverified contracts |
+| 🧠 [**AI Prompt Catalog**](docs/AI_PROMPT_CATALOG.md) | All 3 AI prompts with templates and design rationale |
+| 🎬 [**Demo Guide**](docs/DEMO_GUIDE.md) | How to run all demo scripts |
+| 💰 [**x402 Monetization**](docs/X402_MONETIZATION.md) | Paid oracle API via x402 payment protocol |
 
-## 🔗 Links
+---
 
-- [**Demo Guide**](docs/DEMO_GUIDE.md) ← how to run all three demo scripts
-- [**Confidential HTTP**](docs/CONFIDENTIAL_HTTP.md) ← Privacy track deep-dive
-- [System Architecture](docs/ARCHITECTURE.md) ← 12 Mermaid diagrams
-- [Bundler Strategy](docs/BUNDLER_STRATEGY_DECISION.md) ← Why Pimlico
-- [Smart Contract](src/AegisModule.sol)
-- [CRE Oracle](cre-node/aegis-oracle.ts)
+## 🔗 External References
+
 - [Chainlink CRE Docs](https://docs.chain.link/cre)
 - [Rhinestone ModuleKit](https://docs.rhinestone.wtf)
 - [ERC-7579 Standard](https://eips.ethereum.org/EIPS/eip-7579)
+- [Smart Contract](src/AegisModule.sol)
+- [CRE Oracle](cre-node/aegis-oracle.ts)

@@ -1,3 +1,5 @@
+[🏠 Back to Main README](../README.md)
+
 # Aegis Protocol V5 — Frontend
 
 Next.js command center for the Aegis Protocol. Connects to Base Sepolia and the Chainlink CRE oracle to show real-time audit results, agent activity, and on-chain verdicts.
@@ -99,4 +101,4 @@ Open [http://localhost:3000](http://localhost:3000).
 - [Root README](../README.md) — full protocol overview
 - [Demo Guide](../docs/DEMO_GUIDE.md) — how to run demo scripts
 - [CRE Oracle](../cre-node/README.md) — oracle node setup
-- [ERC Standards](../docs/ERC_STANDARDS.md) — ERC-4337, ERC-7579, ERC-7715 implementation details
+- [ERC Standards](../docs/ARCHITECTURE.md) — Architecture and ERC-4337, ERC-7579, ERC-7715 implementation details

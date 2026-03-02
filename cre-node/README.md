@@ -1,3 +1,5 @@
+[🏠 Back to Main README](../README.md)
+
 # 🔗 Aegis V5 — Chainlink CRE Oracle Node
 
 The Chainlink Runtime Environment (CRE) oracle that powers Aegis V5's off-chain AI security audit pipeline. Runs on Base Sepolia. All external API calls go through `ConfidentialHTTPClient` — API keys never leave the DON.

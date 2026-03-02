@@ -1,3 +1,5 @@
+[🏠 Back to Main README](../README.md)
+
 # 🧪 Aegis V5 — Test Suite
 
 TDD-first test suite covering the full Aegis V5 stack: ERC-7579 module, CRE oracle, ERC-4337 AA, ERC-7715 session keys, and frontend components.
@@ -9,7 +11,7 @@ forge test --match-contract AegisModuleTest
   ✅ 21 passed, 0 failed  (18 AegisModule + 3 template tests)
 
 pnpm exec jest
-  ✅ 8 suites — 91 passed, 1 skipped
+  ✅ 8 suites — 99 passed, 1 skipped
   ⏱  ~300s
 ```
 
