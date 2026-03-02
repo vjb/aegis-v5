@@ -118,6 +118,16 @@ Get-Content $EnvPath | ForEach-Object {
 
 if (-not $RPC) { $RPC = "https://sepolia.base.org" }
 
+# ─── Pre-flight: wallet balance check ──────────────────────────────
+$DevWallet = cast wallet address --private-key $PK 2>&1 | Out-String
+$DevWallet = $DevWallet.Trim()
+$BalanceWei = cast balance $DevWallet --rpc-url $RPC 2>&1 | Out-String
+$BalanceWei = ($BalanceWei.Trim() -replace '\s*\[.*\]\s*$', '').Trim()
+if ($BalanceWei -match "^\d+$" -and [decimal]$BalanceWei -lt 1000000000000000) {
+    Write-Host "  ❌ Dev wallet $DevWallet has insufficient ETH (< 0.001). Fund it first." -ForegroundColor Red
+    exit 1
+}
+
 ActIntro -Title "SCENE 1: THE TARGET" -Lines @(
     "We are about to analyze a KNOWN HONEYPOT contract on",
     "Base Sepolia. The CRE WASM sandbox will execute:",
@@ -165,10 +175,6 @@ if ([string]::IsNullOrWhiteSpace($TxHash)) {
             $TxHash = $Matches[1]
             break
         }
-        if ($line -match "(0x[a-fA-F0-9]{64})") {
-            $TxHash = $Matches[1]
-            break
-        }
     }
     
     if ([string]::IsNullOrWhiteSpace($TxHash)) {
@@ -178,6 +184,9 @@ if ([string]::IsNullOrWhiteSpace($TxHash)) {
     
     Success "UserOperation Confirmed. AuditRequested Event Emitted."
     Write-Host "  ➤ TxHash: $TxHash" -ForegroundColor White
+
+    # Brief delay for receipt propagation on public RPC
+    Start-Sleep -Seconds 8
     Pause-Demo
 }
 

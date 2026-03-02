@@ -99,6 +99,16 @@ Get-Content $EnvPath | ForEach-Object {
 
 if (-not $RPC) { $RPC = "https://sepolia.base.org" }
 
+# ─── Pre-flight: wallet balance check ──────────────────────────────
+$DevWallet = cast wallet address --private-key $PK 2>&1 | Out-String
+$DevWallet = $DevWallet.Trim()
+$BalanceWei = cast balance $DevWallet --rpc-url $RPC 2>&1 | Out-String
+$BalanceWei = ($BalanceWei.Trim() -replace '\s*\[.*\]\s*$', '').Trim()
+if ($BalanceWei -match "^\d+$" -and [decimal]$BalanceWei -lt 1000000000000000) {
+    Write-Host "  ❌ Dev wallet $DevWallet has insufficient ETH (< 0.001). Fund it first." -ForegroundColor Red
+    exit 1
+}
+
 Clear-Host
 Write-Host "═══════════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
 Write-Host ""
@@ -261,6 +271,9 @@ if (-not $HoneyTxHash) {
 Write-Host "  ✅ MockHoneypot audit requested: $HoneyTxHash" -ForegroundColor Green
 Write-Host ""
 Write-Host "  Both AuditRequested events are now on-chain on Base Sepolia." -ForegroundColor DarkGray
+
+# Brief delay for receipt propagation on public RPC
+Start-Sleep -Seconds 8
 Pause-Demo
 
 # ═══════════════════════════════════════════════════════════════════════
