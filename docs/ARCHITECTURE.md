@@ -10,12 +10,12 @@
 
 ```mermaid
 graph TD
-    Owner["👤 Treasury Owner\nConnects wallet · sets rules"]
-    Agent["🤖 AI Trading Agent\nHolds gas ETH only — zero capital"]
-    Aegis["🛡️ AegisModule\nERC-7579 Executor on Smart Account"]
-    CRE["🔗 Chainlink CRE DON\nWASM oracle · GoPlus · AI models"]
-    SA["💰 Smart Account - Safe\nHolds ALL capital"]
-    Swap["🔄 Simulated Swap\nETH transfer + SwapExecuted event"]
+    Owner["👤 Treasury Owner<br/>Connects wallet · sets rules"]
+    Agent["🤖 AI Trading Agent<br/>Holds gas ETH only — zero capital"]
+    Aegis["🛡️ AegisModule<br/>ERC-7579 Executor on Smart Account"]
+    CRE["🔗 Chainlink CRE DON<br/>WASM oracle · GoPlus · AI models"]
+    SA["💰 Smart Account - Safe<br/>Holds ALL capital"]
+    Swap["🔄 Simulated Swap<br/>ETH transfer + SwapExecuted event"]
 
     Owner -->|"install · budget · revoke"| Aegis
     Agent -->|"requestAudit(token)"| Aegis
@@ -38,25 +38,25 @@ graph TD
 
 ```mermaid
 flowchart LR
-    EVENT(["AuditRequested\ntradeId · token · config"])
+    EVENT(["AuditRequested<br/>tradeId · token · config"])
 
     subgraph Phase1["Phase 1 — GoPlus"]
-        GP1["GoPlus Security API\nlive on-chain data"]
-        GP2["honeypot · sell restriction\nunverified · proxy → bits 0–3"]
+        GP1["GoPlus Security API<br/>live on-chain data"]
+        GP2["honeypot · sell restriction<br/>unverified · proxy → bits 0–3"]
     end
 
     subgraph Phase2["Phase 2 — Source Code"]
-        BS1["BaseScan via ConfidentialHTTPClient\nAPI key sealed inside DON"]
-        BS2["Full Solidity source\n(e.g. 52,963 chars BrettToken.sol)"]
+        BS1["BaseScan via ConfidentialHTTPClient<br/>API key sealed inside DON"]
+        BS2["Full Solidity source<br/>(e.g. 52,963 chars BrettToken.sol)"]
     end
 
     subgraph Phase3["Phase 3 — AI Consensus"]
         AI1["GPT-4o reads source"]
         AI2["Llama-3 reads source"]
-        AI3["Union of flags\nbits 4–7: tax · priv · extCall · bomb"]
+        AI3["Union of flags<br/>bits 4–7: tax · priv · extCall · bomb"]
     end
 
-    REPORT(["onReport(tradeId, riskCode)\nvia KeystoneForwarder"])
+    REPORT(["onReport(tradeId, riskCode)<br/>via KeystoneForwarder"])
 
     EVENT --> Phase1 --> GP1 --> GP2
     GP2 --> Phase2 --> BS1 --> BS2
@@ -86,8 +86,8 @@ stateDiagram-v2
     Running --> Blocked : riskScore > 0
     Cleared --> Approved : isApproved[token] = true
     Blocked --> Denied : emit ClearanceDenied
-    Approved --> Executed : triggerSwap()\nisApproved consumed (CEI anti-replay)
-    Approved --> Reverted : second triggerSwap()\nrevert TokenNotCleared
+    Approved --> Executed : triggerSwap() — isApproved consumed (CEI)
+    Approved --> Reverted : second triggerSwap() — revert TokenNotCleared
     Executed --> [*]
     Denied --> [*]
     Reverted --> [*]
@@ -200,10 +200,10 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    RPC["eth_getCode\n(Base Sepolia JSON-RPC)\n19,666 hex chars"]
-    DECOMP["Heimdall Docker\n(heimdall-rs v0.9.2)\nSymbolic exec → Solidity\n15,000 chars output"]
-    AI["GPT-4o\n(temp=0, forensic)\nJSON verdict\n+ is_malicious"]
-    RISK["8-bit Risk Code\nbits 4–7\ne.g. 0x20 (priv. esc.)"]
+    RPC["eth_getCode<br/>(Base Sepolia JSON-RPC)<br/>19,666 hex chars"]
+    DECOMP["Heimdall Docker<br/>(heimdall-rs v0.9.2)<br/>Symbolic exec → Solidity<br/>15,000 chars output"]
+    AI["GPT-4o<br/>(temp=0, forensic)<br/>JSON verdict<br/>+ is_malicious"]
+    RISK["8-bit Risk Code<br/>bits 4–7<br/>e.g. 0x20 (priv. esc.)"]
 
     RPC --> DECOMP --> AI --> RISK
 
