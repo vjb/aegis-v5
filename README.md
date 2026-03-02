@@ -12,7 +12,7 @@
 [![ERC-7579](https://img.shields.io/badge/ERC--7579-executor-orange)](src/AegisModule.sol)
 [![ERC-4337](https://img.shields.io/badge/ERC--4337-Pimlico%20bundler-purple)](scripts/v5_e2e_mock.ts)
 
-🎬 **[Watch the Demo Video](#)** · 📖 **[Architecture (13 Mermaid Diagrams)](docs/ARCHITECTURE.md)** · 🔐 **[Confidential HTTP Deep-Dive](docs/CONFIDENTIAL_HTTP.md)** · 🏆 **[Hackathon Proof Points](docs/HACKATHON_PROOF_POINTS.md)** · 💰 **[x402 Oracle Monetization](docs/X402_MONETIZATION.md)**
+🎬 **[Watch the Demo Video](#)** · 📖 **[Architecture (7 Mermaid Diagrams)](docs/ARCHITECTURE.md)** · 🔐 **[Confidential HTTP Deep-Dive](docs/CONFIDENTIAL_HTTP.md)** · 🏆 **[Hackathon Proof Points](docs/HACKATHON_PROOF_POINTS.md)**
 
 ### Verified on Base Sepolia (Chain ID 84532)
 
@@ -160,7 +160,7 @@ When an agent spots a trade opportunity, it calls `requestAudit(token)`. The Cha
 - `riskCode == 0` → `triggerSwap()` is unblocked. Capital moves atomically in a single transaction.
 - `riskCode > 0` → `ClearanceDenied` emitted. `triggerSwap()` reverts with `TokenNotCleared()`. **Zero capital at risk.**
 
-> For the full architecture with 13 Mermaid diagrams, see [ARCHITECTURE.md](docs/ARCHITECTURE.md).
+> For the full architecture with 7 Mermaid diagrams, see [ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ---
 
@@ -414,12 +414,12 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full deep-dive with 12 
 | Document | Content |
 |---|---|
 | 🏆 [**Hackathon Proof Points**](docs/HACKATHON_PROOF_POINTS.md) | All 5 track requirement mappings, test evidence, on-chain contracts |
-| 📖 [**Architecture**](docs/ARCHITECTURE.md) | 13 Mermaid diagrams — CRE pipeline, risk matrix, firewall config, frontend |
+| 📖 [**Architecture**](docs/ARCHITECTURE.md) | 7 Mermaid diagrams — CRE pipeline, trade lifecycle, ERC-4337 flow |
 | 🔐 [**Confidential HTTP**](docs/CONFIDENTIAL_HTTP.md) | Privacy track deep-dive — how all API keys are sealed inside DON |
-| 🔬 [**Heimdall Pipeline**](docs/HEIMDALL_PIPELINE.md) | Bytecode decompilation for unverified contracts |
 | 🧠 [**AI Prompt Catalog**](docs/AI_PROMPT_CATALOG.md) | All 3 AI prompts with templates and design rationale |
 | 🎬 [**Demo Guide**](docs/DEMO_GUIDE.md) | How to run all demo scripts |
-| 💰 [**x402 Monetization**](docs/X402_MONETIZATION.md) | Paid oracle API via x402 payment protocol |
+| 🔬 [Heimdall Pipeline](docs/HEIMDALL_PIPELINE.md) | *(Experimental)* Bytecode decompilation for unverified contracts |
+| 💰 [x402 Monetization](docs/X402_MONETIZATION.md) | *(Experimental)* Paid oracle API via x402 payment protocol |
 
 ---
 

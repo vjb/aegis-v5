@@ -1,6 +1,8 @@
-# x402 Oracle Monetization
+# x402 Oracle Monetization *(Experimental)*
 
-Aegis exposes its CRE threat-intelligence pipeline as a **paid API** using the [x402 HTTP payment protocol](https://x402.org). Any AI agent can request a token audit; the endpoint returns HTTP 402 with USDC payment instructions, verifies the signed authorization through the Coinbase facilitator, and only then runs the full pipeline.
+> **Status: Working proof-of-concept.** This is a standalone experimental demonstration of one way to monetize the Aegis threat-intelligence pipeline. It is not integrated into the core Aegis Protocol.
+
+This demo exposes the CRE threat-intelligence pipeline as a **paid API** using the [x402 HTTP payment protocol](https://x402.org). Any AI agent can request a token audit; the endpoint returns HTTP 402 with USDC payment instructions, verifies the signed authorization through the Coinbase facilitator, and only then runs the full pipeline.
 
 ## How It Works
 
