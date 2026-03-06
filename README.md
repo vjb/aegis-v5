@@ -41,7 +41,15 @@ AI trading bots are becoming mainstream. The problem? You have to hand over your
 
 > **Testnet note:** On Base Sepolia, `triggerSwap` emits `SwapExecuted` but does not route through a real DEX (no liquidity). Production Uniswap V3 code is included in the contract, commented out. Budget enforcement and clearance checks are fully real.
 
----
+### Raw Output (no formatting — just facts)
+
+| Script | What it proves | Output |
+|---|---|---|
+| `raw_master.ps1` | Full lifecycle: subscribe → session key audit → CRE oracle → swap/revert → budget → kill switch | [raw_master_run.txt](docs/sample_output/raw_master_run.txt) |
+| `raw_cre.ps1` | CRE WASM pipeline: GoPlus + BaseScan + GPT-4o + Llama-3 consensus | [raw_cre_run.txt](docs/sample_output/raw_cre_run.txt) |
+| `raw_heimdall.ps1` | Bytecode decompilation: eth_getCode → Heimdall → GPT-4o risk analysis | [raw_heimdall_run.txt](docs/sample_output/raw_heimdall_run.txt) |
+| `raw_setup.ps1` | Infrastructure: chain ID, wallet, Docker, WASM compilation | [raw_setup_run.txt](docs/sample_output/raw_setup_run.txt) |
+
 
 ## V5 Architecture (Live on Base Sepolia)
 
