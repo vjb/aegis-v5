@@ -19,6 +19,7 @@ Operational scripts for the Aegis V5 Account Abstraction stack on Base Sepolia.
 | `v5_audit_userop.ts` | Submit requestAudit as ERC-4337 UserOp via Pimlico |
 | `v5_swap_userop.ts` | Submit triggerSwap as ERC-4337 UserOp via Pimlico |
 | `v5_install_session_validator.ts` | Deploy Safe with SmartSessionValidator pre-installed · [output](../docs/sample_output/session_validator_install.txt) |
+| `session_key_demo.ts` | Session key proof: agent submits `requestAudit` UserOp without owner key · [output](../docs/sample_output/session_key_demo.txt) |
 
 ---
 

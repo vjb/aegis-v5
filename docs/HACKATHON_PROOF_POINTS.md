@@ -43,6 +43,7 @@
 | `cre simulate` execution | `docker exec cre workflow simulate` with real Base Sepolia tx |
 | On-chain write on CRE-supported testnet | `requestAudit()` + `onReportDirect()` + `triggerSwap()` on Base Sepolia |
 | Agent-driven execution | AI agent submits UserOps via Pimlico bundler; `onReportDirect` is owner-relayed (production: KeystoneForwarder) |
+| Session key autonomy | Agent submits `requestAudit()` UserOp using ONLY an ERC-7579 session key — owner key not used | [`session_key_demo.txt`](sample_output/session_key_demo.txt) |
 | BYOA (Bring Your Own Agent) | Any external agent can be subscribed via `subscribeAgent(address, uint256)` |
 
 ### DeFi & Tokenization

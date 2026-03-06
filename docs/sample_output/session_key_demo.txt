@@ -1,0 +1,36 @@
+
+═══════════════════════════════════════════════════════════════
+  🔑 SESSION KEY DEMO — Agent Autonomy via ERC-7579
+═══════════════════════════════════════════════════════════════
+  Owner:       0x109D8072B1762263ed094BC05c5110895Adc65Cf
+  Session Key: 0x5Acb37dcFc907f888b5a3E1B005C0837F768Bb98
+  Module:      0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89
+  Target:      BRETT (0x532f27101965dd16442E59d40670FaF5eBB142E4)
+
+━━━ PHASE 1: Deploy Safe with session key pre-configured ━━━
+  Safe (counterfactual): 0x2203DD47137866d78F09f6a6193e6D8a73260359
+  Deploying Safe with SmartSessions pre-installed...
+  ✅ Safe deployed: 0x4acafd3c3d56a3284c334f70c36195a69e58424d1656aa8bdd0b59a6f493b33e
+  Subscribing Safe as agent on AegisModule...
+  ✅ Safe subscribed as agent (0.001 ETH budget)
+
+━━━ PHASE 2: Agent submits requestAudit via session key ━━━
+  Permission ID: 0x4dcccde2ad748150152f20c9b0d8d7a003859ed2569c211707c27280b421eeaf
+  Nonce: 57532766240966947952054840643333136270388981957654712034659401728
+  Building UserOp with manual gas limits...
+  🔑 Signing with SESSION KEY (not owner!)...
+  📤 Sending UserOp...
+  UserOp: 0xf7708540ef295b5cd19ed2e2426e96ad06d108522fcd2f31cef003ae0bd41261
+  ✅ Tx: 0xe1cae6043ad913f0d949b4551239c3b1de18f959c71fd107b1605256a2d1398d
+
+═══════════════════════════════════════════════════════════════
+  🎉 SESSION KEY DEMO COMPLETE
+═══════════════════════════════════════════════════════════════
+  The agent submitted requestAudit() using ONLY a session key.
+  The owner's private key was NOT used for the audit UserOp.
+  Safe:        0x2203DD47137866d78F09f6a6193e6D8a73260359
+  Session Key: 0x5Acb37dcFc907f888b5a3E1B005C0837F768Bb98
+  Tx:          0xe1cae6043ad913f0d949b4551239c3b1de18f959c71fd107b1605256a2d1398d
+═══════════════════════════════════════════════════════════════
+
+  Saved to: SESSION_KEY_RESULTS.txt
