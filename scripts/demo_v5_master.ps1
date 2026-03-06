@@ -388,16 +388,16 @@ Write-Host ""
 Write-Host "  Delivering oracle verdicts via onReportDirect (owner simulating CRE callback)..." -ForegroundColor DarkGray
 
 # Parse tradeIds from AuditRequested event logs in the tx receipts
-# AuditRequested(uint256 tradeId, address token, address requester) — tradeId is topic[1]
-# Event signature hash: keccak256("AuditRequested(uint256,address,address)")
-$AuditRequestedTopic = (cast keccak "AuditRequested(uint256,address,address)" 2>$null).Trim()
+# AuditRequested event comes from the AegisModule contract address
+# It has 4 topics: [eventSig, tradeId, requester, token]
+$ModuleAddrLower = $ModuleAddr.ToLower()
 
 # Extract tradeId from BRETT tx receipt
 $BrettReceiptJson = cast receipt $BrettTxHash --json --rpc-url $RPC 2>$null | Out-String
 $BrettJson = $BrettReceiptJson | ConvertFrom-Json
 $BrettTradeId = $null
 foreach ($log in $BrettJson.logs) {
-    if ($log.topics[0] -eq $AuditRequestedTopic) {
+    if ($log.address.ToLower() -eq $ModuleAddrLower -and $log.topics.Count -ge 2) {
         $hexVal = $log.topics[1] -replace '^0x',''
         $BrettTradeId = [Convert]::ToInt64($hexVal, 16)
         break
@@ -415,7 +415,7 @@ $HoneyReceiptJson = cast receipt $HoneyTxHash --json --rpc-url $RPC 2>$null | Ou
 $HoneyJson = $HoneyReceiptJson | ConvertFrom-Json
 $HoneyTradeId = $null
 foreach ($log in $HoneyJson.logs) {
-    if ($log.topics[0] -eq $AuditRequestedTopic) {
+    if ($log.address.ToLower() -eq $ModuleAddrLower -and $log.topics.Count -ge 2) {
         $hexVal = $log.topics[1] -replace '^0x',''
         $HoneyTradeId = [Convert]::ToInt64($hexVal, 16)
         break
