@@ -52,7 +52,7 @@ Think of it like issuing a corporate credit card to a new employee. The CEO (you
 sequenceDiagram
     participant Owner as 👤 Capital Allocator
     participant Module as 🛡️ AegisModule.sol<br/>(ERC-7579 Executor)
-    participant Agent as 🤖 Subscribed Agent<br/>(ERC-7715 Session Key)
+    participant Agent as 🤖 Subscribed Agent<br/>(On-Chain Allowance)
     participant Bundler as 📦 Pimlico Bundler
     participant Node as 🔮 Chainlink CRE DON
     participant GoPlus as 📊 GoPlus Security

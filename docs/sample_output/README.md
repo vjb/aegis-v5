@@ -16,7 +16,7 @@
 | [demo_v5_cre_run.txt](demo_v5_cre_run.txt) | `demo_v5_cre.ps1` | Raw CRE WASM execution with GPT-4o + Llama-3 consensus |
 | [demo_v5_heimdall_run.txt](demo_v5_heimdall_run.txt) | `demo_v5_heimdall.ps1` | **Heimdall pipeline:** eth_getCode → bytecode decompilation → GPT-4o detects MALICIOUS |
 | [erc4337_userop_run.txt](erc4337_userop_run.txt) | `v5_e2e_mock.ts` | **ERC-4337 proof:** Safe deploy → Pimlico UserOp → triggerSwap via Account Abstraction |
-| [session_validator_install.txt](session_validator_install.txt) | `v5_install_session_validator.ts` | **ERC-7715 proof:** Safe 7579 deploy → SmartSessionValidator installed → agent subscribed |
+| [session_validator_install.txt](session_validator_install.txt) | `v5_install_session_validator.ts` | **ERC-7579 proof:** Safe deploy → SmartSessionValidator installed → agent subscribed (session signing is [roadmap](../../docs/ERC7579_ROADMAP.md)) |
 
 ## Key Highlights in `demo_v5_master_run.txt`
 

@@ -15,7 +15,8 @@ Operational scripts for the Aegis V5 Account Abstraction stack on Base Sepolia.
 | `v5_e2e_mock.ts` | Full 5-phase E2E test (Base Sepolia, mocked oracle callback) · [output](../docs/sample_output/erc4337_userop_run.txt) |
 | `v5_bot_config.ts` | ABI calldata builders for `requestAudit` and `triggerSwap` |
 | `v5_safe_config.ts` | Safe Smart Account configuration constants |
-| `v5_session_config.ts` | ERC-7715 session key scope configuration |
+| `v5_session_config.ts` | Agent scope configuration (ERC-7715 roadmap) |
+| `v5_swap_userop.ts` | Submit triggerSwap as ERC-4337 UserOp via Pimlico |
 | `v5_install_session_validator.ts` | Deploy Safe with SmartSessionValidator pre-installed · [output](../docs/sample_output/session_validator_install.txt) |
 
 ---

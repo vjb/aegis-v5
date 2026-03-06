@@ -87,13 +87,13 @@
 |---|---|---|
 | **ERC-7579** | AegisModule as Executor | `src/AegisModule.sol` — `onInstall`, `onUninstall`, `isModuleType` |
 | **ERC-4337** | Smart Account via Safe | UserOps relayed through Pimlico bundler |
-| **ERC-7715** | Session Keys | 2-selector scope (`requestAudit`, `triggerSwap`) |
+| **ERC-7715** | Session Keys (roadmap) | Config built, SmartSessionValidator installed, agent signing [pending](../docs/ERC7579_ROADMAP.md) |
 
 | Layer | Standard | On-Chain? | What's Real | What's Simulated |
 |---|---|---|---|---|
-| **Wallet** | ERC-4337 | ✅ | Safe Smart Account + Pimlico Bundler | Demo scripts use `cast send` instead of UserOps |
+| **Wallet** | ERC-4337 | ✅ | Safe Smart Account + Pimlico Bundler | Master demo uses `cast send` + `v5_swap_userop.ts` UserOp; full UserOp flow in `v5_e2e_mock.ts` |
 | **Module** | ERC-7579 | ✅ | AegisModule installed on Safe, all functions live | — |
-| **Session** | ERC-7715 | ✅ | Session config built, SmartSessionValidator installed | Browser-based signing (full key-delegation pending Safe SDK) |
+| **Session** | ERC-7715 | ⚠️ | Session config built, SmartSessionValidator installed on Safe | Agent-signed UserOps pending (budget enforcement via `agentAllowances`) |
 
 ---
 
@@ -144,7 +144,7 @@
 | 5 marketplace bots | ✅ BLUECHIP, YIELD, DEGEN, SAFE, HEIMDALL |
 | 8-bit firewall toggles | ✅ Synced with on-chain `firewallConfig()` |
 | Trade simulation modal | ✅ Token picker, amount slider, oracle audit trigger |
-| Session key display | ✅ Permitted/blocked functions, scoped selectors |
+| Agent allowance scope display | ✅ Permitted/blocked functions, scoped selectors |
 
 ---
 

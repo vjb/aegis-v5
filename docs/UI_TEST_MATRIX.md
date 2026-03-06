@@ -10,7 +10,7 @@
 | 🔵 Global Navigation | 3 | 3 ✅ | Tab switching, rapid clicks, header |
 | 💬 Center Chat | 8 | 7 ✅ | Balance, agents, audit, suggestion chip, rapid msgs |
 | 📡 Oracle Feed | 7 | 5 ✅ | BRETT APPROVED, HoneypotCoin BLOCKED via live CRE DON |
-| 🤖 Agent Management | 8 | 6 ✅ | Agent cards, subscribe form, trade modal, session keys |
+| 🤖 Agent Management | 8 | 6 ✅ | Agent cards, subscribe form, trade modal, allowance scope |
 | 🔥 Firewall Config | 6 | 5 ✅ | Toggles, save, maxTax, toggle all OFF/ON |
 | 📋 Transaction Logs | 3 | 2 ✅ | Event table with Cleared/Blocked badges |
 | 🛒 Marketplace | 4 | 3 ✅ | 5 cards, risk badges, deploy triggers audit |
@@ -64,7 +64,7 @@
 | TC-023 | Agents | Click "Dismiss" on revoked agent | Card removed | N/A (no revoked agents on-chain) |
 | TC-024 | Agents | Open Trade Modal | Token input, amount, budget shown | ✅ PASS |
 | TC-025 | Agents | Submit trade from modal | Loading → confirmation → oracle triggers | ✅ PASS |
-| TC-026 | Agents | Session key display | Scoped selectors, expiry, validator | ✅ PASS |
+| TC-026 | Agents | Allowance scope display | Scoped selectors, budget, target contract | ✅ PASS |
 
 ## 🔥 Category 5: Firewall Configuration
 

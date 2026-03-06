@@ -2,7 +2,7 @@
 
 # 🧪 Aegis V5 — Test Suite
 
-TDD-first test suite covering the full Aegis V5 stack: ERC-7579 module, CRE oracle, ERC-4337 AA, ERC-7715 session keys, and frontend components.
+TDD-first test suite covering the full Aegis V5 stack: ERC-7579 module, CRE oracle, ERC-4337 AA, agent allowance scope, and frontend components.
 
 ## Current Status
 
@@ -86,7 +86,7 @@ forge test --match-contract AegisModuleTest -vv
 
 | File | Tests | What It Covers |
 |---|---|---|
-| `frontend.spec.ts` | 26 | Wallet rendering, session key display, oracle feed SSE event parsing |
+| `frontend.spec.ts` | 26 | Wallet rendering, allowance scope display, oracle feed SSE event parsing |
 
 ---
 

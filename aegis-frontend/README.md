@@ -9,7 +9,7 @@ flowchart LR
     User(["User / Wallet"])
     subgraph UI ["Next.js Frontend"]
         OF["Oracle Feed\nlive CRE log stream"]
-        AD["Agent Dashboard\nbudgets & session keys"]
+        AD["Agent Dashboard\nbudgets & allowance scope"]
         FW["Firewall Tab\n8-bit risk toggles"]
         Chat["Aegis Chat\nAI-powered assistant"]
     end
@@ -29,8 +29,8 @@ flowchart LR
 
 | Button | Location | Action | On-Chain? | Notes |
 |---|---|---|---|---|
-| **Subscribe Agent** | Agents tab, top right | Calls `subscribeAgent(addr, budget)` on AegisModule | ✅ Real TX on Base Sepolia | Shows ERC-7715 session key scope (permitted/blocked selectors) before confirming |
-| **Revoke** | Each active agent card | Calls `revokeAgent(addr)` on AegisModule | ✅ Real TX on Base Sepolia | Sets agent allowance to 0, zeroes session key |
+| **Subscribe Agent** | Agents tab, top right | Calls `subscribeAgent(addr, budget)` on AegisModule | ✅ Real TX on Base Sepolia | Shows agent allowance scope (permitted/blocked selectors) before confirming |
+| **Revoke** | Each active agent card | Calls `revokeAgent(addr)` on AegisModule | ✅ Real TX on Base Sepolia | Sets agent allowance to 0, removes authorization |
 | **Simulate Trade → Oracle Feed** | Each active agent card | Triggers `requestAudit(token)` via the audit API → streams live CRE output | ✅ Real CRE pipeline | GoPlus + BaseScan + GPT-4o + Llama-3 consensus |
 | **KILL SWITCH** | Top right, red | Calls `revokeAgent()` for all active agents | ✅ Real TX on Base Sepolia | Emergency revocation — zeroes all budgets |
 | **Deposit / Withdraw** | Wallet section | Prompts for ETH amount, calls `depositETH()` or `withdrawETH()` | ✅ Real TX on Base Sepolia | Treasury management |
@@ -44,7 +44,7 @@ flowchart LR
 |---|---|---|
 | Agent subscription/revocation | ✅ Live | `subscribeAgent()` and `revokeAgent()` execute real transactions on Base Sepolia |
 | Budget enforcement | ✅ Live | `agentAllowances` mapping enforced on-chain in `triggerSwap()` with CEI pattern |
-| ERC-7715 session key scope display | ⚠️ UI visualization | Session scope (selectors, target, expiry) is displayed from `v5_session_config.ts`. The SmartSessionValidator is not installed on the Safe — budget enforcement via `agentAllowances` provides equivalent security |
+| Agent allowance scope display | ⚠️ UI visualization | Allowance scope (selectors, target, expiry) is displayed from `v5_session_config.ts`. Budget enforcement is via on-chain `agentAllowances` mapping. ERC-7715 session key signing is a [production roadmap item](../docs/ERC7579_ROADMAP.md) |
 | CRE Oracle pipeline | ✅ Live | GoPlus API → BaseScan → GPT-4o → Llama-3 → on-chain consensus via Chainlink CRE |
 | Token swap execution | ⚠️ Mock on testnet | Base Sepolia has no Uniswap V3 liquidity. `triggerSwap` emits `SwapExecuted` with mock 1:1000 ratio. Production Uniswap V3 code preserved in comments |
 | Chat agent awareness | ✅ Live | Chat reads `agentAllowances` directly from Base Sepolia for all known addresses |
@@ -55,7 +55,7 @@ flowchart LR
 
 - **Oracle Feed** — live SSE streaming of the CRE pipeline (GoPlus → BaseScan → GPT-4o → Llama-3 → verdict)
 - **Aegis Chat** — AI assistant reads live chain state: agents, allowances, audit verdicts
-- **Agent Dashboard** — real on-chain agent management with ERC-7715 session key visualization
+- **Agent Dashboard** — real on-chain agent management with allowance scope visualization
 - **Firewall Tab** — 8-bit risk toggles matching `AegisModule.firewallConfig`
 - **Audit Log** — real on-chain events (AuditRequested, ClearanceUpdated, ClearanceDenied)
 - **Marketplace** — browse tokens and trigger audits
@@ -78,7 +78,7 @@ Open [http://localhost:3000](http://localhost:3000).
 |---|---|---|
 | Oracle Feed | `components/OracleFeed.tsx` | Live SSE stream with phase indicators and LLM reasoning |
 | Aegis Chat | `components/AegisChat.tsx` | AI assistant with live chain state awareness |
-| Agents Tab | `components/AgentsTab.tsx` | Agent subscription with ERC-7715 session key scope display |
+| Agents Tab | `components/AgentsTab.tsx` | Agent subscription with allowance scope display |
 | Firewall Tab | `components/FirewallTab.tsx` | 8-bit risk matrix toggles |
 | Audit Log | `components/AuditLogTab.tsx` | On-chain event history |
 | Marketplace | `components/MarketplaceTab.tsx` | Token browsing and audit triggers |
@@ -101,4 +101,4 @@ Open [http://localhost:3000](http://localhost:3000).
 - [Root README](../README.md) — full protocol overview
 - [Demo Guide](../docs/DEMO_GUIDE.md) — how to run demo scripts
 - [CRE Oracle](../cre-node/README.md) — oracle node setup
-- [ERC Standards](../docs/ARCHITECTURE.md) — Architecture and ERC-4337, ERC-7579, ERC-7715 implementation details
+- [ERC Standards](../docs/ARCHITECTURE.md) — Architecture and ERC-4337, ERC-7579 implementation details
