@@ -8,8 +8,8 @@
 
 | File | Script | What It Proves |
 |---|---|---|
-| [forge_tests.txt](forge_tests.txt) | `forge test -vv` | 18 Solidity tests passing |
-| [jest_tests.txt](jest_tests.txt) | `npx jest` | 95 TypeScript tests passing across 8 suites |
+| [forge_tests.txt](forge_tests.txt) | `forge test -vv` | All Solidity tests passing |
+| [jest_tests.txt](jest_tests.txt) | `npx jest` | All TypeScript tests passing |
 | [heimdall_tests.txt](heimdall_tests.txt) | `npx jest heimdall` | 6 Heimdall live integration tests (real GPT-4o + bytecode decompilation) |
 | [demo_v5_setup_run.txt](demo_v5_setup_run.txt) | `demo_v5_setup.ps1` | Infrastructure boot: Base Sepolia ✅, Docker ✅, WASM ✅ |
 | [demo_v5_master_run.txt](demo_v5_master_run.txt) | `demo_v5_master.ps1` | Full 7-act lifecycle: subscribe → audit → CRE AI → swap/revert → budget → kill switch |
@@ -33,4 +33,4 @@
 powershell -ExecutionPolicy Bypass -File .\scripts\<script>.ps1 2>&1 | Out-File docs\sample_output\<output>.txt -Encoding utf8
 ```
 
-All runs were executed on **2026-03-01** against **Base Sepolia (Chain ID 84532)**.
+All runs were executed on **2026-03-05** against **Base Sepolia (Chain ID 84532)**.

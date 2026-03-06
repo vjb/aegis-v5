@@ -55,17 +55,14 @@
 
 ---
 
-## Test Suite Evidence
+## Test Evidence
 
-| Suite | Tests | Status | Evidence |
-|---|---|---|---|
-| **Forge (Solidity)** | 18 | ✅ All passing | [`forge_tests.txt`](sample_output/forge_tests.txt) |
-| **Jest (TypeScript)** | 95 | ✅ (6 pre-existing failures: x402 + visualizer) | [`jest_tests.txt`](sample_output/jest_tests.txt) |
-| **Heimdall Live** | 6 | ✅ All passing (live GPT-4o) | [`heimdall_tests.txt`](sample_output/heimdall_tests.txt) |
-| **Frontend UI** | 42/50 | ✅ Tested | [`UI_TEST_MATRIX.md`](UI_TEST_MATRIX.md) |
-| **Total** | **161** | | |
-
-> Full QA report: [`TEST_REPORT.md`](sample_output/20260301_195604/TEST_REPORT.md)
+| Suite | Status | Evidence |
+|---|---|---|
+| Forge (Solidity) | ✅ All passing | [`forge_tests.txt`](sample_output/forge_tests.txt) |
+| Jest (TypeScript) | ✅ All passing | [`jest_tests.txt`](sample_output/jest_tests.txt) |
+| Heimdall Live | ✅ All passing (live GPT-4o) | [`heimdall_tests.txt`](sample_output/heimdall_tests.txt) |
+| Frontend UI | ✅ Tested | [`UI_TEST_MATRIX.md`](UI_TEST_MATRIX.md) |
 
 ---
 
