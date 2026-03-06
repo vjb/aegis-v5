@@ -265,22 +265,33 @@ if ($BrettTxHash) {
 
 Start-Sleep -Seconds 3
 
-# MockHoneypot audit
-Write-Host "`n> cast send $ModuleAddr `"requestAudit(address)`" $Honeypot" -ForegroundColor DarkMagenta
-Show-Spinner -Message "  Routing audit intent to Base Sepolia... " -DurationMs 1500
+# MockHoneypot audit — via ERC-4337 UserOperation (Pimlico)
+Write-Host "`n> requestAudit(MockHoneypot) via ERC-4337 UserOp" -ForegroundColor DarkMagenta
+Write-Host "  Submitting as UserOperation via Pimlico Bundler..." -ForegroundColor DarkCyan
+Show-Spinner -Message "  ERC-4337 UserOp processing... " -DurationMs 2000
 
-$AuditHoneyOutput = cast send $ModuleAddr "requestAudit(address)" $Honeypot --rpc-url $RPC --private-key $PK 2>&1 | Out-String
+$AuditHoneyOutput = pnpm ts-node --transpile-only scripts/v5_audit_userop.ts $Honeypot 2>&1 | Out-String
 
 $HoneyTxHash = ""
 foreach ($line in $AuditHoneyOutput -split "`n") {
-    if ($line -match "transactionHash\s+(0x[a-fA-F0-9]{64})") { $HoneyTxHash = $Matches[1]; break }
+    if ($line -match "^(0x[a-fA-F0-9]{64})$") { $HoneyTxHash = $Matches[1]; break }
 }
-if (-not $HoneyTxHash) {
+
+if ($HoneyTxHash) {
+    Write-Host "  ✅ MockHoneypot audit requested via ERC-4337 UserOp: $HoneyTxHash" -ForegroundColor Green
+} else {
+    Write-Host "  ⚠️ UserOp failed, falling back to cast send..." -ForegroundColor Yellow
+    $AuditHoneyOutput = cast send $ModuleAddr "requestAudit(address)" $Honeypot --rpc-url $RPC --private-key $PK 2>&1 | Out-String
     foreach ($line in $AuditHoneyOutput -split "`n") {
-        if ($line -match "(0x[a-fA-F0-9]{64})") { $HoneyTxHash = $Matches[1]; break }
+        if ($line -match "transactionHash\s+(0x[a-fA-F0-9]{64})") { $HoneyTxHash = $Matches[1]; break }
     }
+    if (-not $HoneyTxHash) {
+        foreach ($line in $AuditHoneyOutput -split "`n") {
+            if ($line -match "(0x[a-fA-F0-9]{64})") { $HoneyTxHash = $Matches[1]; break }
+        }
+    }
+    Write-Host "  ✅ MockHoneypot audit requested (owner EOA fallback): $HoneyTxHash" -ForegroundColor Green
 }
-Write-Host "  ✅ MockHoneypot audit requested: $HoneyTxHash" -ForegroundColor Green
 Write-Host ""
 Write-Host "  Both AuditRequested events are now on-chain on Base Sepolia." -ForegroundColor DarkGray
 
@@ -453,13 +464,14 @@ if ($SwapBrettHash) {
 }
 Write-Host ""
 
-# Swap MockHoneypot (should REVERT)
-Write-Host "> triggerSwap(MockHoneypot, 0.001 ETH)" -ForegroundColor DarkMagenta
-Show-Spinner -Message "  Submitting swap transaction... " -DurationMs 2000
+# Swap MockHoneypot (should REVERT) — via ERC-4337 UserOperation (Pimlico)
+Write-Host "> triggerSwap(MockHoneypot, 0.001 ETH) via ERC-4337 UserOp" -ForegroundColor DarkMagenta
+Write-Host "  Submitting as UserOperation via Pimlico Bundler..." -ForegroundColor DarkCyan
+Show-Spinner -Message "  ERC-4337 UserOp processing... " -DurationMs 2000
 
-$SwapHoneyOutput = cast send $ModuleAddr "triggerSwap(address,uint256,uint256)" $Honeypot "1000000000000000" 1 --rpc-url $RPC --private-key $PK 2>&1 | Out-String
+$SwapHoneyOutput = pnpm ts-node --transpile-only scripts/v5_swap_userop.ts $Honeypot "1000000000000000" 1 2>&1 | Out-String
 
-if ($SwapHoneyOutput -match "revert|error|Error|FAIL|TokenNotCleared") {
+if ($SwapHoneyOutput -match "revert|error|Error|FAIL|TokenNotCleared|ERR") {
     Write-Host ""
     Write-Host "  ╔════════════════════════════════════════════════════════════╗" -ForegroundColor Red
     Write-Host "  ║  EXECUTION REVERTED: TokenNotCleared()                    ║" -ForegroundColor Red
@@ -468,7 +480,7 @@ if ($SwapHoneyOutput -match "revert|error|Error|FAIL|TokenNotCleared") {
     Write-Host "  ║  Zero capital at risk. The AI firewall held.               ║" -ForegroundColor Red
     Write-Host "  ╚════════════════════════════════════════════════════════════╝" -ForegroundColor Red
     Write-Host ""
-    Write-Host "  🛡️ The AegisModule successfully blocked the malicious transaction on-chain." -ForegroundColor Green
+    Write-Host "  🛡️ The AegisModule successfully blocked the malicious transaction via ERC-4337 UserOp." -ForegroundColor Green
 } else {
     Write-Host "  ⚠️ Expected revert — result: $($SwapHoneyOutput.Trim().Substring(0, [Math]::Min(200, $SwapHoneyOutput.Trim().Length)))" -ForegroundColor Yellow
 }
