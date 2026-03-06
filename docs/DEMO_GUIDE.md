@@ -1,6 +1,8 @@
 # 🎬 Aegis Protocol V5 — Demo Guide
 
-> **Three cinematic scripts with V3-style interactive scene introductions. All live on Base Sepolia.**
+> **Four demo scripts with interactive scene introductions. All live on Base Sepolia.**
+>
+> 💡 **Recording tip:** Run all scripts with `-Interactive` — each act pauses with a bordered intro box before executing. Press ENTER to advance.
 
 ---
 
@@ -13,6 +15,7 @@
 | pnpm | `pnpm --version` |
 | `.env` filled in | See `.env.example` |
 | Base Sepolia ETH (~0.05) | `cast balance <your-address> --rpc-url https://sepolia.base.org` |
+| Pimlico API key (free) | [dashboard.pimlico.io](https://dashboard.pimlico.io) — set `PIMLICO_API_KEY` in `.env` |
 
 ### One-Time Setup
 
@@ -40,13 +43,23 @@ docker compose up --build -d
 .\scripts\demo_v5_setup.ps1
 .\scripts\demo_v5_master.ps1
 
-# Interactive (for Loom recording — press ENTER between scenes)
+# Interactive (for recording — press ENTER between scenes)
 .\scripts\demo_v5_setup.ps1 -Interactive
 .\scripts\demo_v5_master.ps1 -Interactive
 
 # CRE-only showcase for Chainlink judges
 .\scripts\demo_v5_cre.ps1 -Interactive
+
+# Heimdall bytecode decompilation (experimental)
+.\scripts\demo_v5_heimdall.ps1 -Interactive
 ```
+
+### Recommended Recording Order
+
+1. **Setup** → proves infrastructure works
+2. **Master** → complete lifecycle (the main event)
+3. **CRE** → deep-dive for Chainlink/AI judges
+4. **Heimdall** → bonus experimental feature
 
 ---
 
@@ -80,9 +93,9 @@ The complete V5 lifecycle on Base Sepolia: zero-custody treasury, agent subscrip
 |---|---|---|
 | 1 — The Bank | `cast balance` module | AegisModule treasury verified (owner-controlled) |
 | 2 — The Keys | `subscribeAgent()` × 2 | NOVA (0.05 ETH) + CIPHER (0.008 ETH) subscribed on-chain |
-| 3 — The Intents | `requestAudit()` × 2 | Both audits submitted live, tx hashes printed |
+| 3 — The Intents | `requestAudit()` × 2 via **ERC-4337 UserOp** | Both audits submitted via Pimlico bundler, tx hashes printed |
 | 4 — The Oracle | `docker exec cre simulate` | **LIVE CRE** — GoPlus → BaseScan → GPT-4o + Llama-3 |
-| 5 — The Execution | `triggerSwap()` × 2 | MockBRETT ✅ SUCCESS, MockHoneypot ❌ REVERT |
+| 5 — The Execution | `triggerSwap()` × 2 via **ERC-4337 UserOp** | MockBRETT ✅ SUCCESS, MockHoneypot ❌ `TokenNotCleared()` REVERT |
 | 6 — Budget Check | `agentAllowances()` | Budget mathematically deducted after swap |
 | 7 — Kill Switch | `revokeAgent(REX)` | Subscribe REX → revoke → prove agent is locked out |
 
@@ -112,7 +125,7 @@ Phase 3 — AI Consensus (ConfidentialHTTPClient)
 - MockBRETT gets Risk Code 0 → swap succeeds
 - MockHoneypot gets Risk Code 36 → swap **reverts** with `TokenNotCleared()`
 
-> **Tip:** All three scripts support `-Interactive` mode with bordered scene introduction boxes (ActIntro) that explain each step before execution — perfect for Loom recordings and live presentations.
+> **Recording tip:** All scripts support `-Interactive` mode with bordered ActIntro boxes that explain each step before execution — perfect for recordings and live presentations.
 
 ---
 
@@ -132,18 +145,23 @@ The raw, unadulterated Chainlink CRE WASM execution. No frontend, no abstraction
 
 ---
 
-## The Confidential HTTP Story (Privacy Track)
+## Demo 4 — Heimdall Bytecode Decompilation ([`demo_v5_heimdall.ps1`](../scripts/demo_v5_heimdall.ps1)) · [sample output](sample_output/demo_v5_heimdall_run.txt)
 
-All external API calls go through `ConfidentialHTTPClient` — the DON's encrypted HTTP channel:
+**Time:** ~2 minutes
+**Tracks:** Risk & Compliance · CRE & AI
 
-| API | Secret ID | What stays in the DON |
-|---|---|---|
-| GoPlus (auth) | `AEGIS_GOPLUS_KEY` | App key + secret (JWT exchange) |
-| BaseScan | `AEGIS_BASESCAN_SECRET` | API key for source code fetch |
-| OpenAI (GPT-4o) | `AEGIS_OPENAI_SECRET` | API key + full contract source |
-| Groq (Llama-3) | `AEGIS_GROQ_SECRET` | API key + full contract source |
+### What It Proves
 
-See [CONFIDENTIAL_HTTP.md](CONFIDENTIAL_HTTP.md) for the full privacy architecture deep-dive.
+Aegis can analyze contracts with **no verified source code**. Raw EVM bytecode is decompiled locally via Heimdall, then analyzed by GPT-4o to produce a risk verdict — zero external dependencies beyond the AI model.
+
+| Scene | What you see |
+|---|---|
+| 1 — BaseScan Probe | Confirms target has no verified source code |
+| 2 — Bytecode Fetch | `eth_getCode` retrieves raw EVM bytecode (13K+ hex chars) |
+| 3 — Heimdall Decompile | Docker container decompiles bytecode to Solidity (~14K chars) |
+| 4 — GPT-4o Analysis | AI analyzes decompiled code, produces 8-bit risk verdict |
+
+> ⚠️ **Experimental:** This is a standalone pipeline, not yet wired into the live CRE oracle.
 
 ---
 
@@ -156,3 +174,4 @@ See [CONFIDENTIAL_HTTP.md](CONFIDENTIAL_HTTP.md) for the full privacy architectu
 | CRE returns `riskCode=0` for everything | Check oracle: `docker logs aegis-oracle-node` |
 | Tx reverts on Base Sepolia | Check wallet balance: `cast balance <addr> --rpc-url https://sepolia.base.org` |
 | WASM compilation fails | Run `docker exec aegis-oracle-node bash -c "cd /app && bun x cre-setup"` |
+| UserOp gas estimation fails | Check Pimlico dashboard for API credit balance (free tier: 10K/day) |

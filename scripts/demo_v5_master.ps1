@@ -387,15 +387,48 @@ Write-Host ""
 # Deliver verdicts on-chain (owner simulates CRE oracle callback via onReportDirect)
 Write-Host "  Delivering oracle verdicts via onReportDirect (owner simulating CRE callback)..." -ForegroundColor DarkGray
 
-# Get tradeIds from the audit tx receipts
-$BrettReceipt = cast receipt $BrettTxHash --rpc-url $RPC 2>&1 | Out-String
-$HoneyReceipt = cast receipt $HoneyTxHash --rpc-url $RPC 2>&1 | Out-String
+# Parse tradeIds from AuditRequested event logs in the tx receipts
+# AuditRequested(uint256 tradeId, address token, address requester) — tradeId is topic[1]
+# Event signature hash: keccak256("AuditRequested(uint256,address,address)")
+$AuditRequestedTopic = "0x" + (cast keccak "AuditRequested(uint256,address,address)" 2>$null).Trim()
 
-# Parse nextTradeId to figure out which IDs were assigned
-$NextTradeId = cast call $ModuleAddr "nextTradeId()(uint256)" --rpc-url $RPC 2>&1 | Out-String
-$NextId = [int]($NextTradeId.Trim() -replace '\s*\[.*\]\s*$', '').Trim()
-$BrettTradeId = $NextId - 2
-$HoneyTradeId = $NextId - 1
+# Extract tradeId from BRETT tx receipt
+$BrettReceiptJson = cast receipt $BrettTxHash --json --rpc-url $RPC 2>$null | Out-String
+$BrettJson = $BrettReceiptJson | ConvertFrom-Json
+$BrettTradeId = $null
+foreach ($log in $BrettJson.logs) {
+    if ($log.topics[0] -eq $AuditRequestedTopic) {
+        $BrettTradeId = [System.Numerics.BigInteger]::Parse($log.topics[1].Substring(2), 'HexNumber')
+        break
+    }
+}
+if ($null -eq $BrettTradeId) {
+    Write-Host "  ⚠️ Could not parse BRETT tradeId from receipt, using nextTradeId fallback" -ForegroundColor Yellow
+    $NextTradeId = cast call $ModuleAddr "nextTradeId()(uint256)" --rpc-url $RPC 2>&1 | Out-String
+    $NextId = [int]($NextTradeId.Trim() -replace '\s*\[.*\]\s*$', '').Trim()
+    $BrettTradeId = $NextId - 2
+}
+
+# Extract tradeId from Honeypot tx receipt
+$HoneyReceiptJson = cast receipt $HoneyTxHash --json --rpc-url $RPC 2>$null | Out-String
+$HoneyJson = $HoneyReceiptJson | ConvertFrom-Json
+$HoneyTradeId = $null
+foreach ($log in $HoneyJson.logs) {
+    if ($log.topics[0] -eq $AuditRequestedTopic) {
+        $HoneyTradeId = [System.Numerics.BigInteger]::Parse($log.topics[1].Substring(2), 'HexNumber')
+        break
+    }
+}
+if ($null -eq $HoneyTradeId) {
+    Write-Host "  ⚠️ Could not parse Honeypot tradeId from receipt, using nextTradeId fallback" -ForegroundColor Yellow
+    if ($null -eq $NextId) {
+        $NextTradeId = cast call $ModuleAddr "nextTradeId()(uint256)" --rpc-url $RPC 2>&1 | Out-String
+        $NextId = [int]($NextTradeId.Trim() -replace '\s*\[.*\]\s*$', '').Trim()
+    }
+    $HoneyTradeId = $NextId - 1
+}
+
+Write-Host "  ℹ️ TradeIDs: BRETT=$BrettTradeId, Honeypot=$HoneyTradeId" -ForegroundColor DarkGray
 
 # onReportDirect for MockBRETT (riskScore=0 → APPROVED)
 Show-Spinner -Message "  Delivering BRETT verdict (riskScore=0)... " -DurationMs 1000
