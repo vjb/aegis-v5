@@ -26,10 +26,10 @@
 
   Subscribing Agent NOVA (0.05 ETH budget)...
 > cast send 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89 "subscribeAgent(address,uint256)" 0xba5359fac9736e687c39d9613de3e8fa6c7af1ce 50000000000000000
-  Broadcasting subscribeAgent(NOVA)... |/-\|/-\|/-\|/-\|/   ✅ NOVA subscribed — tx: 0x0000000000000000…
+  Broadcasting subscribeAgent(NOVA)... |/-\|/-\|/-\|/-\|/-   ✅ NOVA subscribed — tx: 0x0000000000000000…
   Subscribing Agent CIPHER (0.008 ETH budget)...
 > cast send 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89 "subscribeAgent(address,uint256)" 0x6e9972213bf459853fa33e28ab7219e9157c8d02 8000000000000000
-  Broadcasting subscribeAgent(CIPHER)... |/-\|/-\|/-\|/-\|/-   ✅ CIPHER subscribed — tx: 0x0000000000000000…
+  Broadcasting subscribeAgent(CIPHER)... |/-\|/-\|/-\|/-\|/   ✅ CIPHER subscribed — tx: 0x0000000000000000…
 
   Both agents are now registered on-chain. Here's what their allowances permit:
 
@@ -52,17 +52,17 @@
 
 > requestAudit(MockBRETT) via ERC-4337 UserOp
   Submitting as UserOperation via Pimlico Bundler...
-  ERC-4337 UserOp processing... |/-\|/-\|/-\|/-\|/-\|/-\|   ✅ MockBRETT audit requested via ERC-4337 UserOp: 0xac9bed03e6b447b34befc77002104780ec821cd85aa132053c10dcbac4823c3b
+  ERC-4337 UserOp processing... |/-\|/-\|/-\|/-\|/-\|/-\|   ✅ MockBRETT audit requested via ERC-4337 UserOp: 0xe0fded9d6d27b9468b818775c2d834ed094e5843d0d6246e2a5d475b2974cb06
 
 > requestAudit(MockHoneypot) via ERC-4337 UserOp
   Submitting as UserOperation via Pimlico Bundler...
-  ERC-4337 UserOp processing... |/-\|/-\|/-\|/-\|/-\|/-\|/   ✅ MockHoneypot audit requested via ERC-4337 UserOp: 0xe611601fa1d4cc3c17ccc3b33d29633ef5a0d818454e6f4ecac7b9ff1e21da4f
+  ERC-4337 UserOp processing... |/-\|/-\|/-\|/-\|/-\|/-\|   ✅ MockHoneypot audit requested via ERC-4337 UserOp: 0x4ff5748d6215ed4ccf34236ea5b4b5fe8f60ce9e96951e2bc259e1d08bc6cc32
 
   Both AuditRequested events are now on-chain on Base Sepolia.
 
 [Act 4] The AI Firewall: LIVE Chainlink CRE Intercept
 
-> docker exec -e AEGIS_DEMO_MODE=true aegis-oracle-node cre workflow simulate /app --target base-sepolia --evm-tx-hash 0xe611601fa1d4cc3c17ccc3b33d29633ef5a0d818454e6f4ecac7b9ff1e21da4f --trigger-index 0 --evm-event-index 2 --non-interactive
+> docker exec -e AEGIS_DEMO_MODE=true aegis-oracle-node cre workflow simulate /app --target base-sepolia --evm-tx-hash 0x4ff5748d6215ed4ccf34236ea5b4b5fe8f60ce9e96951e2bc259e1d08bc6cc32 --trigger-index 0 --evm-event-index 2 --non-interactive
 
 --- BEGIN RAW SECURE WASM EXECUTION ---
 
@@ -70,51 +70,51 @@ Initializing...
 Checking RPC connectivity...
 Compiling workflow...
 ✓ Workflow compiled
-Fetching transaction receipt for 0xe611601fa1d4cc3c17ccc3b33d29633ef5a0d818454e6f4ecac7b9ff1e21da4f...
-2026-03-06T01:38:24Z [SIMULATION] Simulator Initialized
+Fetching transaction receipt for 0x4ff5748d6215ed4ccf34236ea5b4b5fe8f60ce9e96951e2bc259e1d08bc6cc32...
+2026-03-06T01:49:24Z [SIMULATION] Simulator Initialized
 
-2026-03-06T01:38:24Z [SIMULATION] Running trigger trigger=evm:ChainSelector:10344971235874465080@1.0.0
-2026-03-06T01:38:24Z [USER LOG] 🛡️ AegisModule V5 | AuditRequested intercepted
-2026-03-06T01:38:24Z [USER LOG] 🛡️ AEGIS MODULE V5 | Auditing: 0xf672c8fc888b98db5c9662d26e657417a3c453b5
-2026-03-06T01:38:24Z [USER LOG] [GoPlus] MOCK registry hit: MockHoneypot
-2026-03-06T01:38:24Z [USER LOG] [GoPlus] unverified=0 sellRestriction=0 honeypot=1
-2026-03-06T01:38:24Z [USER LOG] [BaseScan] Using MOCK source for MockHoneypot (917 chars)
-2026-03-06T01:38:24Z [USER LOG] [AI] Contract under audit: MockHoneypot
-2026-03-06T01:38:24Z [USER LOG] [AI] Prompt sent to AI (first 400 chars): You are the Aegis Protocol Lead Security Auditor for a DeFi firewall. Analyze this ERC-20 token contract for MALICIOUS patterns ONLY.
+2026-03-06T01:49:24Z [SIMULATION] Running trigger trigger=evm:ChainSelector:10344971235874465080@1.0.0
+2026-03-06T01:49:24Z [USER LOG] 🛡️ AegisModule V5 | AuditRequested intercepted
+2026-03-06T01:49:24Z [USER LOG] 🛡️ AEGIS MODULE V5 | Auditing: 0xf672c8fc888b98db5c9662d26e657417a3c453b5
+2026-03-06T01:49:24Z [USER LOG] [GoPlus] MOCK registry hit: MockHoneypot
+2026-03-06T01:49:24Z [USER LOG] [GoPlus] unverified=0 sellRestriction=0 honeypot=1
+2026-03-06T01:49:24Z [USER LOG] [BaseScan] Using MOCK source for MockHoneypot (917 chars)
+2026-03-06T01:49:24Z [USER LOG] [AI] Contract under audit: MockHoneypot
+2026-03-06T01:49:24Z [USER LOG] [AI] Prompt sent to AI (first 400 chars): You are the Aegis Protocol Lead Security Auditor for a DeFi firewall. Analyze this ERC-20 token contract for MALICIOUS patterns ONLY.
 
 Return ONLY a valid JSON object with these exact boolean keys plus a reasoning string:
   obfuscatedTax: TRUE only if there is a hidden fee >  5% deducted inside _transfer/_update that is NOT clearly named 'tax' or 'fee'. Standard Ownable, renounceOwnership, or roya
-2026-03-06T01:38:24Z [USER LOG] [AI] → GPT-4o via ConfidentialHTTPClient | AEGIS_OPENAI_SECRET stays in DON
-2026-03-06T01:38:26Z [USER LOG] [GPT-4o] HTTP 200
-2026-03-06T01:38:26Z [USER LOG] [GPT-4o] Response: {
+2026-03-06T01:49:24Z [USER LOG] [AI] → GPT-4o via ConfidentialHTTPClient | AEGIS_OPENAI_SECRET stays in DON
+2026-03-06T01:49:26Z [USER LOG] [GPT-4o] HTTP 200
+2026-03-06T01:49:26Z [USER LOG] [GPT-4o] Response: {
   "obfuscatedTax": false,
   "privilegeEscalation": true,
   "externalCallRisk": false,
   "logicBomb": false,
-  "reasoning": "The contract restricts transfers to an owner-controlled allowlist, preventing non-approved users from selling their tokens."
+  "reasoning": "The contract restricts transfers to an owner-controlled allowlist, preventing non-approved users from selling their tokens, which constitutes privilege escalation."
 }
-2026-03-06T01:38:26Z [USER LOG] [GPT-4o] Risk bits → tax=false priv=true extCall=false bomb=false
-2026-03-06T01:38:26Z [USER LOG] [GPT-4o] Reasoning: The contract restricts transfers to an owner-controlled allowlist, preventing non-approved users from selling their tokens.
-2026-03-06T01:38:26Z [USER LOG] [AI] → Llama-3 via Groq ConfidentialHTTPClient | AEGIS_GROQ_SECRET stays in DON
-2026-03-06T01:38:26Z [USER LOG] [Llama-3] HTTP 200
-2026-03-06T01:38:26Z [USER LOG] [Llama-3] Response: {
+2026-03-06T01:49:26Z [USER LOG] [GPT-4o] Risk bits → tax=false priv=true extCall=false bomb=false
+2026-03-06T01:49:26Z [USER LOG] [GPT-4o] Reasoning: The contract restricts transfers to an owner-controlled allowlist, preventing non-approved users from selling their tokens, which constitutes privilege escalation.
+2026-03-06T01:49:26Z [USER LOG] [AI] → Llama-3 via Groq ConfidentialHTTPClient | AEGIS_GROQ_SECRET stays in DON
+2026-03-06T01:49:27Z [USER LOG] [Llama-3] HTTP 200
+2026-03-06T01:49:27Z [USER LOG] [Llama-3] Response: {
   "obfuscatedTax": false,
    "privilegeEscalation": true,
    "externalCallRisk": false,
    "logicBomb": false,
    "reasoning": "MockHoneypot contract restricts transfers to an owner-controlled allowlist, allowing the owner to control who can sell their tokens."
 }
-2026-03-06T01:38:26Z [USER LOG] [Llama-3] Risk bits → tax=false priv=true extCall=false bomb=false
-2026-03-06T01:38:26Z [USER LOG] [Llama-3] Reasoning: MockHoneypot contract restricts transfers to an owner-controlled allowlist, allowing the owner to control who can sell their tokens.
-2026-03-06T01:38:26Z [USER LOG] [AI] Union of Fears → obfuscatedTax=0 privilegeEscalation=1 externalCallRisk=0 logicBomb=0
-2026-03-06T01:38:26Z [USER LOG] ⚖️ Final Risk Code: 36
-2026-03-06T01:38:26Z [USER LOG] ✅ onReport delivered to AegisModule at 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89
+2026-03-06T01:49:27Z [USER LOG] [Llama-3] Risk bits → tax=false priv=true extCall=false bomb=false
+2026-03-06T01:49:27Z [USER LOG] [Llama-3] Reasoning: MockHoneypot contract restricts transfers to an owner-controlled allowlist, allowing the owner to control who can sell their tokens.
+2026-03-06T01:49:27Z [USER LOG] [AI] Union of Fears → obfuscatedTax=0 privilegeEscalation=1 externalCallRisk=0 logicBomb=0
+2026-03-06T01:49:27Z [USER LOG] ⚖️ Final Risk Code: 36
+2026-03-06T01:49:27Z [USER LOG] ✅ onReport delivered to AegisModule at 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89
 
 ✓ Workflow Simulation Result:
 "Audit Complete"
 
-2026-03-06T01:38:26Z [SIMULATION] Execution finished signal received
-2026-03-06T01:38:26Z [SIMULATION] Skipping WorkflowEngineV2
+2026-03-06T01:49:27Z [SIMULATION] Execution finished signal received
+2026-03-06T01:49:27Z [SIMULATION] Skipping WorkflowEngineV2
 
 ╭──────────────────────────────────────────────────────╮
 │ Simulation complete! Ready to deploy your workflow?  │
@@ -125,9 +125,7 @@ Return ONLY a valid JSON object with these exact boolean keys plus a reasoning s
 --- END RAW SECURE WASM EXECUTION ---
 
   Delivering oracle verdicts via onReportDirect (owner simulating CRE callback)...
-  ⚠️ Could not parse BRETT tradeId from receipt, using nextTradeId fallback
-  ⚠️ Could not parse Honeypot tradeId from receipt, using nextTradeId fallback
-  ℹ️ TradeIDs: BRETT=138, Honeypot=139
+  ℹ️ TradeIDs: BRETT=142, Honeypot=143
   Delivering BRETT verdict (riskScore=0)... |/-\|/-\|/-\|   ✅ MockBRETT:    Risk Code 0 → APPROVED (isApproved = true)
   Delivering Honeypot verdict (riskScore=36)... |/-\|/-\|/-\|   ❌ MockHoneypot: Risk Code 36 → DENIED (ClearanceDenied)
 
@@ -136,11 +134,11 @@ Owner executes swaps on behalf of NOVA. MockBRETT via ERC-4337 UserOp (Pimlico).
 
 > triggerSwap(MockBRETT, 0.001 ETH) via ERC-4337 UserOp
   Submitting as UserOperation via Pimlico Bundler...
-  ERC-4337 UserOp processing... |/-\|/-\|/-\|/-\|/-\|/-\|   ✅ SWAP EXECUTED via ERC-4337 UserOp. MockBRETT cleared by AI. Tx: 0x4fff091ccf21117235fdea49b14e828538bbe28983a248c542e48c7489aa4cec
+  ERC-4337 UserOp processing... |/-\|/-\|/-\|/-\|/-\|/-\|   ✅ SWAP EXECUTED via ERC-4337 UserOp. MockBRETT cleared by AI. Tx: 0xf8ec9e0b8fbdd57e5f484c70f3ff93a8f15b73112f7bb77ee66283b4e0fc62dc
 
 > triggerSwap(MockHoneypot, 0.001 ETH) via ERC-4337 UserOp
   Submitting as UserOperation via Pimlico Bundler...
-  ERC-4337 UserOp processing... |/-\|/-\|/-\|/-\|/-\|/-\ 
+  ERC-4337 UserOp processing... |/-\|/-\|/-\|/-\|/-\|/-\| 
   ╔════════════════════════════════════════════════════════════╗
   ║  EXECUTION REVERTED: TokenNotCleared()                    ║
   ║                                                            ║
@@ -162,8 +160,8 @@ Owner executes swaps on behalf of NOVA. MockBRETT via ERC-4337 UserOp (Pimlico).
   ✅ REX subscribed — budget: 0.01 ETH
   🔴 Now revoking Agent REX...
 > cast send 0x23EfaEF29EcC0e6CE313F0eEd3d5dA7E0f5Bcd89 "revokeAgent(address)" 0x7b1afe2745533d852d6fd5a677f14c074210d896
-  Broadcasting revokeAgent(REX)... |/-\|/-\|/-\|/-\|/   ✅ Agent REX REVOKED — budget zeroed, access denied
-  ℹ️  REX allowance after revoke: 0x000000000000000000000000000000000000000000000000002386f26fc10000 (should be 0)
+  Broadcasting revokeAgent(REX)... |/-\|/-\|/-\|/-\|/-   ✅ Agent REX REVOKED — budget zeroed, access denied
+  ℹ️  REX allowance after revoke: 0x0000000000000000000000000000000000000000000000000000000000000000 (should be 0)
   🛡️ The kill switch works. REX has zero access.
 
 ═══════════════════════════════════════════════════════════════════════
