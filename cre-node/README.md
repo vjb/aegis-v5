@@ -8,16 +8,16 @@ The Chainlink Runtime Environment (CRE) oracle that powers Aegis V5's off-chain 
 
 ```mermaid
 flowchart TD
-    A(["AuditRequested\non-chain event"]) --> B["Phase 1\nGoPlus"]
-    B --> |"ConfidentialHTTPClient"| C["GoPlus API\nhoneypot · sell restriction · proxy"]
-    C --> D["Phase 2\nBaseScan"]
-    D --> |"ConfidentialHTTPClient"| E["BaseScan API\nfull Solidity source fetched"]
-    E --> F["Phase 3\nAI Consensus"]
-    F --> |"ConfidentialHTTPClient"| G["GPT-4o\nobfuscated tax · logic bomb"]
-    F --> |"ConfidentialHTTPClient"| H["Llama-3\nindependent verification"]
-    G --> I["Union of Fears\nblocked if EITHER flags risk"]
+    A(["AuditRequested<br/>on-chain event"]) --> B["Phase 1<br/>GoPlus"]
+    B --> |"ConfidentialHTTPClient"| C["GoPlus API<br/>honeypot · sell restriction · proxy"]
+    C --> D["Phase 2<br/>BaseScan"]
+    D --> |"ConfidentialHTTPClient"| E["BaseScan API<br/>full Solidity source fetched"]
+    E --> F["Phase 3<br/>AI Consensus"]
+    F --> |"ConfidentialHTTPClient"| G["GPT-4o<br/>obfuscated tax · logic bomb"]
+    F --> |"ConfidentialHTTPClient"| H["Llama-3<br/>independent verification"]
+    G --> I["Union of Fears<br/>blocked if EITHER flags risk"]
     H --> I
-    I --> J(["onReportDirect\nriskScore → AegisModule"])
+    I --> J(["onReportDirect<br/>riskScore → AegisModule"])
 
     style A fill:#fff3e0,stroke:#e65100,color:#bf360c
     style B fill:#fffde7,stroke:#f9a825,color:#f57f17

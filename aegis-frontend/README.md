@@ -8,15 +8,15 @@ Next.js command center for the Aegis Protocol. Connects to Base Sepolia and the 
 flowchart LR
     User(["User / Wallet"])
     subgraph UI ["Next.js Frontend"]
-        OF["Oracle Feed\nlive CRE log stream"]
-        AD["Agent Dashboard\nbudgets & allowance scope"]
-        FW["Firewall Tab\n8-bit risk toggles"]
-        Chat["Aegis Chat\nAI-powered assistant"]
+        OF["Oracle Feed<br/>live CRE log stream"]
+        AD["Agent Dashboard<br/>budgets & allowance scope"]
+        FW["Firewall Tab<br/>8-bit risk toggles"]
+        Chat["Aegis Chat<br/>AI-powered assistant"]
     end
     subgraph Chain ["Base Sepolia"]
-        AM["AegisModule.sol\nERC-7579 Executor"]
+        AM["AegisModule.sol<br/>ERC-7579 Executor"]
     end
-    CRE["Chainlink CRE\nGoPlus + GPT-4o + Llama-3"]
+    CRE["Chainlink CRE<br/>GoPlus + GPT-4o + Llama-3"]
 
     User -- "Owner wallet" --> UI
     OF -- "SSE stream" --> AM
