@@ -22,7 +22,7 @@
 ```powershell
 # 1. Copy and fill environment variables
 cp .env.example .env
-# Fill: PRIVATE_KEY, BASE_SEPOLIA_RPC_URL, PIMLICO_API_KEY,
+# Fill: PRIVATE_KEY, AGENT_PRIVATE_KEY, BASE_SEPOLIA_RPC_URL, PIMLICO_API_KEY,
 #       AEGIS_MODULE_ADDRESS, TARGET_TOKEN_ADDRESS, MOCK_HONEYPOT_ADDRESS
 
 # 2. Deploy contracts to Base Sepolia (if not already deployed)
@@ -93,9 +93,9 @@ The complete V5 lifecycle on Base Sepolia: zero-custody treasury, agent subscrip
 |---|---|---|
 | 1 — The Bank | `cast balance` module | AegisModule treasury verified (owner-controlled) |
 | 2 — The Keys | `subscribeAgent()` × 2 | NOVA (0.05 ETH) + CIPHER (0.008 ETH) subscribed on-chain |
-| 3 — The Intents | `requestAudit()` × 2 via **ERC-4337 UserOp** | Both audits submitted via Pimlico bundler, tx hashes printed |
+| 3 — The Intents | `requestAudit()` × 2 via **Session Key** | Agent signs with session key — owner key NOT used. Tx hashes printed |
 | 4 — The Oracle | `docker exec cre simulate` | **LIVE CRE** — GoPlus → BaseScan → GPT-4o + Llama-3 |
-| 5 — The Execution | `triggerSwap()` × 2 via **ERC-4337 UserOp** | MockBRETT ✅ SUCCESS, MockHoneypot ❌ `TokenNotCleared()` REVERT |
+| 5 — The Execution | `triggerSwap()` × 2 via **Session Key** | MockBRETT ✅ SUCCESS, MockHoneypot ❌ `TokenNotCleared()` REVERT |
 | 6 — Budget Check | `agentAllowances()` | Budget mathematically deducted after swap |
 | 7 — Kill Switch | `revokeAgent(REX)` | Subscribe REX → revoke → prove agent is locked out |
 

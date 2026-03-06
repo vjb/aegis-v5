@@ -1,3 +1,5 @@
+Warning: This is a nightly build of Foundry. It is recommended to use the latest stable version. To mute this warning set `FOUNDRY_DISABLE_NIGHTLY_WARNING` in your environment. 
+
 No files changed, compilation skipped
 
 Ran 18 tests for test/AegisModule.t.sol:AegisModuleTest
@@ -19,6 +21,6 @@ Ran 18 tests for test/AegisModule.t.sol:AegisModuleTest
 [PASS] test_triggerSwap_mockEmitsEvent() (gas: 103608)
 [PASS] test_triggerSwap_onlyOwnerOrAgent() (gas: 83052)
 [PASS] test_triggerSwap_requiresClearance() (gas: 18533)
-Suite result: ok. 18 passed; 0 failed; 0 skipped; finished in 3.46ms (11.11ms CPU time)
+Suite result: ok. 18 passed; 0 failed; 0 skipped; finished in 3.28ms (9.80ms CPU time)
 
-Ran 1 test suite in 20.64ms (3.46ms CPU time): 18 tests passed, 0 failed, 0 skipped (18 total tests)
+Ran 1 test suite in 26.44ms (3.28ms CPU time): 18 tests passed, 0 failed, 0 skipped (18 total tests)

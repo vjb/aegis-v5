@@ -9,20 +9,23 @@
 ```mermaid
 graph TD
     Owner["👤 Treasury Owner<br/>Connects wallet · sets rules"]
-    Agent["🤖 AI Trading Agent<br/>Holds gas ETH only — zero capital"]
+    Agent["🤖 AI Trading Agent<br/>Holds session key — zero capital"]
+    Sessions["🔑 SmartSessions<br/>ERC-7579 Validator · scoped permissions"]
     Aegis["🛡️ AegisModule<br/>ERC-7579 Executor on Smart Account"]
     CRE["🔗 Chainlink CRE DON<br/>WASM oracle · GoPlus · AI models"]
     SA["💰 Smart Account - Safe<br/>Holds ALL capital"]
     Swap["🔄 Simulated Swap<br/>Budget deducted + SwapExecuted event"]
 
     Owner -->|"deposit · budget · revoke"| Aegis
-    Agent -->|"requestAudit(token)"| Aegis
+    Agent -->|"session key signs UserOp"| Sessions
+    Sessions -->|"validates & routes"| Aegis
     Aegis -->|"emits AuditRequested"| CRE
     CRE -->|"onReportDirect(tradeId, riskScore)"| Aegis
     Aegis -->|"triggerSwap() on clearance"| Swap
 
     style Owner fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
     style Agent fill:#e3f2fd,stroke:#1565c0,color:#0d47a1
+    style Sessions fill:#fff9c4,stroke:#f57f17,color:#e65100
     style Aegis fill:#fff3e0,stroke:#e65100,color:#bf360c
     style CRE fill:#f3e5f5,stroke:#6a1b9a,color:#4a148c
     style SA fill:#e0f7fa,stroke:#00695c,color:#004d40
