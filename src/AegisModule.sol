@@ -150,13 +150,23 @@ contract AegisModule is ERC7579ExecutorBase {
     )
         external
         override
-    { }
+    {
+        // When the Safe calls installModule(TYPE_EXECUTOR, address(this), data),
+        // msg.sender is the Safe. Register it as the module owner.
+        if (owner == address(0)) {
+            owner = msg.sender;
+        }
+    }
     function onUninstall(
         bytes calldata /*data*/
     )
         external
         override
-    { }
+    {
+        if (msg.sender == owner) {
+            owner = address(0);
+        }
+    }
 
     function isInitialized(
         address /*smartAccount*/
