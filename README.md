@@ -205,7 +205,6 @@ cd aegis-frontend && npm run dev
 | [**Demo Guide**](docs/DEMO_GUIDE.md) | How to run demos + sample output |
 | [**Frontend**](aegis-frontend/README.md) | Next.js dashboard — agents, firewall toggles, oracle feed, chat |
 | [**Heimdall Pipeline**](docs/HEIMDALL_PIPELINE.md) | *(Experimental)* Bytecode decompilation for unverified contracts |
-| [**Lessons Learned**](docs/LESSONS_LEARNED.md) | Engineering ledger |
 
 ---
 

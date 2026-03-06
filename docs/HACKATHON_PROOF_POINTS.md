@@ -63,7 +63,7 @@
 | Forge (Solidity) | ✅ All passing | [`forge_tests.txt`](sample_output/forge_tests.txt) |
 | Jest (TypeScript) | ✅ All passing | [`jest_tests.txt`](sample_output/jest_tests.txt) |
 | Heimdall Live | ✅ All passing (live GPT-4o) | [`heimdall_tests.txt`](sample_output/heimdall_tests.txt) |
-| Frontend UI | ✅ Tested | [`UI_TEST_MATRIX.md`](UI_TEST_MATRIX.md) |
+| Frontend UI | Tested | See `aegis-frontend/README.md` |
 
 ---
 
@@ -167,4 +167,3 @@
 | [`AI_PROMPT_CATALOG.md`](AI_PROMPT_CATALOG.md) | All 3 AI prompts with templates |
 | [`DEMO_GUIDE.md`](DEMO_GUIDE.md) | How to run all demos |
 
-| [`UI_TEST_MATRIX.md`](UI_TEST_MATRIX.md) | 42/50 frontend tests documented |
