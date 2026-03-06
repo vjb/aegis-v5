@@ -13,7 +13,7 @@
 ═══════════════════════════════════════════════════════════════════════
 
 [Scene 1] Verifying Heimdall Decompiler Status...
-  Connecting to local Docker container... |/-\|/-\|/-\|/-\|/- 
+  Connecting to local Docker container... |/-\|/-\|/-\|/-\|/ 
   ✅ Heimdall Online: heimdall 0.9.2
   ➤ Endpoint:    http://localhost:8080/decompile
   ➤ Engine:      heimdall 0.9.2
@@ -21,7 +21,7 @@
 
 [Scene 2] Probing BaseScan for Verified Source Code...
   ➤ Target:    0x99900d61f42bA57A8C3DA5b4d763f0F2Dc51E2B3
-  Querying BaseScan API (Base Sepolia, chainid=84532)... |/-\|/-\|/-\|/-\|/-\|/-\|/ 
+  Querying BaseScan API (Base Sepolia, chainid=84532)... |/-\|/-\|/-\|/-\|/-\|/-\ 
   ┌──────────────────────────────────────────────────────────┐
   │  🔴 BaseScan: NO VERIFIED SOURCE CODE                   │
   │     Traditional firewalls would STOP HERE.               │
@@ -31,7 +31,7 @@
 [Scene 3] Extracting Raw Bytecode from Base Sepolia...
   ➤ RPC:       https://sepolia.base.org
   ➤ Method:    eth_getCode(0x99900d61f42bA57A8C3DA5b4d763f0F2Dc51E2B3, 'latest')
-  Fetching contract bytecode via JSON-RPC... |/-\|/-\|/-\|/-\|/-\|/-\|/ 
+  Fetching contract bytecode via JSON-RPC... |/-\|/-\|/-\|/-\|/-\|/-\ 
   ┌──────────────────────────────────────────────────────────┐
   │  ✅ BYTECODE EXTRACTED                                   │
   │     Size: 13326      hex characters           │
@@ -46,7 +46,7 @@
   ┌──────────────────────────────────────────────────────────┐
   │  ✅ DECOMPILATION COMPLETE                               │
   │     Output: 14002    chars of Solidity-like code  │
-  │     Time:   1144     ms                              │
+  │     Time:   1321     ms                              │
   └──────────────────────────────────────────────────────────┘
 
   ─── Decompiled Output (preview) ────────────────────────────
@@ -75,7 +75,7 @@
     "externalCallRisk": false,
     "logicBomb": false,
     "is_malicious": true,
-    "reasoning": "The contract contains a honeypot pattern where normal users are blocked from selling tokens, while the owner is not."
+    "reasoning": "The contract contains a honeypot pattern where normal users are blocked from selling tokens, indicating malicious behavior."
   }
   ─────────────────────────────────────────────────────────────
 

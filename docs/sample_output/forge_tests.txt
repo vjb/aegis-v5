@@ -21,6 +21,6 @@ Ran 18 tests for test/AegisModule.t.sol:AegisModuleTest
 [PASS] test_triggerSwap_mockEmitsEvent() (gas: 103608)
 [PASS] test_triggerSwap_onlyOwnerOrAgent() (gas: 83052)
 [PASS] test_triggerSwap_requiresClearance() (gas: 18533)
-Suite result: ok. 18 passed; 0 failed; 0 skipped; finished in 3.28ms (9.80ms CPU time)
+Suite result: ok. 18 passed; 0 failed; 0 skipped; finished in 2.79ms (8.84ms CPU time)
 
-Ran 1 test suite in 26.44ms (3.28ms CPU time): 18 tests passed, 0 failed, 0 skipped (18 total tests)
+Ran 1 test suite in 22.50ms (2.79ms CPU time): 18 tests passed, 0 failed, 0 skipped (18 total tests)
