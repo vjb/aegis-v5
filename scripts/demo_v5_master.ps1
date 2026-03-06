@@ -234,22 +234,34 @@ ActIntro -Title "ACT 3: AGENT SUBMITS TRADE INTENTS" -Lines @(
 
 Write-Host "`n[Act 3] The Intents: Agent NOVA Requesting Audits" -ForegroundColor Yellow
 
-# MockBRETT audit
-Write-Host "`n> cast send $ModuleAddr `"requestAudit(address)`" $Brett" -ForegroundColor DarkMagenta
-Show-Spinner -Message "  Routing audit intent to Base Sepolia... " -DurationMs 1500
+# MockBRETT audit — via ERC-4337 UserOperation (Pimlico)
+Write-Host "`n> requestAudit(MockBRETT) via ERC-4337 UserOp" -ForegroundColor DarkMagenta
+Write-Host "  Submitting as UserOperation via Pimlico Bundler..." -ForegroundColor DarkCyan
+Show-Spinner -Message "  ERC-4337 UserOp processing... " -DurationMs 2000
 
-$AuditBrettOutput = cast send $ModuleAddr "requestAudit(address)" $Brett --rpc-url $RPC --private-key $PK 2>&1 | Out-String
+$AuditBrettOutput = pnpm ts-node --transpile-only scripts/v5_audit_userop.ts $Brett 2>&1 | Out-String
 
 $BrettTxHash = ""
 foreach ($line in $AuditBrettOutput -split "`n") {
-    if ($line -match "transactionHash\s+(0x[a-fA-F0-9]{64})") { $BrettTxHash = $Matches[1]; break }
+    if ($line -match "^(0x[a-fA-F0-9]{64})$") { $BrettTxHash = $Matches[1]; break }
 }
-if (-not $BrettTxHash) {
+
+if ($BrettTxHash) {
+    Write-Host "  ✅ MockBRETT audit requested via ERC-4337 UserOp: $BrettTxHash" -ForegroundColor Green
+} else {
+    # Fallback to cast send
+    Write-Host "  ⚠️ UserOp failed, falling back to cast send..." -ForegroundColor Yellow
+    $AuditBrettOutput = cast send $ModuleAddr "requestAudit(address)" $Brett --rpc-url $RPC --private-key $PK 2>&1 | Out-String
     foreach ($line in $AuditBrettOutput -split "`n") {
-        if ($line -match "(0x[a-fA-F0-9]{64})") { $BrettTxHash = $Matches[1]; break }
+        if ($line -match "transactionHash\s+(0x[a-fA-F0-9]{64})") { $BrettTxHash = $Matches[1]; break }
     }
+    if (-not $BrettTxHash) {
+        foreach ($line in $AuditBrettOutput -split "`n") {
+            if ($line -match "(0x[a-fA-F0-9]{64})") { $BrettTxHash = $Matches[1]; break }
+        }
+    }
+    Write-Host "  ✅ MockBRETT audit requested (owner EOA fallback): $BrettTxHash" -ForegroundColor Green
 }
-Write-Host "  ✅ MockBRETT audit requested: $BrettTxHash" -ForegroundColor Green
 
 Start-Sleep -Seconds 3
 

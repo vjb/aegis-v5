@@ -132,8 +132,8 @@ ActIntro -Title "SCENE 1: THE TARGET" -Lines @(
     "We are about to analyze a KNOWN HONEYPOT contract on",
     "Base Sepolia. The CRE WASM sandbox will execute:",
     "",
-    "  • GoPlus — mock registry (live API in production)",
-    "  • BaseScan — mock source (live ConfidentialHTTP in prod)",
+    "  • GoPlus — mock registry for demo tokens (live API for real)",
+    "  • BaseScan — mock source for demo tokens (live for real)",
     "  • GPT-4o — LIVE deep semantic forensics (Right Brain)",
     "  • Llama-3 — LIVE high-speed consensus (Left Brain)",
     "",
@@ -288,8 +288,8 @@ Write-Host "══════════════════════�
 Write-Host ""
 Write-Host "  ┌──────────────────────────────────────────────────────────┐" -ForegroundColor DarkGray
 Write-Host "  │ ✅ WASM Sandbox   — Deterministic execution achieved    │" -ForegroundColor Green
-Write-Host "  │ ✅ GoPlus API     — Mock registry (live API in production) │" -ForegroundColor Green
-Write-Host "  │ ✅ BaseScan       — Mock source (live ConfidentialHTTP)   │" -ForegroundColor Green
+Write-Host "  │ ✅ GoPlus API     — Mock for demo tokens (live for real)   │" -ForegroundColor Green
+Write-Host "  │ ✅ BaseScan       — Mock for demo tokens (live for real)   │" -ForegroundColor Green
 Write-Host "  │ ✅ GPT-4o         — Deep semantic forensics (Right)     │" -ForegroundColor Green
 Write-Host "  │ ✅ Llama-3        — High-speed consensus (Left)         │" -ForegroundColor Green
 Write-Host "  │ ✅ Union of Fears — Maximally conservative bitmask      │" -ForegroundColor Green
