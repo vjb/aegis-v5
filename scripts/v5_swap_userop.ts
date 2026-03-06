@@ -1,9 +1,9 @@
 // @ts-nocheck
 /**
- * V5 Swap UserOp — Submit triggerSwap as ERC-4337 UserOperation via Pimlico
+ * V5 Swap UserOp — Submit triggerSwap via ERC-7579 Session Key
  *
- * Called by demo_v5_master.ps1 to prove real ERC-4337 usage in the flagship demo.
- * Reuses the Safe deployed by v5_e2e_mock.ts pattern.
+ * The agent signs this UserOp with its SESSION KEY — the owner's private key
+ * is NOT used. SmartSessionsValidator validates the permission scope.
  *
  * Usage:
  *   pnpm ts-node --transpile-only scripts/v5_swap_userop.ts <tokenAddress> <amountInWei> <amountOutMin>
@@ -11,22 +11,8 @@
  * Output: Prints tx hash to stdout for PowerShell capture.
  */
 
-import {
-    createPublicClient,
-    createWalletClient,
-    http,
-    getAddress,
-    encodeFunctionData,
-    nonceManager,
-    type Address,
-    type Hex,
-} from "viem";
-import { baseSepolia } from "viem/chains";
-import { privateKeyToAccount } from "viem/accounts";
-import { createSmartAccountClient } from "permissionless";
-import { toSafeSmartAccount } from "permissionless/accounts";
-import { createPimlicoClient } from "permissionless/clients/pimlico";
-import { entryPoint07Address } from "viem/account-abstraction";
+import { getAddress, encodeFunctionData, parseEther, type Address, type Hex } from "viem";
+import { createSessionClients, sendSessionKeyUserOp } from "./v5_session_utils";
 import * as dotenv from "dotenv";
 
 dotenv.config();
@@ -49,14 +35,6 @@ const AEGIS_MODULE_ABI = [
     },
 ] as const;
 
-const RPC_URL = process.env.BASE_SEPOLIA_RPC_URL || "https://sepolia.base.org";
-const PIMLICO_API_KEY = process.env.PIMLICO_API_KEY!;
-const PIMLICO_URL = `https://api.pimlico.io/v2/84532/rpc?apikey=${PIMLICO_API_KEY}`;
-const ENTRYPOINT_V07 = entryPoint07Address as Address;
-
-// Use a fixed salt so the Safe address is deterministic across runs
-const SAFE_SALT = BigInt("7579000001");
-
 async function main() {
     const args = process.argv.slice(2);
     if (args.length < 3) {
@@ -69,56 +47,32 @@ async function main() {
     const amountOutMin = BigInt(args[2]);
 
     const ownerPk = process.env.PRIVATE_KEY as Hex;
+    const agentPk = process.env.AGENT_PRIVATE_KEY as Hex;
     const moduleAddress = getAddress(process.env.AEGIS_MODULE_ADDRESS!) as Address;
 
-    if (!ownerPk || !moduleAddress || !PIMLICO_API_KEY) {
-        console.error("ERR: Missing PRIVATE_KEY, AEGIS_MODULE_ADDRESS, or PIMLICO_API_KEY");
+    if (!ownerPk || !agentPk || !moduleAddress || !process.env.PIMLICO_API_KEY) {
+        console.error("ERR: Missing PRIVATE_KEY, AGENT_PRIVATE_KEY, AEGIS_MODULE_ADDRESS, or PIMLICO_API_KEY");
         process.exit(1);
     }
 
-    const owner = privateKeyToAccount(ownerPk);
-    owner.nonceManager = nonceManager;
+    const clients = await createSessionClients(ownerPk, agentPk, moduleAddress);
+    const { safeAccount, publicClient, walletClient, pimlicoClient } = clients;
 
-    const publicClient = createPublicClient({ chain: baseSepolia, transport: http(RPC_URL) });
-    const walletClient = createWalletClient({ account: owner, chain: baseSepolia, transport: http(RPC_URL) });
+    console.error(`SESSION_KEY: Agent ${clients.agent.address} signing via SmartSessions`);
+    console.error(`SAFE: ${safeAccount.address}`);
 
-    const pimlicoClient = createPimlicoClient({
-        chain: baseSepolia,
-        transport: http(PIMLICO_URL),
-        entryPoint: { address: ENTRYPOINT_V07, version: "0.7" },
-    });
-
-    // Create Safe with deterministic salt
-    const safeAccount = await toSafeSmartAccount({
-        client: publicClient,
-        owners: [owner],
-        version: "1.4.1",
-        entryPoint: { address: ENTRYPOINT_V07, version: "0.7" },
-        saltNonce: SAFE_SALT,
-    });
-
-    const smartAccountClient = createSmartAccountClient({
-        account: safeAccount,
-        chain: baseSepolia,
-        bundlerTransport: http(PIMLICO_URL),
-        paymaster: pimlicoClient,
-        userOperation: {
-            estimateFeesPerGas: async () => (await pimlicoClient.getUserOperationGasPrice()).fast,
-        },
-    });
-
-    // Check if Safe is deployed, deploy if not
+    // Deploy Safe if needed
     const code = await publicClient.getCode({ address: safeAccount.address });
     if (!code || code === "0x") {
-        console.error(`DEPLOY: Safe ${safeAccount.address} not yet deployed, deploying...`);
-        const deployHash = await smartAccountClient.sendUserOperation({
+        console.error(`DEPLOY: Safe not yet deployed, deploying with SmartSessions...`);
+        const deployHash = await clients.smartAccountClient.sendUserOperation({
             calls: [{ to: safeAccount.address, data: "0x" as Hex, value: 0n }],
         });
         await pimlicoClient.waitForUserOperationReceipt({ hash: deployHash });
-        console.error(`DEPLOY: Safe deployed`);
+        console.error(`DEPLOY: Safe deployed with SmartSessions pre-installed`);
     }
 
-    // Always check agent allowance — re-subscribe if zero or low
+    // Check agent allowance — subscribe if needed
     const allowance = await publicClient.readContract({
         address: moduleAddress,
         abi: [{
@@ -129,36 +83,32 @@ async function main() {
         args: [safeAccount.address],
     });
 
-    if (allowance < BigInt("10000000000000000")) { // < 0.01 ETH
-        console.error(`SUBSCRIBE: Safe allowance is ${allowance}, re-subscribing with 0.05 ETH budget...`);
-        // Subscribe Safe as agent on AegisModule
+    if (allowance < BigInt("10000000000000000")) {
+        console.error(`SUBSCRIBE: Safe allowance is ${allowance}, subscribing with 0.05 ETH budget...`);
         const subHash = await walletClient.writeContract({
             address: moduleAddress,
             abi: AEGIS_MODULE_ABI,
             functionName: "subscribeAgent",
-            args: [safeAccount.address, BigInt("50000000000000000")], // 0.05 ETH budget
+            args: [safeAccount.address, BigInt("50000000000000000")],
         });
         await publicClient.waitForTransactionReceipt({ hash: subHash });
         console.error(`SUBSCRIBE: Safe subscribed as agent (0.05 ETH budget)`);
     } else {
-        console.error(`AGENT: Safe ${safeAccount.address} has allowance ${allowance} wei`);
+        console.error(`AGENT: Allowance ${allowance} wei — OK`);
     }
 
-    // Submit triggerSwap as UserOperation
+    // Submit triggerSwap via SESSION KEY
     const swapData = encodeFunctionData({
         abi: AEGIS_MODULE_ABI,
         functionName: "triggerSwap",
         args: [tokenAddress, amountIn, amountOutMin],
     });
 
-    const swapHash = await smartAccountClient.sendUserOperation({
-        calls: [{ to: moduleAddress, data: swapData, value: 0n }],
-    });
-    const swapReceipt = await pimlicoClient.waitForUserOperationReceipt({ hash: swapHash });
+    console.error(`SWAP: Submitting triggerSwap(${tokenAddress}, ${amountIn}, ${amountOutMin}) via session key...`);
+    const txHash = await sendSessionKeyUserOp(swapData, moduleAddress, clients);
 
     // Print ONLY the tx hash to stdout (PowerShell captures this)
-    console.log(swapReceipt.receipt.transactionHash);
-
+    console.log(txHash);
     process.exit(0);
 }
 

@@ -7,7 +7,7 @@ The DEFINITIVE presentation script for the Aegis Protocol V5 Account Abstraction
 Demonstrates the end-to-end lifecycle on Base Sepolia:
   1. Zero-Custody Treasury (Safe + ERC-7579 Module)
   2. Scoped Agent Budgets (on-chain allowances)
-  3. Intent-based Trading via cast send + ERC-4337 UserOp
+  3. Intent-based Trading via Session Key UserOps (SmartSessions)
   4. LIVE Chainlink CRE AI Consensus Interception
   5. The Final Execution (JIT Swap & Automated Revert)
 
@@ -127,7 +127,7 @@ Write-Host "  We have upgraded from EOA wallets to ERC-4337 Smart Accounts." -Fo
 Write-Host "  This live demo features:" -ForegroundColor Gray
 Write-Host "    1. Zero-Custody ERC-7579 Modules" -ForegroundColor DarkGray
 Write-Host "    2. Scoped Agent Budgets (on-chain allowances)" -ForegroundColor DarkGray
-Write-Host "    3. ERC-4337 UserOp for triggerSwap (Pimlico Bundler)" -ForegroundColor DarkGray
+Write-Host "    3. Session Key UserOps — agent signs, owner key NOT used (SmartSessions)" -ForegroundColor DarkGray
 Write-Host "    4. LIVE Chainlink CRE AI Consensus" -ForegroundColor DarkGray
 Pause-Demo
 
@@ -235,9 +235,9 @@ ActIntro -Title "ACT 3: AGENT SUBMITS TRADE INTENTS" -Lines @(
 Write-Host "`n[Act 3] The Intents: Agent NOVA Requesting Audits" -ForegroundColor Yellow
 
 # MockBRETT audit — via ERC-4337 UserOperation (Pimlico)
-Write-Host "`n> requestAudit(MockBRETT) via ERC-4337 UserOp" -ForegroundColor DarkMagenta
-Write-Host "  Submitting as UserOperation via Pimlico Bundler..." -ForegroundColor DarkCyan
-Show-Spinner -Message "  ERC-4337 UserOp processing... " -DurationMs 2000
+Write-Host "`n> requestAudit(MockBRETT) via Session Key UserOp" -ForegroundColor DarkMagenta
+Write-Host "  Agent signs with SESSION KEY — owner key NOT used (SmartSessions)" -ForegroundColor DarkCyan
+Show-Spinner -Message "  Session Key UserOp processing... " -DurationMs 2000
 
 $AuditBrettOutput = pnpm ts-node --transpile-only scripts/v5_audit_userop.ts $Brett 2>&1 | Out-String
 
@@ -248,7 +248,7 @@ foreach ($line in $AuditBrettOutput -split "`n") {
 }
 
 if ($BrettTxHash) {
-    Write-Host "  ✅ MockBRETT audit requested via ERC-4337 UserOp: $BrettTxHash" -ForegroundColor Green
+    Write-Host "  ✅ MockBRETT audit requested via Session Key: $BrettTxHash" -ForegroundColor Green
 } else {
     # Fallback to cast send
     Write-Host "  ⚠️ UserOp failed, falling back to cast send..." -ForegroundColor Yellow
@@ -267,9 +267,9 @@ if ($BrettTxHash) {
 Start-Sleep -Seconds 3
 
 # MockHoneypot audit — via ERC-4337 UserOperation (Pimlico)
-Write-Host "`n> requestAudit(MockHoneypot) via ERC-4337 UserOp" -ForegroundColor DarkMagenta
-Write-Host "  Submitting as UserOperation via Pimlico Bundler..." -ForegroundColor DarkCyan
-Show-Spinner -Message "  ERC-4337 UserOp processing... " -DurationMs 2000
+Write-Host "`n> requestAudit(MockHoneypot) via Session Key UserOp" -ForegroundColor DarkMagenta
+Write-Host "  Agent signs with SESSION KEY — owner key NOT used (SmartSessions)" -ForegroundColor DarkCyan
+Show-Spinner -Message "  Session Key UserOp processing... " -DurationMs 2000
 
 $AuditHoneyOutput = pnpm ts-node --transpile-only scripts/v5_audit_userop.ts $Honeypot 2>&1 | Out-String
 
@@ -280,7 +280,7 @@ foreach ($line in $AuditHoneyOutput -split "`n") {
 }
 
 if ($HoneyTxHash) {
-    Write-Host "  ✅ MockHoneypot audit requested via ERC-4337 UserOp: $HoneyTxHash" -ForegroundColor Green
+    Write-Host "  ✅ MockHoneypot audit requested via Session Key: $HoneyTxHash" -ForegroundColor Green
 } else {
     Write-Host "  ⚠️ UserOp failed, falling back to cast send..." -ForegroundColor Yellow
     $AuditHoneyOutput = cast send $ModuleAddr "requestAudit(address)" $Honeypot --rpc-url $RPC --private-key $PK 2>&1 | Out-String
@@ -461,7 +461,7 @@ ActIntro -Title "ACT 5: JIT EXECUTION & AUTOMATED REVERTS" -Lines @(
 ) -Prompt "Execute swaps — approved token vs blocked honeypot"
 
 Write-Host "`n[Act 5] The Execution: JIT Swaps & Automated Reverts" -ForegroundColor Yellow
-Write-Host "Owner executes swaps on behalf of NOVA. MockBRETT via ERC-4337 UserOp (Pimlico)." -ForegroundColor DarkGray
+Write-Host "Agent NOVA executes swaps via Session Key UserOps. Owner key NOT used." -ForegroundColor DarkGray
 
 # Wait for state propagation
 Start-Sleep -Seconds 5
@@ -477,7 +477,7 @@ for ($i = 0; $i -lt 10; $i++) {
 }
 
 # Swap MockBRETT (should succeed) — via ERC-4337 UserOperation (Pimlico)
-Write-Host "> triggerSwap(MockBRETT, 0.001 ETH) via ERC-4337 UserOp" -ForegroundColor DarkMagenta
+Write-Host "> triggerSwap(MockBRETT, 0.001 ETH) via Session Key UserOp" -ForegroundColor DarkMagenta
 Write-Host "  Submitting as UserOperation via Pimlico Bundler..." -ForegroundColor DarkCyan
 Show-Spinner -Message "  ERC-4337 UserOp processing... " -DurationMs 2000
 
@@ -490,7 +490,7 @@ foreach ($line in $SwapBrettOutput -split "`n") {
 }
 
 if ($SwapBrettHash) {
-    Write-Host "  ✅ SWAP EXECUTED via ERC-4337 UserOp. MockBRETT cleared by AI. Tx: $SwapBrettHash" -ForegroundColor Green
+    Write-Host "  ✅ SWAP EXECUTED via Session Key. MockBRETT cleared by AI. Tx: $SwapBrettHash" -ForegroundColor Green
 } else {
     # Fallback to cast send if UserOp fails
     Write-Host "  ⚠️ UserOp failed, falling back to owner EOA cast send..." -ForegroundColor Yellow
@@ -505,7 +505,7 @@ if ($SwapBrettHash) {
 Write-Host ""
 
 # Swap MockHoneypot (should REVERT) — via ERC-4337 UserOperation (Pimlico)
-Write-Host "> triggerSwap(MockHoneypot, 0.001 ETH) via ERC-4337 UserOp" -ForegroundColor DarkMagenta
+Write-Host "> triggerSwap(MockHoneypot, 0.001 ETH) via Session Key UserOp" -ForegroundColor DarkMagenta
 Write-Host "  Submitting as UserOperation via Pimlico Bundler..." -ForegroundColor DarkCyan
 Show-Spinner -Message "  ERC-4337 UserOp processing... " -DurationMs 2000
 
