@@ -152,10 +152,9 @@ contract AegisModule is ERC7579ExecutorBase {
         override
     {
         // When the Safe calls installModule(TYPE_EXECUTOR, address(this), data),
-        // msg.sender is the Safe. Register it as the module owner.
-        if (owner == address(0)) {
-            owner = msg.sender;
-        }
+        // or when called directly by the Safe, msg.sender is the Safe.
+        // This replaces the constructor-set deployer as owner.
+        owner = msg.sender;
     }
     function onUninstall(
         bytes calldata /*data*/
