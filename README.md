@@ -104,7 +104,7 @@ sequenceDiagram
 | 6 | External call risk | AI |
 | 7 | Logic bomb | AI |
 
-The oracle uses a bitwise **"Union of Fears"** — if *either* AI model flags a risk, the corresponding bit is set. The owner's firewall config is stored on-chain via `setFirewallConfig()` and emitted in every `AuditRequested` event; the CRE oracle currently uses sensible defaults rather than parsing it dynamically.
+The oracle uses a bitwise **"Union of Fears"** — if *either* AI model flags a risk, the corresponding bit is set. Each bit is gated by the owner's on-chain firewall config (`setFirewallConfig()`) — the CRE oracle parses it from the `AuditRequested` event and applies the owner's toggles to every risk check.
 
 ---
 
