@@ -476,10 +476,10 @@ for ($i = 0; $i -lt 10; $i++) {
     Start-Sleep -Seconds 2
 }
 
-# Swap MockBRETT (should succeed) — via ERC-4337 UserOperation (Pimlico)
+# Swap MockBRETT (should succeed) — via Session Key UserOperation (Pimlico)
 Write-Host "> triggerSwap(MockBRETT, 0.001 ETH) via Session Key UserOp" -ForegroundColor DarkMagenta
 Write-Host "  Submitting as UserOperation via Pimlico Bundler..." -ForegroundColor DarkCyan
-Show-Spinner -Message "  ERC-4337 UserOp processing... " -DurationMs 2000
+Show-Spinner -Message "  Session Key UserOp processing... " -DurationMs 2000
 
 $SwapBrettOutput = pnpm ts-node --transpile-only scripts/v5_swap_userop.ts $Brett "1000000000000000" 1 2>&1 | Out-String
 
@@ -504,10 +504,10 @@ if ($SwapBrettHash) {
 }
 Write-Host ""
 
-# Swap MockHoneypot (should REVERT) — via ERC-4337 UserOperation (Pimlico)
+# Swap MockHoneypot (should REVERT) — via Session Key UserOperation (Pimlico)
 Write-Host "> triggerSwap(MockHoneypot, 0.001 ETH) via Session Key UserOp" -ForegroundColor DarkMagenta
 Write-Host "  Submitting as UserOperation via Pimlico Bundler..." -ForegroundColor DarkCyan
-Show-Spinner -Message "  ERC-4337 UserOp processing... " -DurationMs 2000
+Show-Spinner -Message "  Session Key UserOp processing... " -DurationMs 2000
 
 $SwapHoneyOutput = pnpm ts-node --transpile-only scripts/v5_swap_userop.ts $Honeypot "1000000000000000" 1 2>&1 | Out-String
 

@@ -10,7 +10,7 @@
 graph TD
     Owner["👤 Treasury Owner<br/>Connects wallet · sets rules"]
     Agent["🤖 AI Trading Agent<br/>Holds session key — zero capital"]
-    Sessions["🔑 SmartSessions<br/>ERC-7579 Validator · scoped permissions"]
+    Sessions["🔑 SmartSessions<br/>ERC-7715 Session Keys · scoped permissions"]
     Aegis["🛡️ AegisModule<br/>ERC-7579 Executor on Smart Account"]
     CRE["🔗 Chainlink CRE DON<br/>WASM oracle · GoPlus · AI models"]
     SA["💰 Smart Account - Safe<br/>Holds ALL capital"]
@@ -102,7 +102,7 @@ sequenceDiagram
     participant Bot as 🤖 AI Agent
     participant Bundler as 📦 Pimlico Bundler
     participant EP as 🔗 EntryPoint v0.7
-    participant Sessions as 🔑 SmartSessions
+    participant Sessions as 🔑 SmartSessions<br/>(ERC-7715)
     participant Safe as 💰 Smart Account
     participant AM as 🛡️ AegisModule
     participant CRE as 🔮 CRE DON
