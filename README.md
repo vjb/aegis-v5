@@ -1,6 +1,6 @@
 # 🛡️ Aegis Protocol V5: The Institutional AI Firewall
 
-> **ERC-7579 Executor Module · ERC-7579 SmartSessions · Chainlink CRE Oracle · ERC-4337 Account Abstraction**
+> **ERC-7579 Module · ERC-4337 Session Keys · Chainlink CRE Oracle · Account Abstraction**
 >
 > *Aegis is a zero-custody AI security firewall built as an ERC-7579 module that mathematically constrains what an autonomous AI agent can do with your capital.*
 
