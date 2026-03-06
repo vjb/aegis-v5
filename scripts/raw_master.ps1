@@ -194,6 +194,7 @@ Start-Sleep -Seconds 2
 
 Write-Host "  > revokeAgent(REX)"
 cast send $ModuleAddr "revokeAgent(address)" $RexAddr --rpc-url $RPC --private-key $PK 2>&1 | Out-Null
+Start-Sleep -Seconds 5
 
 $RexBalance = cast call $ModuleAddr "agentAllowances(address)" $RexAddr --rpc-url $RPC 2>&1 | Out-String
 Write-Host "  REX allowance after revoke: $(Format-Wei $RexBalance)"
