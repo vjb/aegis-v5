@@ -6,8 +6,8 @@ Aegis Protocol V5 - The Institutional AI Firewall (End-to-End Showcase - LIVE OR
 The DEFINITIVE presentation script for the Aegis Protocol V5 Account Abstraction migration.
 Demonstrates the end-to-end lifecycle on Base Sepolia:
   1. Zero-Custody Treasury (Safe + ERC-7579 Module)
-  2. Scoped Agent Session Keys (ERC-7715)
-  3. Intent-based Trading via cast send (ERC-4337 compatible)
+  2. Scoped Agent Budgets (on-chain allowances)
+  3. Intent-based Trading via cast send + ERC-4337 UserOp
   4. LIVE Chainlink CRE AI Consensus Interception
   5. The Final Execution (JIT Swap & Automated Revert)
 
@@ -126,8 +126,8 @@ Write-Host "══════════════════════�
 Write-Host "  We have upgraded from EOA wallets to ERC-4337 Smart Accounts." -ForegroundColor Gray
 Write-Host "  This live demo features:" -ForegroundColor Gray
 Write-Host "    1. Zero-Custody ERC-7579 Modules" -ForegroundColor DarkGray
-Write-Host "    2. Scoped ERC-7715 AI Session Keys" -ForegroundColor DarkGray
-Write-Host "    3. Intents via Pimlico's Cloud Bundler" -ForegroundColor DarkGray
+Write-Host "    2. Scoped Agent Budgets (on-chain allowances)" -ForegroundColor DarkGray
+Write-Host "    3. ERC-4337 UserOp for triggerSwap (Pimlico Bundler)" -ForegroundColor DarkGray
 Write-Host "    4. LIVE Chainlink CRE AI Consensus" -ForegroundColor DarkGray
 Pause-Demo
 
@@ -152,7 +152,7 @@ Info "The module has execution rights but the owner controls all funds."
 Pause-Demo
 
 # ═══════════════════════════════════════════════════════════════════════
-#  ACT 2: THE KEYS — ERC-7715 Session Provisioning
+#  ACT 2: THE KEYS — Agent Budget Provisioning
 # ═══════════════════════════════════════════════════════════════════════
 
 ActIntro -Title "ACT 2: SUBSCRIBE AI AGENTS" -Lines @(
@@ -196,27 +196,27 @@ if ($SubCipher -match "(0x[a-fA-F0-9]{64})") {
 }
 
 Write-Host ""
-Write-Host "  Both agents are now registered on-chain. Here's what their session keys permit:" -ForegroundColor DarkGray
+Write-Host "  Both agents are now registered on-chain. Here's what their allowances permit:" -ForegroundColor DarkGray
 
-# ── Show the resulting session key scope ───────────────────────────
+# ── Show the resulting agent allowance scope ───────────────────────
 $selectorAudit = cast sig "requestAudit(address)" 2>&1 | Out-String
 $selectorSwap  = cast sig "triggerSwap(address,uint256,uint256)" 2>&1 | Out-String
 
 Write-Host ""
 Write-Host "  ┌────────────────────────────────────────────────────────────────┐" -ForegroundColor White
-Write-Host "  │  ERC-7715 Session Key — Agent NOVA                            │" -ForegroundColor White
+Write-Host "  │  Agent Allowance Scope — NOVA                                  │" -ForegroundColor White
 Write-Host "  │                                                                │" -ForegroundColor White
-Write-Host "  │  Permitted Selectors:                                          │" -ForegroundColor White
+Write-Host "  │  Permitted Functions (enforced by AegisModule Solidity):        │" -ForegroundColor White
 Write-Host "  │    requestAudit(address)                $($selectorAudit.Trim())          │" -ForegroundColor Magenta
 Write-Host "  │    triggerSwap(address,uint256,uint256)  $($selectorSwap.Trim())          │" -ForegroundColor Magenta
 Write-Host "  │                                                                │" -ForegroundColor White
 Write-Host "  │  Target:  $ModuleAddr      │" -ForegroundColor White
-Write-Host "  │  Budget:  0.05 ETH (enforced on-chain)                         │" -ForegroundColor White
-Write-Host "  │  Expiry:  24 hours                                             │" -ForegroundColor White
+Write-Host "  │  Budget:  0.05 ETH (enforced on-chain via agentAllowances)      │" -ForegroundColor White
+Write-Host "  │  Auth:    subscribeAgent mapping (owner-controlled)             │" -ForegroundColor White
 Write-Host "  └────────────────────────────────────────────────────────────────┘" -ForegroundColor White
 Write-Host ""
 Write-Host "  NOVA cannot call transfer(), withdraw(), or any other function." -ForegroundColor DarkGray
-Write-Host "  ✅ Both agents subscribed. Session keys scoped and validated." -ForegroundColor Green
+Write-Host "  ✅ Both agents subscribed. Budgets set and validated on-chain." -ForegroundColor Green
 Pause-Demo
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -357,8 +357,8 @@ $ErrorActionPreference = $oldErrAction
 Write-Host "`n--- END RAW SECURE WASM EXECUTION ---" -ForegroundColor DarkGray
 Write-Host ""
 
-# Deliver verdicts on-chain
-Write-Host "  Delivering oracle verdicts to blockchain..." -ForegroundColor DarkGray
+# Deliver verdicts on-chain (owner simulates CRE oracle callback via onReportDirect)
+Write-Host "  Delivering oracle verdicts via onReportDirect (owner simulating CRE callback)..." -ForegroundColor DarkGray
 
 # Get tradeIds from the audit tx receipts
 $BrettReceipt = cast receipt $BrettTxHash --rpc-url $RPC 2>&1 | Out-String
@@ -399,7 +399,7 @@ ActIntro -Title "ACT 5: JIT EXECUTION & AUTOMATED REVERTS" -Lines @(
 ) -Prompt "Execute swaps — approved token vs blocked honeypot"
 
 Write-Host "`n[Act 5] The Execution: JIT Swaps & Automated Reverts" -ForegroundColor Yellow
-Write-Host "Agent NOVA now attempts to execute both swaps against the firewall." -ForegroundColor DarkGray
+Write-Host "Owner executes swaps on behalf of NOVA. MockBRETT via ERC-4337 UserOp (Pimlico)." -ForegroundColor DarkGray
 
 # Wait for state propagation
 Start-Sleep -Seconds 5
@@ -414,20 +414,30 @@ for ($i = 0; $i -lt 10; $i++) {
     Start-Sleep -Seconds 2
 }
 
-# Swap MockBRETT (should succeed)
-Write-Host "> triggerSwap(MockBRETT, 0.001 ETH)" -ForegroundColor DarkMagenta
-Show-Spinner -Message "  Submitting swap transaction... " -DurationMs 2000
+# Swap MockBRETT (should succeed) — via ERC-4337 UserOperation (Pimlico)
+Write-Host "> triggerSwap(MockBRETT, 0.001 ETH) via ERC-4337 UserOp" -ForegroundColor DarkMagenta
+Write-Host "  Submitting as UserOperation via Pimlico Bundler..." -ForegroundColor DarkCyan
+Show-Spinner -Message "  ERC-4337 UserOp processing... " -DurationMs 2000
 
-$SwapBrettOutput = cast send $ModuleAddr "triggerSwap(address,uint256,uint256)" $Brett "1000000000000000" 1 --rpc-url $RPC --private-key $PK 2>&1 | Out-String
+$SwapBrettOutput = pnpm ts-node --transpile-only scripts/v5_swap_userop.ts $Brett "1000000000000000" 1 2>&1 | Out-String
 
-if ($SwapBrettOutput -match "transactionHash") {
-    $SwapBrettHash = ""
-    foreach ($line in $SwapBrettOutput -split "`n") {
-        if ($line -match "(0x[a-fA-F0-9]{64})") { $SwapBrettHash = $Matches[1]; break }
-    }
-    Write-Host "  ✅ SWAP EXECUTED. MockBRETT cleared by AI. Tx: $SwapBrettHash" -ForegroundColor Green
+$SwapBrettHash = ""
+foreach ($line in $SwapBrettOutput -split "`n") {
+    if ($line -match "^(0x[a-fA-F0-9]{64})$") { $SwapBrettHash = $Matches[1]; break }
+}
+
+if ($SwapBrettHash) {
+    Write-Host "  ✅ SWAP EXECUTED via ERC-4337 UserOp. MockBRETT cleared by AI. Tx: $SwapBrettHash" -ForegroundColor Green
 } else {
-    Write-Host "  ⚠️ Swap result: $($SwapBrettOutput.Trim().Substring(0, [Math]::Min(200, $SwapBrettOutput.Trim().Length)))" -ForegroundColor Yellow
+    # Fallback to cast send if UserOp fails
+    Write-Host "  ⚠️ UserOp failed, falling back to owner EOA cast send..." -ForegroundColor Yellow
+    $SwapBrettOutput = cast send $ModuleAddr "triggerSwap(address,uint256,uint256)" $Brett "1000000000000000" 1 --rpc-url $RPC --private-key $PK 2>&1 | Out-String
+    if ($SwapBrettOutput -match "(0x[a-fA-F0-9]{64})") {
+        $SwapBrettHash = $Matches[1]
+        Write-Host "  ✅ SWAP EXECUTED (owner EOA fallback). Tx: $SwapBrettHash" -ForegroundColor Green
+    } else {
+        Write-Host "  ⚠️ Swap result: $($SwapBrettOutput.Trim().Substring(0, [Math]::Min(200, $SwapBrettOutput.Trim().Length)))" -ForegroundColor Yellow
+    }
 }
 Write-Host ""
 
@@ -540,7 +550,7 @@ Write-Host "  │                                                               
 Write-Host "  │  MockBRETT:     requestAudit → CRE Risk 0  → triggerSwap ✅ SUCCESS     │" -ForegroundColor Green
 Write-Host "  │  MockHoneypot:  requestAudit → CRE Risk 36 → triggerSwap ❌ REVERT      │" -ForegroundColor Red
 Write-Host "  │                                                                          │" -ForegroundColor White
-Write-Host "  │  Stack: ERC-4337 + ERC-7579 + Chainlink CRE + Pimlico Bundler           │" -ForegroundColor White
+Write-Host "  │  Stack: ERC-7579 + Chainlink CRE + ERC-4337 UserOp (Pimlico)             │" -ForegroundColor White
 Write-Host "  │  Chain: Base Sepolia (84532)                                             │" -ForegroundColor White
 Write-Host "  │  Oracle: GoPlus + BaseScan + GPT-4o + Llama-3 (dual-AI consensus)       │" -ForegroundColor White
 Write-Host "  │                                                                          │" -ForegroundColor White
