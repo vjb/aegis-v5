@@ -322,7 +322,9 @@ Write-Host "`n[Act 4] The AI Firewall: LIVE Chainlink CRE Intercept" -Foreground
 $CRETxHash = $HoneyTxHash
 if ([string]::IsNullOrWhiteSpace($CRETxHash)) { $CRETxHash = $BrettTxHash }
 
-$DockerCommand = "docker exec -e AEGIS_DEMO_MODE=true aegis-oracle-node cre workflow simulate /app --target base-sepolia --evm-tx-hash $CRETxHash --trigger-index 0 --evm-event-index 0 --non-interactive"
+# AuditRequested is at event index 2 in UserOp transactions
+# (index 0 = Paymaster, index 1 = EntryPoint BeforeExecution, index 2 = AuditRequested)
+$DockerCommand = "docker exec -e AEGIS_DEMO_MODE=true aegis-oracle-node cre workflow simulate /app --target base-sepolia --evm-tx-hash $CRETxHash --trigger-index 0 --evm-event-index 2 --non-interactive"
 Write-Host "`n> $DockerCommand`n" -ForegroundColor DarkMagenta
 
 Write-Host "--- BEGIN RAW SECURE WASM EXECUTION ---`n" -ForegroundColor DarkGray
