@@ -6,7 +6,7 @@
 
 ## [`AegisModule.sol`](AegisModule.sol)
 
-The core smart contract — an ERC-7579 Type-2 Executor Module that installs onto a Safe Smart Account and acts as a zero-custody AI security gateway.
+The core smart contract — an ERC-7579 Type-2 Executor Module that acts as a zero-custody AI security gateway. Implements the full ERC-7579 interface (`onInstall`, `onUninstall`, `isModuleType`). Deployed standalone on Base Sepolia (Safe module installation requires Rhinestone Registry attestation — see [`LESSONS_LEARNED.md`](../docs/LESSONS_LEARNED.md)).
 
 ### Key Functions
 

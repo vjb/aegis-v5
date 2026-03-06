@@ -2,7 +2,7 @@
 
 > **ERC-7579 Executor Module · ERC-7579 SmartSessions · Chainlink CRE Oracle · ERC-4337 Account Abstraction**
 >
-> *Aegis is a zero-custody AI security firewall that installs onto your Smart Account and mathematically constrains what an autonomous AI agent can do with your capital.*
+> *Aegis is a zero-custody AI security firewall built as an ERC-7579 module that mathematically constrains what an autonomous AI agent can do with your capital.*
 
 **Convergence Hackathon Tracks:** Risk & Compliance · CRE & AI · DeFi & Tokenization · Privacy · Autonomous Agents
 
