@@ -19,7 +19,7 @@ Operational scripts for the Aegis V5 Account Abstraction stack on Base Sepolia.
 | `v5_audit_userop.ts` | Submit `requestAudit` via **Session Key** UserOp — owner key NOT used |
 | `v5_swap_userop.ts` | Submit `triggerSwap` via **Session Key** UserOp — owner key NOT used |
 | `v5_session_utils.ts` | Shared session key utility — Safe + SmartSessions creation, scoped permissions, `sendSessionKeyUserOp()` |
-| `v5_install_session_validator.ts` | Deploy Safe with SmartSessionValidator pre-installed · [output](../docs/sample_output/session_validator_install.txt) |
+| `v5_install_session_validator.ts` | Deploy Safe with SmartSessions (ERC-7715) pre-installed · [output](../docs/sample_output/session_validator_install.txt) |
 | `session_key_demo.ts` | Session key proof: agent submits `requestAudit` UserOp without owner key · [output](../docs/sample_output/session_key_demo.txt) |
 
 ---
@@ -45,7 +45,7 @@ All three cinematic scripts accept `-Interactive` for paused narration (for Loom
 
 ## `v5_setup_safe.ts` — Safe Account Deployment
 
-Deploys a Safe Smart Account on Base Sepolia with SmartSessionValidator. AegisModule (ERC-7579 Executor) is deployed separately. Session key scripts (`v5_audit_userop.ts`, `v5_swap_userop.ts`) deploy their own Safe with scoped session permissions via `v5_session_utils.ts`.
+Deploys a Safe Smart Account on Base Sepolia with SmartSessions (ERC-7715). AegisModule (ERC-7579 Executor) is deployed separately. Session key scripts (`v5_audit_userop.ts`, `v5_swap_userop.ts`) deploy their own Safe with scoped session permissions via `v5_session_utils.ts`.
 
 ```bash
 pnpm ts-node --transpile-only scripts/v5_setup_safe.ts

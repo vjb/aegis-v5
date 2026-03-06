@@ -73,7 +73,7 @@ forge test --match-contract AegisModuleTest -vv
 | File | Tests | What It Covers |
 |---|---|---|
 | `safe_setup.spec.ts` | 7 | `buildSafeConfig`, `buildAegisModuleConfig`, `ENTRYPOINT_V07` constant; 1 integration test gated by env vars |
-| `session_key.spec.ts` | 14 | SmartSessionValidator address, `requestAudit`/`triggerSwap` selectors, `buildAgentSession` shape |
+| `session_key.spec.ts` | 14 | SmartSessions (ERC-7715) address, `requestAudit`/`triggerSwap` selectors, `buildAgentSession` shape |
 | `bot_v5.spec.ts` | 9 | V5 call builders target module (not Safe), zero-value, correct selectors, 3-param triggerSwap |
 
 ### Live Integration (Base Sepolia)

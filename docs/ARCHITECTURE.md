@@ -11,7 +11,7 @@ graph TD
     Owner["👤 Treasury Owner<br/>Connects wallet · sets rules"]
     Agent["🤖 AI Trading Agent<br/>Holds session key — zero capital"]
     Sessions["🔑 SmartSessions<br/>ERC-7715 Session Keys · scoped permissions"]
-    Aegis["🛡️ AegisModule<br/>ERC-7579 Executor on Smart Account"]
+    Aegis["🛡️ AegisModule<br/>ERC-7579 Executor (standalone)"]
     CRE["🔗 Chainlink CRE DON<br/>WASM oracle · GoPlus · AI models"]
     SA["💰 Smart Account - Safe<br/>Holds ALL capital"]
     Swap["🔄 Simulated Swap<br/>Budget deducted + SwapExecuted event"]

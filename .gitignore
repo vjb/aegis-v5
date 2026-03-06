@@ -34,3 +34,8 @@ alto.log
 # Sample output — only final curated output is tracked
 docs/sample_output/*/
 !docs/sample_output/README.md
+# Timestamp output directories (keep only latest official output at root level)
+docs/sample_output/20*/
+docs/sample_output/timedatestamp/
+
+presentation_content.md
