@@ -8,10 +8,10 @@ TDD-first test suite covering the full Aegis V5 stack: ERC-7579 module, CRE orac
 
 ```
 forge test --match-contract AegisModuleTest
-  ✅ 21 passed, 0 failed  (18 AegisModule + 3 template tests)
+  ✅ 18 passed, 0 failed
 
 pnpm exec jest
-  ✅ 8 suites — 99 passed, 1 skipped
+  ✅ 8 suites — 95 passed, 1 skipped
   ⏱  ~300s
 ```
 

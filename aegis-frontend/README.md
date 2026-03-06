@@ -44,7 +44,7 @@ flowchart LR
 |---|---|---|
 | Agent subscription/revocation | ✅ Live | `subscribeAgent()` and `revokeAgent()` execute real transactions on Base Sepolia |
 | Budget enforcement | ✅ Live | `agentAllowances` mapping enforced on-chain in `triggerSwap()` with CEI pattern |
-| Agent allowance scope display | ⚠️ UI visualization | Allowance scope (selectors, target, expiry) is displayed from `v5_session_config.ts`. Budget enforcement is via on-chain `agentAllowances` mapping. ERC-7715 session key signing is a [production roadmap item](../docs/ERC7579_ROADMAP.md) |
+| Agent allowance scope display | ⚠️ UI visualization | Allowance scope (selectors, target, expiry) is displayed from `v5_session_config.ts`. Budget enforcement is via on-chain `agentAllowances` mapping |
 | CRE Oracle pipeline | ✅ Live | GoPlus API → BaseScan → GPT-4o → Llama-3 → on-chain consensus via Chainlink CRE |
 | Token swap execution | ⚠️ Mock on testnet | Base Sepolia has no Uniswap V3 liquidity. `triggerSwap` emits `SwapExecuted` with mock 1:1000 ratio. Production Uniswap V3 code preserved in comments |
 | Chat agent awareness | ✅ Live | Chat reads `agentAllowances` directly from Base Sepolia for all known addresses |

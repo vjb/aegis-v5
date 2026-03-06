@@ -1,6 +1,6 @@
 # 🛡️ Aegis Protocol V5: The Institutional AI Firewall
 
-> **ERC-7579 Executor Module · Chainlink CRE Oracle · ERC-4337 Account Abstraction · ERC-7715 Session Keys (roadmap)**
+> **ERC-7579 Executor Module · Chainlink CRE Oracle · ERC-4337 Account Abstraction**
 >
 > *Aegis is a zero-custody AI security firewall that installs onto your Smart Account and mathematically constrains what an autonomous AI agent can do with your capital.*
 
@@ -38,7 +38,7 @@ Think of it like issuing a corporate credit card to a new employee. The CEO (you
 ### How it works:
 
 - 🔐 **You Keep the Keys:** You lock your capital in a Safe Smart Account with the AegisModule installed. You retain absolute cryptographic custody.
-- 💼 **You Set the Limits:** You "hire" AI agents by calling `subscribeAgent(agent, budget)`, granting them an on-chain allowance scoped to exactly two functions — `requestAudit()` and `triggerSwap()` — with a strict ETH budget. The agent *never touches your private keys*. (Production target: [ERC-7715 Session Keys](docs/ERC7579_ROADMAP.md))
+- 💼 **You Set the Limits:** You "hire" AI agents by calling `subscribeAgent(agent, budget)`, granting them an on-chain allowance scoped to exactly two functions — `requestAudit()` and `triggerSwap()` — with a strict ETH budget. The agent *never touches your private keys*.
 - 🛡️ **The AI Firewall:** When an agent attempts a trade, Aegis intercepts the intent. It forces a Chainlink Decentralized Oracle Network to run multiple LLMs in parallel, forensically auditing the target token's live smart contract code for zero-day scams and logic bombs.
 - ⚡ **Just-In-Time Execution:** If the token passes the firewall, the module executes the swap atomically — capital moves from treasury through the trade and back in a single transaction. If it fails, `TokenNotCleared()` reverts. **Zero capital at risk.**
 
@@ -137,7 +137,7 @@ Next.js 3-panel dashboard: **Agents / Firewall / Marketplace** (left), **AI Chat
 ## 🔐 How Aegis Works (The 3-Step Firewall)
 
 ### Step 1 — The Vault (ERC-4337 + ERC-7579)
-Your capital lives in a **Safe Smart Account** with the **AegisModule** installed as an ERC-7579 Executor. You hire AI agents by calling `subscribeAgent(agent, budget)` — granting an on-chain allowance scoped to 2 functions (`requestAudit()` and `triggerSwap()`) with a strict ETH budget. The production evolution uses **ERC-7715 Session Keys** for agent-signed UserOps (see [roadmap](docs/ERC7579_ROADMAP.md)).
+Your capital lives in a **Safe Smart Account** with the **AegisModule** installed as an ERC-7579 Executor. You hire AI agents by calling `subscribeAgent(agent, budget)` — granting an on-chain allowance scoped to 2 functions (`requestAudit()` and `triggerSwap()`) with a strict ETH budget.
 
 ### Step 2 — The Intent (Chainlink CRE)
 When an agent spots a trade opportunity, it calls `requestAudit(token)`. The Chainlink CRE DON intercepts the event and runs a multi-phase AI audit inside a WASM sandbox:
@@ -345,7 +345,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full deep-dive with 7 M
 | Layer | Technology | Role |
 |---|---|---|
 | Smart Account | ERC-4337 (Safe) | Holds all capital |
-| Session Key | ERC-7715 (roadmap) | Agent signing authority — config built, validator installed, [full signing pending](docs/ERC7579_ROADMAP.md) |
+| Agent Auth | On-chain allowances | `subscribeAgent()` grants scoped budget + function access |
 | Security Module | ERC-7579 Executor | `AegisModule.sol` — this repo |
 | Oracle | Chainlink CRE DON | Off-chain AI audit + on-chain callback |
 | Bundler | Pimlico Cloud | ERC-4337 UserOp relay + paymaster |
@@ -386,7 +386,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full deep-dive with 7 M
 | 🧠 [**AI Prompt Catalog**](docs/AI_PROMPT_CATALOG.md) | All 3 AI prompts with templates and design rationale |
 | 🎬 [**Demo Guide**](docs/DEMO_GUIDE.md) | How to run all demo scripts |
 | 🔬 [Heimdall Pipeline](docs/HEIMDALL_PIPELINE.md) | *(Experimental)* Bytecode decompilation for unverified contracts |
-| 💰 [x402 Monetization](docs/X402_MONETIZATION.md) | *(Experimental)* Paid oracle API via x402 payment protocol |
+
 
 ---
 

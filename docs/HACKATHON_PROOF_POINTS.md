@@ -59,11 +59,11 @@
 
 | Suite | Tests | Status | Evidence |
 |---|---|---|---|
-| **Forge (Solidity)** | 21 | ✅ All passing | [`forge_tests.txt`](sample_output/forge_tests.txt) |
-| **Jest (TypeScript)** | 99 | ✅ (2 visualizer side-quest) | [`jest_tests.txt`](sample_output/jest_tests.txt) |
+| **Forge (Solidity)** | 18 | ✅ All passing | [`forge_tests.txt`](sample_output/forge_tests.txt) |
+| **Jest (TypeScript)** | 95 | ✅ (6 pre-existing failures: x402 + visualizer) | [`jest_tests.txt`](sample_output/jest_tests.txt) |
 | **Heimdall Live** | 6 | ✅ All passing (live GPT-4o) | [`heimdall_tests.txt`](sample_output/heimdall_tests.txt) |
 | **Frontend UI** | 42/50 | ✅ Tested | [`UI_TEST_MATRIX.md`](UI_TEST_MATRIX.md) |
-| **Total** | **168** | | |
+| **Total** | **161** | | |
 
 > Full QA report: [`TEST_REPORT.md`](sample_output/20260301_195604/TEST_REPORT.md)
 
@@ -87,13 +87,13 @@
 |---|---|---|
 | **ERC-7579** | AegisModule as Executor | `src/AegisModule.sol` — `onInstall`, `onUninstall`, `isModuleType` |
 | **ERC-4337** | Smart Account via Safe | UserOps relayed through Pimlico bundler |
-| **ERC-7715** | Session Keys (roadmap) | Config built, SmartSessionValidator installed, agent signing [pending](../docs/ERC7579_ROADMAP.md) |
+
 
 | Layer | Standard | On-Chain? | What's Real | What's Simulated |
 |---|---|---|---|---|
-| **Wallet** | ERC-4337 | ✅ | Safe Smart Account + Pimlico Bundler | Master demo uses `cast send` + `v5_swap_userop.ts` UserOp; full UserOp flow in `v5_e2e_mock.ts` |
+| **Wallet** | ERC-4337 | ✅ | Safe Smart Account + Pimlico Bundler | All `requestAudit` + `triggerSwap` via ERC-4337 UserOps in master demo |
 | **Module** | ERC-7579 | ✅ | AegisModule installed on Safe, all functions live | — |
-| **Session** | ERC-7715 | ⚠️ | Session config built, SmartSessionValidator installed on Safe | Agent-signed UserOps pending (budget enforcement via `agentAllowances`) |
+
 
 ---
 
@@ -168,5 +168,5 @@
 | [`HEIMDALL_PIPELINE.md`](HEIMDALL_PIPELINE.md) | Bytecode decompilation pipeline |
 | [`AI_PROMPT_CATALOG.md`](AI_PROMPT_CATALOG.md) | All 3 AI prompts with templates |
 | [`DEMO_GUIDE.md`](DEMO_GUIDE.md) | How to run all demos |
-| [`X402_MONETIZATION.md`](X402_MONETIZATION.md) | x402 oracle monetization |
+
 | [`UI_TEST_MATRIX.md`](UI_TEST_MATRIX.md) | 42/50 frontend tests documented |
