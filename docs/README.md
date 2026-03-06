@@ -7,6 +7,7 @@
 | Document | What It Is |
 |---|---|
 | [HACKATHON_PROOF_POINTS.md](HACKATHON_PROOF_POINTS.md) | **Hackathon judges start here.** All 5 track requirement mappings with evidence |
+| [WHATS_REAL.md](WHATS_REAL.md) | **Honesty document.** What's real vs simulated, and why |
 | [DEMO_GUIDE.md](DEMO_GUIDE.md) | How to run the V5 demo scripts on Base Sepolia |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | System architecture with Mermaid diagrams (ERC-7579 → CRE → ERC-4337) |
 | [CONFIDENTIAL_HTTP.md](CONFIDENTIAL_HTTP.md) | Privacy track — how `ConfidentialHTTPClient` protects all API keys and source code |
