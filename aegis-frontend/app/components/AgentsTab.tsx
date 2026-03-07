@@ -34,6 +34,15 @@ const KNOWN_NAMES: Record<string, string> = {
     '0xf5a5e415061470a8b9137959180901aea72450a4': 'PHANTOM',
 };
 
+// Cute robot avatar images per agent
+const AGENT_AVATARS: Record<string, string> = {
+    'NOVA': '/robots/nova.png',
+    'CIPHER': '/robots/cipher.png',
+    'REX': '/robots/rex.png',
+    'PHANTOM': '/robots/phantom.png',
+};
+const DEFAULT_AVATAR = '/robots/default.png';
+
 const CLEAN_TOKENS = ['BRETT', 'TOSHI', 'DEGEN', 'WETH'];
 const RISKY_TOKENS = ['HoneypotCoin', 'TaxToken', 'TimeBomb', 'UnverifiedDoge'];
 
@@ -398,9 +407,14 @@ export default function AgentsTab({ isKilled, onAudit }: { isKilled: boolean; on
 
                                 <div className="flex items-start justify-between mb-5">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-11 h-11 rounded-xl flex items-center justify-center"
+                                        <div className="w-11 h-11 rounded-xl flex items-center justify-center overflow-hidden"
                                             style={{ background: agent.active ? 'rgba(56,189,248,0.1)' : 'var(--red-dim)' }}>
-                                            <Bot className="w-5 h-5" style={{ color: agent.active ? 'var(--cyan)' : 'var(--red)' }} />
+                                            <img
+                                                src={AGENT_AVATARS[name] || DEFAULT_AVATAR}
+                                                alt={name}
+                                                className="w-10 h-10 object-cover"
+                                                style={{ opacity: agent.active ? 1 : 0.4, filter: agent.active ? 'none' : 'grayscale(1)' }}
+                                            />
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-2.5">
