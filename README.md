@@ -12,7 +12,7 @@
 [![ERC-4337](https://img.shields.io/badge/ERC--4337-Pimlico%20bundler-purple)](scripts/v5_e2e_mock.ts)
 [![Tests](https://img.shields.io/badge/tests-all%20passing-brightgreen)](test/)
 
-**[Watch the Demo Video](#)** · **[Architecture](docs/ARCHITECTURE.md)** · **[Confidential HTTP](docs/CONFIDENTIAL_HTTP.md)** · **[Hackathon Proof Points](docs/HACKATHON_PROOF_POINTS.md)**
+**[Watch the Demo Video](https://www.youtube.com/watch?v=MznVE8kzdgc)** · **[Architecture](docs/ARCHITECTURE.md)** · **[Confidential HTTP](docs/CONFIDENTIAL_HTTP.md)** · **[Hackathon Proof Points](docs/HACKATHON_PROOF_POINTS.md)**
 
 ### Verified on Base Sepolia (Chain ID 84532)
 

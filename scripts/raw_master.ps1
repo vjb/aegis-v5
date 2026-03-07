@@ -13,13 +13,14 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $EnvPath = Join-Path (Resolve-Path "$ScriptDir\..").Path ".env"
 if (!(Test-Path $EnvPath)) { Write-Host "ERROR: .env not found"; exit 1 }
 
-$RPC = ""; $PK = ""; $ModuleAddr = ""; $Brett = ""; $Honeypot = ""
+$RPC = ""; $PK = ""; $ModuleAddr = ""; $Brett = ""; $Honeypot = ""; $SafeAddr = ""
 Get-Content $EnvPath | ForEach-Object {
     if ($_ -match "^BASE_SEPOLIA_RPC_URL=(.*)") { $RPC = $Matches[1].Trim() }
     if ($_ -match "^PRIVATE_KEY=(.*)") { $PK = $Matches[1].Trim() }
     if ($_ -match "^AEGIS_MODULE_ADDRESS=(.*)") { $ModuleAddr = $Matches[1].Trim() }
     if ($_ -match "^TARGET_TOKEN_ADDRESS=(.*)") { $Brett = $Matches[1].Trim() }
     if ($_ -match "^MOCK_HONEYPOT_ADDRESS=(.*)") { $Honeypot = $Matches[1].Trim() }
+    if ($_ -match "^SAFE_ADDRESS=(.*)") { $SafeAddr = $Matches[1].Trim() }
 }
 if (-not $RPC) { $RPC = "https://sepolia.base.org" }
 
@@ -43,8 +44,8 @@ Write-Host ""
 
 # ═══ 1. TREASURY ═══
 Write-Host "[1/7] Treasury balance"
-$ModBal = cast balance $ModuleAddr --rpc-url $RPC 2>&1 | Out-String
-Write-Host "  AegisModule balance: $(Format-Wei $ModBal)"
+$SafeBal = cast balance $SafeAddr --rpc-url $RPC 2>&1 | Out-String
+Write-Host "  Safe treasury: $(Format-Wei $SafeBal)"
 
 # ═══ 2. SUBSCRIBE AGENTS ═══
 Write-Host "[2/7] Subscribing agents..."

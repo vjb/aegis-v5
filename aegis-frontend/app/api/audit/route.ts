@@ -125,6 +125,7 @@ export async function GET(req: NextRequest) {
                 let extractedScore = -1;
                 let computedScore = 0;
                 let goPlusStarted = false;
+                let llmEmittedByDocker = false;
 
                 const dockerArgs = [
                     'exec', '-e', 'AEGIS_DEMO_MODE=true', 'aegis-oracle-node',
@@ -205,7 +206,7 @@ export async function GET(req: NextRequest) {
 
                     // ── GPT-4o start ──────────────────────────────────────
                     if (cleaned.match(/\[AI\] → GPT-4o/) || cleaned.match(/↪ \[OpenAI GPT-4o\]/)) {
-                        activeLlm = 'OpenAI GPT-4o'; send({ type: 'llm-reasoning-start', model: activeLlm }); return;
+                        activeLlm = 'OpenAI GPT-4o'; llmEmittedByDocker = true; send({ type: 'llm-reasoning-start', model: activeLlm }); return;
                     }
                     // ── Llama-3 start ─────────────────────────────────────
                     if (cleaned.match(/\[AI\] → Llama-3/) || cleaned.match(/↪ \[Groq Llama-3\]/)) {
@@ -324,6 +325,7 @@ export async function GET(req: NextRequest) {
                         if (fallback & 64) aiFlags.push('external_call_risk (Bit 6)');
                         if (fallback & 128) aiFlags.push('logic_bomb (Bit 7)');
 
+                        if (!llmEmittedByDocker) {
                         send({ type: 'llm-reasoning-start', model: 'OpenAI GPT-4o' });
                         await new Promise(r => setTimeout(r, 200));
                         if (aiFlags.length > 0) {
@@ -348,6 +350,7 @@ export async function GET(req: NextRequest) {
                             send({ type: 'llm-reasoning-chunk', model: 'Groq Llama-3', text: `Cross-validating ${targetToken}... No risk flags. Concurs with GPT-4o assessment. Clean token. ` });
                         }
                         send({ type: 'llm-score', model: 'Groq Llama-3', bit: 0 });
+                        } // end if (!llmEmittedByDocker)
 
                         send({ type: 'phase', phase: 'AI Consensus (GPT-4o + Llama-3)' });
                         send({ type: 'phase', phase: `CRE offline — using known risk profile for ${targetToken} (score=${fallback})` });

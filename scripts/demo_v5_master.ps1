@@ -45,6 +45,7 @@ function Show-Spinner {
 function ActIntro {
     param([string]$Title, [string[]]$Lines, [string]$Prompt)
     if (-not $Interactive) { return }
+    Clear-Host
     $w = 60
     Write-Host ""
     Write-Host ("  ┌" + ("─" * $w) + "┐") -ForegroundColor DarkCyan
@@ -88,13 +89,14 @@ if (!(Test-Path $EnvPath)) {
     exit 1
 }
 
-$RPC = ""; $PK = ""; $ModuleAddr = ""; $Brett = ""; $Honeypot = ""
+$RPC = ""; $PK = ""; $ModuleAddr = ""; $Brett = ""; $Honeypot = ""; $SafeAddr = ""
 Get-Content $EnvPath | ForEach-Object {
     if ($_ -match "^BASE_SEPOLIA_RPC_URL=(.*)") { $RPC = $Matches[1].Trim() }
     if ($_ -match "^PRIVATE_KEY=(.*)") { $PK = $Matches[1].Trim() }
     if ($_ -match "^AEGIS_MODULE_ADDRESS=(.*)") { $ModuleAddr = $Matches[1].Trim() }
     if ($_ -match "^TARGET_TOKEN_ADDRESS=(.*)") { $Brett = $Matches[1].Trim() }
     if ($_ -match "^MOCK_HONEYPOT_ADDRESS=(.*)") { $Honeypot = $Matches[1].Trim() }
+    if ($_ -match "^SAFE_ADDRESS=(.*)") { $SafeAddr = $Matches[1].Trim() }
 }
 
 if (-not $RPC) { $RPC = "https://sepolia.base.org" }
@@ -145,10 +147,10 @@ ActIntro -Title "ACT 1: THE ZERO-CUSTODY TREASURY" -Lines @(
 
 Write-Host "`n[Act 1] The Bank: Verifying Zero-Custody Treasury" -ForegroundColor Yellow
 
-Show-Spinner -Message "  Checking AegisModule treasury ($ModuleAddr)... " -DurationMs 1500
-$ModBal = cast balance $ModuleAddr --rpc-url $RPC 2>&1 | Out-String
-Success "AegisModule treasury: $(Format-Wei $ModBal)"
-Info "The module has execution rights but the owner controls all funds."
+Show-Spinner -Message "  Checking Safe treasury ($SafeAddr)... " -DurationMs 800
+$SafeBal = cast balance $SafeAddr --rpc-url $RPC 2>&1 | Out-String
+Success "Safe treasury: $(Format-Wei $SafeBal)"
+Info "Capital lives in the Safe. The AegisModule ($ModuleAddr) has execution rights but holds zero custody."
 Pause-Demo
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -175,7 +177,7 @@ $CipherAddr = "0x6e9972213bf459853fa33e28ab7219e9157c8d02"
 Write-Host ""
 Write-Host "  Subscribing Agent NOVA (0.05 ETH budget)..." -ForegroundColor Cyan
 Write-Host "> cast send $ModuleAddr `"subscribeAgent(address,uint256)`" $NovaAddr 50000000000000000" -ForegroundColor DarkMagenta
-Show-Spinner -Message "  Broadcasting subscribeAgent(NOVA)... " -DurationMs 1500
+Show-Spinner -Message "  Broadcasting subscribeAgent(NOVA)... " -DurationMs 800
 $SubNova = cast send $ModuleAddr "subscribeAgent(address,uint256)" $NovaAddr 50000000000000000 --rpc-url $RPC --private-key $PK 2>&1 | Out-String
 if ($SubNova -match "(0x[a-fA-F0-9]{64})") {
     Write-Host "  ✅ NOVA subscribed — tx: $($Matches[1].Substring(0,18))…" -ForegroundColor Green
@@ -183,11 +185,11 @@ if ($SubNova -match "(0x[a-fA-F0-9]{64})") {
     Write-Host "  ⚠ NOVA subscription may have failed (already subscribed?)" -ForegroundColor Yellow
 }
 
-Start-Sleep -Seconds 2
+Start-Sleep -Seconds 1
 
 Write-Host "  Subscribing Agent CIPHER (0.008 ETH budget)..." -ForegroundColor Cyan
 Write-Host "> cast send $ModuleAddr `"subscribeAgent(address,uint256)`" $CipherAddr 8000000000000000" -ForegroundColor DarkMagenta
-Show-Spinner -Message "  Broadcasting subscribeAgent(CIPHER)... " -DurationMs 1500
+Show-Spinner -Message "  Broadcasting subscribeAgent(CIPHER)... " -DurationMs 800
 $SubCipher = cast send $ModuleAddr "subscribeAgent(address,uint256)" $CipherAddr 8000000000000000 --rpc-url $RPC --private-key $PK 2>&1 | Out-String
 if ($SubCipher -match "(0x[a-fA-F0-9]{64})") {
     Write-Host "  ✅ CIPHER subscribed — tx: $($Matches[1].Substring(0,18))…" -ForegroundColor Green
@@ -234,10 +236,20 @@ ActIntro -Title "ACT 3: AGENT SUBMITS TRADE INTENTS" -Lines @(
 
 Write-Host "`n[Act 3] The Intents: Agent NOVA Requesting Audits" -ForegroundColor Yellow
 
+if ($Interactive) {
+    Write-Host ""
+    Write-Host "  ┌─── 👀 PIMLICO WINDOW ───────────────────────────────────────────┐" -ForegroundColor DarkYellow
+    Write-Host "  │  Watch for: UserOp submitted → Bundler picks up → Tx confirmed │" -ForegroundColor DarkYellow
+    Write-Host "  │  Key proof: Agent's SESSION KEY signs, NOT the owner's key      │" -ForegroundColor DarkYellow
+    Write-Host "  │  Gas: Paymaster sponsors gas — agents never need to hold ETH    │" -ForegroundColor DarkYellow
+    Write-Host "  └────────────────────────────────────────────────────────────────┘" -ForegroundColor DarkYellow
+    Write-Host ""
+}
+
 # MockBRETT audit — via Session Key UserOperation (Pimlico)
 Write-Host "`n> requestAudit(MockBRETT) via Session Key UserOp" -ForegroundColor DarkMagenta
 Write-Host "  Agent signs with SESSION KEY — owner key NOT used (SmartSessions)" -ForegroundColor DarkCyan
-Show-Spinner -Message "  Session Key UserOp processing... " -DurationMs 2000
+Show-Spinner -Message "  Session Key UserOp processing... " -DurationMs 1000
 
 $AuditBrettOutput = pnpm ts-node --transpile-only scripts/v5_audit_userop.ts $Brett 2>&1 | Out-String
 
@@ -264,12 +276,12 @@ if ($BrettTxHash) {
     Write-Host "  ✅ MockBRETT audit requested (owner EOA): $BrettTxHash" -ForegroundColor Green
 }
 
-Start-Sleep -Seconds 3
+Start-Sleep -Seconds 1
 
 # MockHoneypot audit — via Session Key UserOperation (Pimlico)
 Write-Host "`n> requestAudit(MockHoneypot) via Session Key UserOp" -ForegroundColor DarkMagenta
 Write-Host "  Agent signs with SESSION KEY — owner key NOT used (SmartSessions)" -ForegroundColor DarkCyan
-Show-Spinner -Message "  Session Key UserOp processing... " -DurationMs 2000
+Show-Spinner -Message "  Session Key UserOp processing... " -DurationMs 1000
 
 $AuditHoneyOutput = pnpm ts-node --transpile-only scripts/v5_audit_userop.ts $Honeypot 2>&1 | Out-String
 
@@ -298,7 +310,7 @@ Write-Host ""
 Write-Host "  Both AuditRequested events are now on-chain on Base Sepolia." -ForegroundColor DarkGray
 
 # Brief delay for receipt propagation on public RPC
-Start-Sleep -Seconds 8
+Start-Sleep -Seconds 4
 Pause-Demo
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -368,7 +380,7 @@ try {
         # Spinner for HTTP connections
         if ($strLine -match "Confidential HTTP.*Sending|ConfidentialHTTPClient.*Sending") {
             Write-Host $strLine -ForegroundColor $Color
-            Show-Spinner -Message "        Establishing secure enclave connection... " -DurationMs 1000
+            Show-Spinner -Message "        Establishing secure enclave connection... " -DurationMs 500
             continue
         }
 
@@ -433,14 +445,14 @@ if ($null -eq $HoneyTradeId) {
 Write-Host "  ℹ️ TradeIDs: BRETT=$BrettTradeId, Honeypot=$HoneyTradeId" -ForegroundColor DarkGray
 
 # onReportDirect for MockBRETT (riskScore=0 → APPROVED)
-Show-Spinner -Message "  Delivering BRETT verdict (riskScore=0)... " -DurationMs 1000
+Show-Spinner -Message "  Delivering BRETT verdict (riskScore=0)... " -DurationMs 600
 $sendBrett = cast send $ModuleAddr "onReportDirect(uint256,uint256)" $BrettTradeId 0 --rpc-url $RPC --private-key $PK 2>&1
 Write-Host "  ✅ MockBRETT:    Risk Code 0 → APPROVED (isApproved = true)" -ForegroundColor Green
 
-Start-Sleep -Seconds 2
+Start-Sleep -Seconds 1
 
 # onReportDirect for MockHoneypot (riskScore=36 → DENIED)
-Show-Spinner -Message "  Delivering Honeypot verdict (riskScore=36)... " -DurationMs 1000
+Show-Spinner -Message "  Delivering Honeypot verdict (riskScore=36)... " -DurationMs 600
 $sendHoney = cast send $ModuleAddr "onReportDirect(uint256,uint256)" $HoneyTradeId 36 --rpc-url $RPC --private-key $PK 2>&1
 Write-Host "  ❌ MockHoneypot: Risk Code 36 → DENIED (ClearanceDenied)" -ForegroundColor Red
 Pause-Demo
@@ -463,8 +475,18 @@ ActIntro -Title "ACT 5: AUDITED EXECUTION & AUTOMATED REVERTS" -Lines @(
 Write-Host "`n[Act 5] The Execution: Audited Swaps & Automated Reverts" -ForegroundColor Yellow
 Write-Host "Agent NOVA executes swaps via Session Key UserOps. Owner key NOT used." -ForegroundColor DarkGray
 
+if ($Interactive) {
+    Write-Host ""
+    Write-Host "  ┌─── 👀 PIMLICO WINDOW ───────────────────────────────────────────┐" -ForegroundColor DarkYellow
+    Write-Host "  │  Watch for: triggerSwap UserOp → Bundler processes → on-chain   │" -ForegroundColor DarkYellow
+    Write-Host "  │  BRETT swap succeeds (AI-cleared) | Honeypot REVERTS (blocked)  │" -ForegroundColor DarkYellow
+    Write-Host "  │  Gas: Paymaster covers all fees — zero ETH balance required     │" -ForegroundColor DarkYellow
+    Write-Host "  └────────────────────────────────────────────────────────────────┘" -ForegroundColor DarkYellow
+    Write-Host ""
+}
+
 # Wait for state propagation
-Start-Sleep -Seconds 5
+Start-Sleep -Seconds 3
 
 # Poll isApproved for BRETT before attempting swap
 Write-Host ""
@@ -479,7 +501,7 @@ for ($i = 0; $i -lt 10; $i++) {
 # Swap MockBRETT (should succeed) — via Session Key UserOperation (Pimlico)
 Write-Host "> triggerSwap(MockBRETT, 0.001 ETH) via Session Key UserOp" -ForegroundColor DarkMagenta
 Write-Host "  Submitting as UserOperation via Pimlico Bundler..." -ForegroundColor DarkCyan
-Show-Spinner -Message "  Session Key UserOp processing... " -DurationMs 2000
+Show-Spinner -Message "  Session Key UserOp processing... " -DurationMs 1000
 
 $SwapBrettOutput = pnpm ts-node --transpile-only scripts/v5_swap_userop.ts $Brett "1000000000000000" 1 2>&1 | Out-String
 
@@ -507,7 +529,7 @@ Write-Host ""
 # Swap MockHoneypot (should REVERT) — via Session Key UserOperation (Pimlico)
 Write-Host "> triggerSwap(MockHoneypot, 0.001 ETH) via Session Key UserOp" -ForegroundColor DarkMagenta
 Write-Host "  Submitting as UserOperation via Pimlico Bundler..." -ForegroundColor DarkCyan
-Show-Spinner -Message "  Session Key UserOp processing... " -DurationMs 2000
+Show-Spinner -Message "  Session Key UserOp processing... " -DurationMs 1000
 
 $SwapHoneyOutput = pnpm ts-node --transpile-only scripts/v5_swap_userop.ts $Honeypot "1000000000000000" 1 2>&1 | Out-String
 
@@ -572,11 +594,11 @@ $SubRex = cast send $ModuleAddr "subscribeAgent(address,uint256)" $RexAddr 10000
 if ($SubRex -match "(0x[a-fA-F0-9]{64})") {
     Success "REX subscribed — budget: 0.01 ETH"
 }
-Start-Sleep -Seconds 2
+Start-Sleep -Seconds 1
 
 Write-Host "  🔴 Now revoking Agent REX..." -ForegroundColor Red
 Write-Host "> cast send $ModuleAddr `"revokeAgent(address)`" $RexAddr" -ForegroundColor DarkMagenta
-Show-Spinner -Message "  Broadcasting revokeAgent(REX)... " -DurationMs 1500
+Show-Spinner -Message "  Broadcasting revokeAgent(REX)... " -DurationMs 800
 $RevokeOutput = cast send $ModuleAddr "revokeAgent(address)" $RexAddr --rpc-url $RPC --private-key $PK 2>&1 | Out-String
 if ($RevokeOutput -match "(0x[a-fA-F0-9]{64})") {
     Success "Agent REX REVOKED — budget zeroed, access denied"

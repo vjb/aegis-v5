@@ -53,6 +53,7 @@ function Show-Spinner {
 function ActIntro {
     param([string]$Title, [string[]]$Lines, [string]$Prompt)
     if (-not $Interactive) { return }
+    Clear-Host
     $w = 60
     Write-Host ""
     Write-Host ("  ┌" + ("─" * $w) + "┐") -ForegroundColor DarkCyan
