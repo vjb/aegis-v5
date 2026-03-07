@@ -1,6 +1,6 @@
 
 ═══════════════════════════════════════════════════════════════
-  🔑 SESSION KEY DEMO — Agent Autonomy via ERC-7579
+  🔑 SESSION KEY DEMO — Agent Autonomy via ERC-7715
 ═══════════════════════════════════════════════════════════════
   Owner:       0x109D8072B1762263ed094BC05c5110895Adc65Cf
   Session Key: 0x5Acb37dcFc907f888b5a3E1B005C0837F768Bb98

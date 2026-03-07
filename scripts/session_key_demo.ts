@@ -101,7 +101,7 @@ async function main() {
     const sessionKeyAccount = privateKeyToAccount(sessionKeyPk);
 
     console.log("\n═══════════════════════════════════════════════════════════════");
-    console.log("  🔑 SESSION KEY DEMO — Agent Autonomy via ERC-7579");
+    console.log("  🔑 SESSION KEY DEMO — Agent Autonomy via ERC-7715");
     console.log("═══════════════════════════════════════════════════════════════");
     console.log(`  Owner:       ${owner.address}`);
     console.log(`  Session Key: ${sessionKeyAccount.address}`);

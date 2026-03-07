@@ -35,7 +35,7 @@ AI trading bots are becoming mainstream. The problem? You have to hand over your
 
 - **You Keep the Keys:** Capital lives in a Safe Smart Account. You retain absolute custody.
 - **You Set the Limits:** `subscribeAgent(agent, budget)` grants an on-chain ETH budget. Exceeding it reverts.
-- **Session Keys:** Agent submits UserOps via ERC-7715 session key — owner's private key never used. ([proof](docs/sample_output/session_key_demo.txt))
+- **Session Keys:** Agent submits UserOps via ERC-7715 session key — owner's private key never used. ([on-chain tx](https://sepolia.basescan.org/tx/0xe1cae6043ad913f0d949b4551239c3b1de18f959c71fd107b1605256a2d1398d))
 - **The AI Firewall:** Chainlink DON runs dual LLMs in parallel, forensically auditing target tokens for zero-day scams.
 - **Per-Trade AI Clearance:** Cleared → swap executes. Failed → `TokenNotCleared()` reverts on-chain. **Zero capital at risk.**
 
