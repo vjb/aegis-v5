@@ -12,15 +12,19 @@ Traditional DeFi security tools — including the core Aegis CRE oracle — requ
 
 The Heimdall Pipeline proves Aegis can audit **any deployed contract** — even without source code — by reverse-engineering raw EVM bytecode into readable Solidity, then feeding it to an LLM for forensic analysis.
 
-```
-┌─────────────┐     ┌──────────────────┐     ┌─────────────┐     ┌──────────────┐
-│ eth_getCode  │────▸│ Heimdall Docker   │────▸│  GPT-4o     │────▸│ 8-bit Risk   │
-│ (Base Sepolia│     │ (heimdall-rs)     │     │ (temp=0)    │     │ Code         │
-│  JSON-RPC)   │     │ symbolic exec     │     │ forensic    │     │ bits 4-7     │
-│              │     │ → Solidity-like   │     │ analysis    │     │              │
-└─────────────┘     └──────────────────┘     └─────────────┘     └──────────────┘
-    19,666 hex           15,000 chars            JSON verdict        e.g. 0x20
-    chars bytecode       decompiled code         + is_malicious      (priv. esc.)
+```mermaid
+flowchart LR
+    RPC["eth_getCode<br/>(Base Sepolia JSON-RPC)<br/>19,666 hex chars"]
+    DECOMP["Heimdall Docker<br/>(heimdall-rs v0.9.2)<br/>symbolic exec → Solidity<br/>15,000 chars output"]
+    AI["GPT-4o<br/>(temp=0, forensic)<br/>JSON verdict<br/>+ is_malicious"]
+    RISK["8-bit Risk Code<br/>bits 4–7<br/>e.g. 0x20 (priv. esc.)"]
+
+    RPC --> DECOMP --> AI --> RISK
+
+    style RPC fill:#e0f7fa,stroke:#00838f,color:#006064
+    style DECOMP fill:#ede7f6,stroke:#4527a0,color:#311b92
+    style AI fill:#e8eaf6,stroke:#283593,color:#1a237e
+    style RISK fill:#f3e5f5,stroke:#6a1b9a,color:#4a148c
 ```
 
 ### Step-by-Step Pipeline
