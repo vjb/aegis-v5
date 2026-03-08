@@ -41,9 +41,7 @@ AI trading bots are becoming mainstream. The problem? You have to hand over your
 
 > **Testnet note:** On Base Sepolia, `triggerSwap` emits `SwapExecuted` but does not route through a real DEX (no liquidity). Production Uniswap V3 code is included in the contract, commented out. Budget enforcement and clearance checks are fully real.
 
-### The Economic Shield: Zero-Gas Threat Rejection
-
-Traditional smart contract firewalls still cost gas when they block a malicious trade — the blockchain performed computation to reject it, and someone has to pay. Aegis inverts this: because every agent action is an ERC-4337 UserOperation routed through a Pimlico bundler, the bundler **simulates the entire transaction off-chain** before submitting. When the firewall's `TokenNotCleared()` revert fires during simulation, Pimlico drops the UserOp from its mempool. No block space is consumed, no on-chain computation occurs, and the user pays nothing. The heaviest security check in the system — parallel AI consensus from two independent LLMs — acts as an invisible economic shield that **saves money every time it catches a threat.**
+> **Economic shield:** Because every action is an ERC-4337 UserOp, Pimlico simulates it off-chain first. When the firewall's `TokenNotCleared()` revert fires during simulation, the UserOp is dropped before reaching the chain — zero gas paid. Traditional firewalls cost gas even when they block a threat. Aegis blocks threats for free.
 
 ### Raw Output (no formatting — just facts)
 
